@@ -1648,37 +1648,30 @@ async function doHoshuConfirm() {
       return;
     }
 
-    // jikan文字列（"h:mm"形式）を時間(h)に変換するヘルパー
-    const parseJikanH = jStr => {
-      if (!jStr) return 0;
-      const parts = String(jStr).split(':');
-      return (parseInt(parts[0]) || 0) + (parseInt(parts[1]) || 0) / 60;
-    };
-
     // 打ち手別に差玉・期待時給（加重平均）・現金投資を集計 ＆ 最後のセッション行番号を記録
-    // 期待時給の加重平均：稼働時間ベース（AppA v7と同じロジック）
+    // 期待時給の加重平均：仕事量（shigoto）ベース
     const byUchi = {};
     todayRecs.forEach(r => {
       const uchi = r.uchi || '自分';
       if (uchi === '自分') return; // 自分は報酬対象外
       if (!byUchi[uchi]) byUchi[uchi] = {
         sagitamaTotal: 0,
-        kitaiJikyuWeightedSum: 0,  // 期待時給×稼働時間の合計
-        kitaiJikyuWeightTotal: 0,  // 稼働時間の合計（加重平均用）
+        kitaiJikyuWeightedSum: 0,  // 期待時給×仕事量の合計
+        kitaiJikyuWeightTotal: 0,  // 仕事量の合計（加重平均用）
         genkinInvestTotal: 0,
         lastRow: null,
         count: 0
       };
       byUchi[uchi].sagitamaTotal += (r.sagitama || 0);
       byUchi[uchi].genkinInvestTotal += (r.genkinInvest || 0);
-      // 稼働時間ベースの加重平均（期待時給の判定に使用）
+      // 仕事量（shigoto）ベースの加重平均（期待時給の判定に使用）
       if (r.kitaiJikyu != null && r.kitaiJikyu !== '') {
-        const jH = parseJikanH(r.jikan); // 稼働時間(h)
-        if (jH > 0) {
-          byUchi[uchi].kitaiJikyuWeightedSum += r.kitaiJikyu * jH;
-          byUchi[uchi].kitaiJikyuWeightTotal += jH;
+        const w = Math.abs(r.shigoto || 0); // 仕事量の絶対値を重みとして使用
+        if (w > 0) {
+          byUchi[uchi].kitaiJikyuWeightedSum += r.kitaiJikyu * w;
+          byUchi[uchi].kitaiJikyuWeightTotal += w;
         } else {
-          // jikanが未入力の場合は重み1として加算
+          // shigotoが0または未定義の場合は重み1でフォールバック
           byUchi[uchi].kitaiJikyuWeightedSum += r.kitaiJikyu;
           byUchi[uchi].kitaiJikyuWeightTotal += 1;
         }
@@ -1697,7 +1690,7 @@ async function doHoshuConfirm() {
     }
 
     // 確定報酬を計算（期待時給1800円以上→5千スタート、未満→1万スタート + 持ち玉控除）
-    // 期待時給の判定はAppA v7修正後のH列（持ち玉100%ベース）の稼働時間加重平均を使用
+    // 期待時給の判定はAppA v7修正後のH列（持ち玉100%ベース）の仕事量加重平均を使用
     const newRows = entries.map(([uchi, d]) => {
       const avgKitaiJikyu = d.kitaiJikyuWeightTotal > 0
         ? d.kitaiJikyuWeightedSum / d.kitaiJikyuWeightTotal
