@@ -1,0 +1,1761 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>PACHINKO BOARD</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#080c10;--surface:#0d1117;--surface2:#141b24;--surface3:#1c2530;
+  --border:#1e2d3d;--accent:#00d4ff;--green:#39ff6e;--warn:#c8b400;
+  --red:#ff4466;--text:#e2e8f0;--text2:#8899aa;--text3:#4a5a6a;
+  --magenta:#ff6bff;--radius:12px;--radius-sm:8px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans JP',sans-serif;min-height:100vh;max-width:430px;margin:0 auto;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,212,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,0.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
+.app{position:relative;z-index:1;padding-bottom:80px;}
+.header{padding:14px 16px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);background:rgba(8,12,16,0.95);backdrop-filter:blur(10px);position:sticky;top:0;z-index:100;}
+.app-title{font-family:'Rajdhani',sans-serif;font-size:18px;font-weight:700;letter-spacing:3px;color:var(--accent);}
+.header-sub{font-size:11px;color:var(--text2);font-family:'JetBrains Mono',monospace;margin-top:2px;}
+.reload-btn{background:none;border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 10px;color:var(--text2);font-size:11px;cursor:pointer;font-family:'JetBrains Mono',monospace;}
+.reload-btn:active{border-color:var(--accent);color:var(--accent);}
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:rgba(8,12,16,0.97);border-top:1px solid var(--border);display:flex;backdrop-filter:blur(10px);z-index:100;}
+.nav-btn{flex:1;padding:10px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;border:none;background:none;color:var(--text3);font-size:10px;font-family:'Noto Sans JP',sans-serif;letter-spacing:1px;}
+.nav-btn.active{color:var(--accent);}
+.nav-btn .icon{font-size:20px;line-height:1;}
+.tab-content{display:none;padding:12px 12px 0;}
+.tab-content.active{display:block;}
+.filter-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;margin-bottom:10px;}
+.filter-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.filter-row:last-child{margin-bottom:0;}
+.filter-label{font-size:9px;color:var(--text3);letter-spacing:1px;font-family:'JetBrains Mono',monospace;width:32px;flex-shrink:0;}
+.filter-chips{display:flex;gap:6px;overflow-x:auto;flex:1;}
+.filter-chips::-webkit-scrollbar{display:none;}
+.chip{background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:4px 10px;font-size:10px;color:var(--text2);white-space:nowrap;cursor:pointer;font-family:'JetBrains Mono',monospace;letter-spacing:1px;transition:all 0.15s;}
+.chip.active{background:rgba(0,212,255,0.1);border-color:var(--accent);color:var(--accent);}
+.summary-bar{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;margin-bottom:10px;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
+.sb-item{text-align:center;}
+.sb-label{font-size:9px;color:var(--text3);letter-spacing:1px;font-family:'JetBrains Mono',monospace;margin-bottom:2px;}
+.sb-val{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;}
+.sb-val.pos{color:var(--green);}
+.sb-val.neg{color:var(--red);}
+.record-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:11px 12px;margin-bottom:7px;position:relative;overflow:hidden;cursor:pointer;}
+.record-card::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:var(--text3);}
+.record-card.pos::before{background:var(--green);}
+.record-card.neg::before{background:var(--red);}
+.record-card:active{border-color:var(--accent);}
+.rc-row1{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5px;}
+.rc-left1{flex:1;}
+.rc-date{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text2);}
+.rc-shop-dai{font-size:10px;color:var(--text3);margin-top:1px;}
+.rc-kishu{font-size:13px;font-weight:500;margin-top:2px;}
+.rc-right1{text-align:right;}
+.rc-kosshi{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;line-height:1.2;}
+.rc-kosshi.pos{color:var(--green);}
+.rc-kosshi.neg{color:var(--red);}
+.rc-jikan{font-size:10px;color:var(--text2);font-family:'JetBrains Mono',monospace;}
+.rc-divider{height:1px;background:var(--border);margin:7px 0;}
+.rc-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;}
+.rc-stat{background:var(--surface2);border-radius:6px;padding:5px 6px;}
+.rc-stat-label{font-size:8px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-bottom:2px;}
+.rc-stat-val{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;}
+.rc-stat-val.pos{color:var(--green);}
+.rc-stat-val.neg{color:var(--red);}
+.rc-stat-val.info{color:var(--accent);}
+.rc-footer{display:flex;justify-content:space-between;align-items:center;margin-top:7px;}
+.rc-uchi-badge{background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);color:var(--accent);font-size:9px;padding:2px 8px;border-radius:10px;font-family:'JetBrains Mono',monospace;}
+.rc-uchi-badge.owner{background:rgba(57,255,110,0.08);border-color:rgba(57,255,110,0.2);color:var(--green);}
+.load-more{width:100%;padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text2);font-size:12px;font-family:'Rajdhani',sans-serif;letter-spacing:2px;cursor:pointer;margin-top:4px;}
+.load-more:active{border-color:var(--accent);color:var(--accent);}
+.detail-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:200;display:none;align-items:flex-start;}
+.detail-overlay.show{display:flex;}
+.detail-panel{background:var(--surface);border-bottom:1px solid var(--accent);border-radius:0 0 var(--radius) var(--radius);width:100%;max-width:430px;margin:0 auto;max-height:85vh;overflow-y:auto;padding:16px 14px 24px;}
+.detail-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 14px;}
+.detail-title{font-family:'Rajdhani',sans-serif;font-size:16px;letter-spacing:2px;color:var(--accent);margin-bottom:2px;}
+.detail-sub{font-size:11px;color:var(--text2);margin-bottom:14px;line-height:1.6;}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:14px;}
+.detail-item{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 10px;}
+.detail-label{font-size:9px;color:var(--text3);letter-spacing:1px;font-family:'JetBrains Mono',monospace;margin-bottom:3px;}
+.detail-val{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;}
+.detail-val.pos{color:var(--green);}
+.detail-val.neg{color:var(--red);}
+.detail-val.info{color:var(--accent);}
+.delete-btn{width:100%;padding:13px;background:rgba(255,68,102,0.08);border:1px solid rgba(255,68,102,0.25);border-radius:var(--radius-sm);color:var(--red);font-size:13px;font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:2px;cursor:pointer;}
+.delete-btn:active{background:rgba(255,68,102,0.2);}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:300;display:none;align-items:center;justify-content:center;padding:20px;}
+.modal-overlay.show{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;width:100%;max-width:320px;}
+.modal-title{font-family:'Rajdhani',sans-serif;font-size:15px;letter-spacing:2px;margin-bottom:10px;}
+.modal-msg{font-size:12px;color:var(--text2);margin-bottom:18px;line-height:1.8;white-space:pre-line;}
+.modal-btns{display:flex;gap:8px;}
+.modal-btn{flex:1;padding:11px;border-radius:var(--radius-sm);font-size:13px;font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:1px;cursor:pointer;border:none;}
+.modal-btn.ok{background:var(--red);color:#fff;}
+.modal-btn.cancel{background:var(--surface2);color:var(--text2);}
+.loading{text-align:center;padding:60px 20px;color:var(--text3);font-family:'Rajdhani',sans-serif;letter-spacing:3px;font-size:13px;}
+.empty{text-align:center;padding:60px 20px;color:var(--text3);font-size:12px;}
+
+/* スケルトンUI */
+@keyframes skeleton-wave {
+  0%{background-position:200% center}
+  100%{background-position:-200% center}
+}
+.skeleton{
+  background:linear-gradient(90deg,var(--surface2) 25%,var(--surface3) 50%,var(--surface2) 75%);
+  background-size:200% 100%;
+  animation:skeleton-wave 1.5s ease infinite;
+  border-radius:var(--radius-sm);
+}
+.sk-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:11px 12px;margin-bottom:7px;position:relative;overflow:hidden;}
+.sk-card::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:var(--text3);}
+.sk-row1{display:flex;justify-content:space-between;margin-bottom:8px;}
+.sk-date{height:10px;width:30%;}
+.sk-kishu{height:16px;width:55%;margin-top:6px;}
+.sk-kosshi{height:22px;width:70px;}
+.sk-divider{height:1px;background:var(--border);margin:8px 0;}
+.sk-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;}
+.sk-stat{background:var(--surface2);border-radius:6px;padding:5px 6px;}
+.sk-stat-label{height:8px;width:60%;margin-bottom:6px;}
+.sk-stat-val{height:12px;width:80%;}
+/* サマリーバースケルトン */
+.sk-sb{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px;}
+.sk-sb-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px;text-align:center;}
+.sk-sb-label{height:9px;width:70%;margin:0 auto 6px;}
+.sk-sb-val{height:14px;width:60%;margin:0 auto;}
+.kg{color:#ff6bff;}.kb{color:var(--accent);}.ko{color:var(--green);}.kw{color:var(--warn);}.kn{color:var(--red);}.warn{color:var(--warn);}
+
+/* 報酬タブ */
+.hoshu-confirm-btn{width:100%;padding:14px;background:rgba(255,107,255,0.08);border:1px solid rgba(255,107,255,0.35);border-radius:var(--radius);color:var(--magenta);font-size:14px;font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:2px;cursor:pointer;margin-bottom:6px;}
+.hoshu-confirm-btn:active{background:rgba(255,107,255,0.18);}
+.hoshu-confirm-btn:disabled{opacity:0.5;cursor:not-allowed;}
+.hoshu-result-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;display:none;}
+.hoshu-result-panel.show{display:block;}
+.hoshu-result-title{font-family:'Rajdhani',sans-serif;font-size:12px;letter-spacing:2px;color:var(--text2);margin-bottom:10px;}
+.hoshu-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px;}
+.hoshu-row:last-child{border-bottom:none;}
+.hoshu-uchi{color:var(--text);font-size:13px;}
+.hoshu-vals{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text2);margin-top:2px;}
+.hoshu-yen{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:var(--magenta);}
+.hoshu-written{font-size:10px;color:var(--green);font-family:'JetBrains Mono',monospace;margin-top:2px;}
+.hoshu-delete-btn{background:none;border:1px solid rgba(255,68,102,0.3);border-radius:6px;padding:4px 8px;color:var(--red);font-size:10px;font-family:'JetBrains Mono',monospace;cursor:pointer;margin-top:4px;}
+.hoshu-delete-btn:active{background:rgba(255,68,102,0.15);}
+
+/* 機種マスタ メーカーフィルタ */
+.maker-filter-row{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;flex-wrap:nowrap;}
+.maker-filter-row::-webkit-scrollbar{display:none;}
+
+/* 設定タブ */
+.set-input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 10px;color:var(--text);font-size:13px;font-family:'Noto Sans JP',sans-serif;outline:none;}
+.set-input:focus{border-color:var(--accent);}
+.set-btn-save{flex:1;padding:11px;background:rgba(0,212,255,0.1);border:1px solid var(--accent);border-radius:var(--radius-sm);color:var(--accent);font-size:13px;font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:1px;cursor:pointer;}
+.set-btn-cancel{flex:1;padding:11px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text2);font-size:13px;font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:1px;cursor:pointer;}
+.set-btn-add{width:100%;padding:10px;background:none;border:1px dashed var(--border);border-radius:var(--radius-sm);color:var(--text3);font-size:12px;cursor:pointer;margin-top:4px;font-family:'JetBrains Mono',monospace;letter-spacing:1px;}
+.set-btn-add:active{border-color:var(--accent);color:var(--accent);}
+.set-row{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--border);}
+.set-row:last-of-type{border-bottom:none;}
+.set-row-name{flex:1;font-size:13px;}
+.set-row-sub{font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-top:2px;}
+.set-row-actions{display:flex;gap:6px;flex-shrink:0;}
+.set-icon-btn{background:none;border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:11px;cursor:pointer;color:var(--text2);}
+.set-icon-btn.edit:active{border-color:var(--accent);color:var(--accent);}
+.set-icon-btn.del:active{border-color:var(--red);color:var(--red);}
+.set-row.selected{background:rgba(0,212,255,0.05);border-radius:var(--radius-sm);padding:9px 6px;}
+
+/* 分析タブ */
+.an-tabs{display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;}
+.an-tabs::-webkit-scrollbar{display:none;}
+.an-tab{background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:5px 12px;font-size:10px;color:var(--text2);white-space:nowrap;cursor:pointer;font-family:'JetBrains Mono',monospace;letter-spacing:1px;}
+.an-tab.active{background:rgba(0,212,255,0.1);border-color:var(--accent);color:var(--accent);}
+.an-section{display:none;}
+.an-section.active{display:block;}
+.an-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:10px;}
+.an-card-title{font-family:'Rajdhani',sans-serif;font-size:12px;letter-spacing:2px;color:var(--text2);margin-bottom:10px;}
+.rank-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);}
+.rank-row:last-child{border-bottom:none;}
+.rank-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);width:18px;flex-shrink:0;}
+.rank-name{flex:1;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.rank-sub{font-size:9px;color:var(--text3);margin-top:1px;font-family:'JetBrains Mono',monospace;}
+.rank-val{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;text-align:right;flex-shrink:0;}
+.rank-val.pos{color:var(--green);}
+.rank-val.neg{color:var(--red);}
+.rank-bar-wrap{width:100%;height:3px;background:var(--surface2);border-radius:2px;margin-top:4px;}
+.rank-bar{height:3px;border-radius:2px;background:var(--accent);}
+.rank-bar.neg{background:var(--red);}
+canvas{display:block;width:100%;border-radius:var(--radius-sm);}
+.un-dist{display:flex;align-items:flex-end;gap:3px;height:80px;margin-top:8px;}
+.un-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;}
+.un-bar{width:100%;border-radius:3px 3px 0 0;min-height:2px;}
+.un-bar-label{font-size:8px;color:var(--text3);font-family:'JetBrains Mono',monospace;}
+.an-period{display:flex;gap:6px;margin-bottom:10px;}
+.an-period-btn{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 10px;font-size:10px;color:var(--text2);cursor:pointer;font-family:'JetBrains Mono',monospace;}
+.an-period-btn.active{border-color:var(--accent);color:var(--accent);}
+
+/* ホームタブ */
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.cal-title{font-family:'Rajdhani',sans-serif;font-size:18px;font-weight:700;letter-spacing:2px;color:var(--text);}
+.cal-nav-btn{background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;color:var(--text2);font-size:14px;cursor:pointer;}
+.cal-nav-btn:active{border-color:var(--accent);color:var(--accent);}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+.cal-dow{text-align:center;font-size:9px;color:var(--text3);font-family:'JetBrains Mono',monospace;padding:4px 0;letter-spacing:1px;}
+.cal-dow.sun{color:#ff6b8a;}.cal-dow.sat{color:var(--accent);}
+.cal-cell{min-height:48px;background:var(--surface2);border-radius:5px;padding:4px;display:flex;flex-direction:column;align-items:center;gap:1px;cursor:pointer;position:relative;}
+.cal-cell.empty{background:none;cursor:default;}
+.cal-cell.today{border:1px solid var(--accent);}
+.cal-cell.has-rec:active{opacity:0.7;}
+.cal-day{font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace;line-height:1;}
+.cal-day.sun{color:#ff6b8a;}.cal-day.sat{color:var(--accent);}
+.cal-val{font-size:10px;font-weight:700;font-family:'JetBrains Mono',monospace;line-height:1.2;}
+.cal-val.pos{color:var(--green);}.cal-val.neg{color:var(--red);}
+.cal-dot{width:4px;height:4px;border-radius:50%;background:var(--text3);margin-top:1px;}
+.home-summary{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;}
+.home-summary-3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px;}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div>
+      <div class="app-title">PACHINKO BOARD</div>
+      <div class="header-sub" id="header-sub">読み込み中...</div>
+    </div>
+    <button class="reload-btn" onclick="loadRecords()">↺ 更新</button>
+  </div>
+
+  <!-- ホームタブ -->
+  <div class="tab-content active" id="tab-home">
+    <div class="an-card">
+      <div class="cal-header">
+        <button class="cal-nav-btn" onclick="calPrev()">‹</button>
+        <div class="cal-title" id="cal-title">—</div>
+        <button class="cal-nav-btn" onclick="calNext()">›</button>
+      </div>
+      <div class="cal-grid">
+        <div class="cal-dow sun">SUN</div>
+        <div class="cal-dow">MON</div>
+        <div class="cal-dow">TUE</div>
+        <div class="cal-dow">WED</div>
+        <div class="cal-dow">THU</div>
+        <div class="cal-dow">FRI</div>
+        <div class="cal-dow sat">SAT</div>
+      </div>
+      <div class="cal-grid" id="cal-body"></div>
+    </div>
+    <div class="an-card" id="home-summary"></div>
+  </div>
+
+  <div class="tab-content" id="tab-records">
+    <div class="filter-section">
+      <div class="filter-row">
+        <div class="filter-label">打ち手</div>
+        <div class="filter-chips" id="uchi-filter"></div>
+      </div>
+      <div class="filter-row">
+        <div class="filter-label">月</div>
+        <div class="filter-chips" id="month-filter"></div>
+      </div>
+    </div>
+    <div class="summary-bar">
+      <div class="sb-item"><div class="sb-label">SESSIONS</div><div class="sb-val" id="sb-count">—</div></div>
+      <div class="sb-item"><div class="sb-label">TOTAL</div><div class="sb-val" id="sb-total">—</div></div>
+      <div class="sb-item"><div class="sb-label">WIN RATE</div><div class="sb-val" id="sb-winrate">—</div></div>
+    </div>
+    <div id="records-list"><div class="loading">LOADING...</div></div>
+  </div>
+
+  <div class="tab-content" id="tab-analysis">
+    <div class="an-tabs">
+      <div class="an-tab active" onclick="switchAnTab('monthly')">月別</div>
+      <div class="an-tab" onclick="switchAnTab('kishu')">機種別</div>
+      <div class="an-tab" onclick="switchAnTab('uchi')">打ち手別</div>
+      <div class="an-tab" onclick="switchAnTab('overall')">総合</div>
+    </div>
+
+    <!-- 月別 -->
+    <div class="an-section active" id="an-monthly">
+      <div id="monthly-list"></div>
+    </div>
+
+    <!-- 機種別 -->
+    <div class="an-section" id="an-kishu">
+      <div id="kishu-list"></div>
+    </div>
+
+    <!-- 打ち手別 -->
+    <div class="an-section" id="an-uchi">
+      <div id="uchi-list"></div>
+    </div>
+
+    <!-- 総合 -->
+    <div class="an-section" id="an-overall">
+      <div class="an-period">
+        <button class="an-period-btn active" onclick="setRankPeriod('all',this)">全期間</button>
+        <button class="an-period-btn" onclick="setRankPeriod('3m',this)">3ヶ月</button>
+        <button class="an-period-btn" onclick="setRankPeriod('1m',this)">当月</button>
+      </div>
+      <div class="an-card">
+        <div class="an-card-title">機種別収支ランキング</div>
+        <div id="rank-kishu"></div>
+      </div>
+      <div class="an-card">
+        <div class="an-card-title">店別収支ランキング</div>
+        <div id="rank-shop"></div>
+      </div>
+      <div class="an-card">
+        <div class="an-card-title">機種別 平均期待時給</div>
+        <div id="rank-kitai-kishu"></div>
+      </div>
+      <div class="an-card">
+        <div class="an-card-title">店別 平均期待時給</div>
+        <div id="rank-kitai-shop"></div>
+      </div>
+      <div class="an-card">
+        <div class="an-card-title">運% 分布</div>
+        <div id="un-summary" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px;"></div>
+        <div class="un-dist" id="un-dist"></div>
+        <div style="display:flex;justify-content:space-between;margin-top:4px;">
+          <span style="font-size:9px;color:var(--text3);font-family:'JetBrains Mono',monospace;">0%</span>
+          <span style="font-size:9px;color:var(--text3);font-family:'JetBrains Mono',monospace;">100%</span>
+          <span style="font-size:9px;color:var(--text3);font-family:'JetBrains Mono',monospace;">200%+</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- 報酬タブ -->
+  <div class="tab-content" id="tab-hoshu">
+    <button class="hoshu-confirm-btn" id="hoshu-confirm-btn" onclick="doHoshuConfirm()">💰 報酬確定</button>
+    <div style="font-size:10px;color:var(--text3);text-align:center;margin-bottom:10px;font-family:'JetBrains Mono',monospace;letter-spacing:1px;">※ 全データ送信完了後に押してください</div>
+    <div class="hoshu-result-panel" id="hoshu-result-panel">
+      <div class="hoshu-result-title">REWARD SUMMARY</div>
+      <div id="hoshu-result-body"></div>
+    </div>
+  </div>
+
+  <!-- マスタタブ -->
+  <div class="tab-content" id="tab-master">
+    <div class="an-tabs">
+      <div class="an-tab active" onclick="switchSetTab('shop')">店</div>
+      <div class="an-tab" onclick="switchSetTab('kishu')">機種</div>
+      <div class="an-tab" onclick="switchSetTab('uchi')">打ち手</div>
+    </div>
+
+    <!-- 店マスタ -->
+    <div class="an-section active" id="set-shop">
+      <div class="an-card" id="set-shop-form">
+        <div class="an-card-title" id="set-shop-form-title">新規追加</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+          <div>
+            <div class="detail-label">店名</div>
+            <input class="set-input" id="shop-name" type="text" placeholder="店名">
+          </div>
+          <div>
+            <div class="detail-label">換金率（玉/100円）</div>
+            <input class="set-input" id="shop-kokan" type="number" placeholder="28">
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="set-btn-save" onclick="saveShop()">保存</button>
+          <button class="set-btn-cancel" onclick="cancelSetEdit('shop')">キャンセル</button>
+        </div>
+      </div>
+      <div class="an-card" id="set-shop-list"></div>
+    </div>
+
+    <!-- 機種一覧 -->
+    <div class="an-section" id="set-kishu">
+      <div class="an-card" id="set-kishu-form">
+        <div class="an-card-title" id="set-kishu-form-title">新規追加</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+          <div>
+            <div class="detail-label">機種名</div>
+            <input class="set-input" id="kishu-name" type="text" placeholder="機種名" style="width:100%;">
+          </div>
+          <div>
+            <div class="detail-label">メーカー</div>
+            <select class="set-input" id="kishu-maker" style="width:100%;">
+              <option value="">未設定</option>
+              <option value="SANKYO">SANKYO</option>
+              <option value="京楽">京楽</option>
+              <option value="ニューギン">ニューギン</option>
+              <option value="SANYO">SANYO</option>
+              <option value="平和">平和</option>
+              <option value="サミー">サミー</option>
+              <option value="SanseiR&D">SanseiR&D</option>
+              <option value="DAIICHI">DAIICHI</option>
+              <option value="藤商事">藤商事</option>
+              <option value="大都技研">大都技研</option>
+              <option value="その他">その他</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px;">
+          <div><div class="detail-label">平均出玉</div><input class="set-input" id="kishu-heikin" type="number" placeholder="0"></div>
+          <div><div class="detail-label">トータル</div><input class="set-input" id="kishu-total" type="number" placeholder="0"></div>
+          <div><div class="detail-label">トータル1R</div><input class="set-input" id="kishu-total1r" type="number" placeholder="0"></div>
+          <div><div class="detail-label">時間効率</div><input class="set-input" id="kishu-jikan" type="number" placeholder="0"></div>
+          <div><div class="detail-label">初当たり</div><input class="set-input" id="kishu-hatsua" type="number" placeholder="0"></div>
+          <div><div class="detail-label">平均連</div><input class="set-input" id="kishu-heiren" type="number" placeholder="0"></div>
+        </div>
+        <div class="an-card-title" style="margin-bottom:6px;">ラウンド別出玉</div>
+        <div id="kishu-rounds-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;"></div>
+        <div style="display:flex;gap:8px;">
+          <button class="set-btn-save" onclick="saveKishu()">保存</button>
+          <button class="set-btn-cancel" onclick="cancelSetEdit('kishu')">キャンセル</button>
+        </div>
+      </div>
+      <!-- メーカーフィルタチップス -->
+      <div id="set-kishu-maker-filter" style="margin-bottom:6px;"></div>
+      <div class="an-card" id="set-kishu-list"></div>
+    </div>
+
+    <!-- 打ち手マスタ -->
+    <div class="an-section" id="set-uchi">
+      <div class="an-card" id="set-uchi-form">
+        <div class="an-card-title" id="set-uchi-form-title">新規追加</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+          <div>
+            <div class="detail-label">名前</div>
+            <input class="set-input" id="uchi-name" type="text" placeholder="打ち手名">
+          </div>
+          <div>
+            <div class="detail-label">タイプ</div>
+            <select class="set-input" id="uchi-type">
+              <option value="自分">自分</option>
+              <option value="代打ち">代打ち</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="set-btn-save" onclick="saveUchi()">保存</button>
+          <button class="set-btn-cancel" onclick="cancelSetEdit('uchi')">キャンセル</button>
+        </div>
+      </div>
+      <div class="an-card" id="set-uchi-list"></div>
+    </div>
+  </div>
+</div>
+<div class="bottom-nav">
+  <button class="nav-btn active" id="nav-home"     onclick="switchTab('home')"><div class="icon">🏠</div><div>ホーム</div></button>
+  <button class="nav-btn" id="nav-analysis" onclick="switchTab('analysis')"><div class="icon">📊</div><div>分析</div></button>
+  <button class="nav-btn" id="nav-records"  onclick="switchTab('records')"><div class="icon">📋</div><div>記録</div></button>
+  <button class="nav-btn" id="nav-hoshu"    onclick="switchTab('hoshu')"><div class="icon">💰</div><div>報酬</div></button>
+  <button class="nav-btn" id="nav-master"   onclick="switchTab('master')"><div class="icon">⚙️</div><div>マスタ</div></button>
+</div>
+<div class="detail-overlay" id="detailOverlay" onclick="closeDetail(event)">
+  <div class="detail-panel">
+    <div class="detail-handle"></div>
+    <div class="detail-title" id="detail-kishu">—</div>
+    <div class="detail-sub" id="detail-sub">—</div>
+    <div class="detail-grid" id="detail-grid"></div>
+    <button class="delete-btn" id="delete-btn">🗑️ この記録を削除</button>
+  </div>
+</div>
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal">
+    <div class="modal-title">削除確認</div>
+    <div class="modal-msg" id="confirm-msg"></div>
+    <div class="modal-btns">
+      <button class="modal-btn cancel" id="confirm-cancel">キャンセル</button>
+      <button class="modal-btn ok" id="confirm-ok">削除</button>
+    </div>
+  </div>
+</div>
+<script>
+const GAS_URL  = 'https://script.google.com/macros/s/AKfycbzFtMJ354oeVAeNVTGLckNVXX9I1URLJTrlMTafDNO6UPOf7yo3bnaac_yPKYV8hVv8/exec';
+const PAGE_SIZE = 30;
+let ALL_RECORDS = [], filterUchi = 'all', filterMonth = currentMonth(), showCount = PAGE_SIZE, currentRecord = null;
+
+function currentMonth() {
+  const t = new Date();
+  return t.getFullYear() + '-' + String(t.getMonth()+1).padStart(2,'0');
+}
+
+async function loadRecords() {
+  document.getElementById('records-list').innerHTML = '<div class="loading">LOADING...</div>';
+  document.getElementById('header-sub').textContent = '読み込み中...';
+  try {
+    const res  = await fetch(GAS_URL + '?action=records&limit=200', {redirect:'follow'});
+    const data = await res.json();
+    if (data.success) {
+      ALL_RECORDS = data.records;
+      showCount = PAGE_SIZE;
+      // 全タブをダーティにして現在タブのみ再描画
+      Object.keys(tabDirty).forEach(k => { tabDirty[k] = true; });
+      buildFilters();
+      tabDirty.records = false; render();
+    }
+  } catch(e) {
+    document.getElementById('records-list').innerHTML = '<div class="empty">データ取得失敗<br>更新ボタンを押してください</div>';
+    document.getElementById('header-sub').textContent = '取得失敗';
+  }
+}
+
+const CACHE_KEY = 'pachinkob_cache_v1';
+
+function saveCache(data) {
+  try { localStorage.setItem(CACHE_KEY, JSON.stringify({ts: Date.now(), data})); } catch(e) {}
+}
+function loadCache() {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw).data;
+  } catch(e) { return null; }
+}
+// 現在表示中のメインタブを追跡（初期値はホーム）
+let currentTab = 'home';
+
+// タブごとに「要再描画」フラグを管理（データ更新時にセット）
+const tabDirty = { home: true, analysis: true, records: true, master: true };
+
+// データ適用：グローバル変数を更新し、現在のタブのみ再描画
+function applyData(data) {
+  MASTERS     = {shops: data.shops, kishus: data.kishus, uchis: data.uchis};
+  ALL_RECORDS = data.records;
+  showCount   = PAGE_SIZE;
+  // 全タブをダーティにする（次に開いた時に再描画）
+  Object.keys(tabDirty).forEach(k => { tabDirty[k] = true; });
+  // フィルターは記録タブ用（軽量なので常に更新）
+  buildFilters();
+  // 現在表示中のタブだけ即座に描画
+  renderCurrentTab();
+}
+
+// 現在表示中のタブを描画
+function renderCurrentTab() {
+  if (currentTab === 'home')     { renderHome();     tabDirty.home     = false; }
+  if (currentTab === 'records')  { render();         tabDirty.records  = false; }
+  if (currentTab === 'analysis') { renderAnalysis(); tabDirty.analysis = false; }
+  if (currentTab === 'master')   { renderSetting();  tabDirty.master   = false; }
+}
+
+// スケルトンUIを表示（キャッシュなし時の初回ロード用）
+function showSkeleton() {
+  // サマリーバーのスケルトン
+  const sb = document.getElementById('sb-count');
+  if (sb) sb.textContent = '—';
+  document.getElementById('sb-total').textContent   = '—';
+  document.getElementById('sb-winrate').textContent = '—';
+
+  // 記録リストのスケルトンカードを3枚表示
+  const list = document.getElementById('records-list');
+  const skCard = () => `
+    <div class="sk-card">
+      <div class="sk-row1">
+        <div style="flex:1">
+          <div class="skeleton sk-date"></div>
+          <div class="skeleton sk-kishu"></div>
+        </div>
+        <div><div class="skeleton sk-kosshi"></div></div>
+      </div>
+      <div class="sk-divider"></div>
+      <div class="sk-stats">
+        ${Array(6).fill(0).map(()=>`<div class="sk-stat"><div class="skeleton sk-stat-label"></div><div class="skeleton sk-stat-val"></div></div>`).join('')}
+      </div>
+    </div>`;
+  list.innerHTML = skCard() + skCard() + skCard();
+}
+
+async function loadInit() {
+  // キャッシュがあれば即座に表示
+  const cache = loadCache();
+  if (cache) {
+    applyData(cache);
+    document.getElementById('header-sub').textContent += ' （更新中...）';
+  } else {
+    // キャッシュなし時はスケルトンUIを表示
+    showSkeleton();
+    document.getElementById('header-sub').textContent = '読み込み中...';
+  }
+  // バックグラウンドでGASから最新取得
+  try {
+    const res  = await fetch(GAS_URL + '?action=init&limit=200', {redirect:'follow'});
+    const data = await res.json();
+    if (data.success) {
+      saveCache(data);
+      applyData(data);
+    }
+  } catch(e) {
+    if (!cache) {
+      document.getElementById('records-list').innerHTML = '<div class="empty">データ取得失敗<br>更新ボタンを押してください</div>';
+      document.getElementById('header-sub').textContent = '取得失敗';
+    }
+  }
+}
+
+function buildFilters() {
+  const uchis  = ['all', ...new Set(ALL_RECORDS.map(r => r.uchi).filter(Boolean))];
+  const months = ['all', ...new Set(ALL_RECORDS.map(r => r.date ? r.date.slice(0,7) : '').filter(Boolean))];
+  const uBar = document.getElementById('uchi-filter');
+  const mBar = document.getElementById('month-filter');
+  uBar.innerHTML = '';
+  mBar.innerHTML = '';
+  uchis.forEach(u => {
+    const c = makeChip(u === 'all' ? 'ALL' : u, u === filterUchi, () => {
+      filterUchi = u; buildFilters(); showCount = PAGE_SIZE;
+      tabDirty.records = false; render(); // フィルター変更→即時描画
+    });
+    uBar.appendChild(c);
+  });
+  months.forEach(m => {
+    const c = makeChip(m === 'all' ? 'ALL' : m.replace('-','年')+'月', m === filterMonth, () => {
+      filterMonth = m; buildFilters(); showCount = PAGE_SIZE;
+      tabDirty.records = false; render(); // フィルター変更→即時描画
+    });
+    c.dataset.val = m;
+    mBar.appendChild(c);
+  });
+}
+
+function makeChip(label, active, fn) {
+  const c = document.createElement('div');
+  c.className = 'chip' + (active ? ' active' : '');
+  c.textContent = label;
+  c.onclick = fn;
+  return c;
+}
+
+function filtered() {
+  return ALL_RECORDS.filter(r => {
+    const uOk = filterUchi  === 'all' || r.uchi  === filterUchi;
+    const mOk = filterMonth === 'all' || (r.date && r.date.startsWith(filterMonth));
+    return uOk && mOk;
+  });
+}
+
+function render() {
+  const recs  = filtered();
+  const total = recs.reduce((s, r) => s + (r.kosshi || 0), 0);
+  const wins  = recs.filter(r => (r.kosshi || 0) > 0).length;
+  const wr    = recs.length > 0 ? Math.round(wins / recs.length * 100) : 0;
+  document.getElementById('sb-count').textContent = recs.length + '件';
+  const tel = document.getElementById('sb-total');
+  tel.textContent = (total >= 0 ? '+' : '') + Math.round(total).toLocaleString('ja-JP');
+  tel.className   = 'sb-val ' + (total >= 0 ? 'pos' : 'neg');
+  document.getElementById('sb-winrate').textContent = wr + '%';
+  document.getElementById('header-sub').textContent = '全' + ALL_RECORDS.length + '件 / 表示' + Math.min(showCount, recs.length) + '件';
+
+  const list = document.getElementById('records-list');
+  if (recs.length === 0) { list.innerHTML = '<div class="empty">該当する記録がありません</div>'; return; }
+  list.innerHTML = '';
+  recs.slice(0, showCount).forEach(r => list.appendChild(makeCard(r)));
+  if (recs.length > showCount) {
+    const btn = document.createElement('button');
+    btn.className   = 'load-more';
+    btn.textContent = `▼ さらに読み込む（残り${recs.length - showCount}件）`;
+    btn.onclick     = () => { showCount += PAGE_SIZE; render(); };
+    list.appendChild(btn);
+  }
+}
+
+function makeCard(r) {
+  const pos  = (r.kosshi || 0) >= 0;
+  const card = document.createElement('div');
+  card.className = 'record-card ' + (pos ? 'pos' : 'neg');
+  card.onclick   = () => openDetail(r);
+  const isOwner = !r.uchi || r.uchi === '自分';
+  const stats = [
+    {label:'期待時給', val: fmtKitai(r.kitaiJikyu), cls: kitaiCls(r.kitaiJikyu)},
+    {label:'仕事量',   val: fmtYen(r.shigoto),  cls: signCls(r.shigoto)},
+    {label:'総回転',   val: r.soKaiten ? Math.round(r.soKaiten).toLocaleString('ja-JP')+'回' : '—', cls:'info'},
+    {label:'回転率',   val: r.kaitenRitsu ? r.kaitenRitsu+'回/千円' : '—', cls:''},
+    {label:'差玉',     val: r.sagitama != null ? (r.sagitama>=0?'+':'')+Math.round(r.sagitama).toLocaleString('ja-JP')+'玉' : '—', cls: signCls(r.sagitama)},
+    {label:'運(%)',    val: normalizeUn(r.un) != null ? Math.round(normalizeUn(r.un))+'%' : '—', cls: (normalizeUn(r.un)||0)>=100?'pos':(normalizeUn(r.un)||0)>=70?'':'neg'},
+  ];
+  card.innerHTML = `
+    <div class="rc-row1">
+      <div class="rc-left1">
+        <div class="rc-date">${r.date||'—'}</div>
+        <div class="rc-shop-dai">${r.shop||'—'}${r.daiban ? '　台：'+r.daiban : ''}</div>
+        <div class="rc-kishu">${r.kishu||'—'}</div>
+      </div>
+      <div class="rc-right1">
+        <div class="rc-kosshi ${pos?'pos':'neg'}">${(r.kosshi>=0?'+':'')}${Math.round(r.kosshi||0).toLocaleString('ja-JP')}</div>
+        <div class="rc-jikan">${r.jikan||'—'}</div>
+      </div>
+    </div>
+    <div class="rc-divider"></div>
+    <div class="rc-stats">${stats.map(s=>`<div class="rc-stat"><div class="rc-stat-label">${s.label}</div><div class="rc-stat-val ${s.cls}">${s.val}</div></div>`).join('')}</div>
+    <div class="rc-footer">
+      <span class="rc-uchi-badge ${isOwner?'owner':''}">${r.uchi||'自分'}</span>
+      ${r.hoshu ? `<span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--green);">報酬 ¥${Math.round(r.hoshu).toLocaleString('ja-JP')}</span>` : ''}
+    </div>`;
+  return card;
+}
+
+function openDetail(r) {
+  currentRecord = r;
+  document.getElementById('delete-btn').style.display = '';
+  document.getElementById('detail-kishu').textContent = r.kishu || '—';
+  document.getElementById('detail-sub').textContent =
+    [r.date, r.shop, r.daiban ? '台：'+r.daiban : '', r.uchi||'自分'].filter(Boolean).join('　');
+  const items = [
+    {label:'収支',       val: fmtYen(r.kosshi),       cls: signCls(r.kosshi)},
+    {label:'稼働時間',   val: r.jikan||'—',           cls:''},
+    {label:'差玉',       val: r.sagitama!=null ? (r.sagitama>=0?'+':'')+Math.round(r.sagitama).toLocaleString('ja-JP')+'玉':'—', cls:signCls(r.sagitama)},
+    {label:'期待時給',   val: fmtKitai(r.kitaiJikyu), cls: kitaiCls(r.kitaiJikyu)},
+    {label:'仕事量',     val: fmtYen(r.shigoto),      cls: signCls(r.shigoto)},
+    {label:'仕事量時給', val: fmtYen(r.shigotoJikyu), cls:''},
+    {label:'総回転',     val: r.soKaiten ? Math.round(r.soKaiten).toLocaleString('ja-JP')+'回':'—', cls:'info'},
+    {label:'回転率',     val: r.kaitenRitsu ? r.kaitenRitsu+'回/千円':'—', cls:'info'},
+    {label:'ボーダー',   val: r.border ? r.border+'回/千円':'—', cls:''},
+    {label:'運(%)',      val: normalizeUn(r.un)!=null ? Math.round(normalizeUn(r.un))+'%':'—', cls:(normalizeUn(r.un)||0)>=100?'pos':(normalizeUn(r.un)||0)>=70?'':'neg'},
+    {label:'報酬',       val: r.hoshu ? '¥'+Math.round(r.hoshu).toLocaleString('ja-JP'):'¥0', cls:'pos'},
+  ];
+  document.getElementById('detail-grid').innerHTML = items.map(i =>
+    `<div class="detail-item"><div class="detail-label">${i.label}</div><div class="detail-val ${i.cls}">${i.val}</div></div>`
+  ).join('');
+  document.getElementById('detailOverlay').classList.add('show');
+}
+
+function closeDetail(e) {
+  if (e && e.target !== document.getElementById('detailOverlay')) return;
+  document.getElementById('detailOverlay').classList.remove('show');
+  currentRecord = null;
+}
+
+document.getElementById('delete-btn').onclick = () => {
+  if (!currentRecord) return;
+  showConfirm(`${currentRecord.date}　${currentRecord.kishu}\n収支：${fmtYen(currentRecord.kosshi)}\n\nこの記録を削除しますか？`, async () => {
+    try {
+      await fetch(GAS_URL, {method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain'},body:JSON.stringify({action:'delete',row:currentRecord.row})});
+    } catch(e) {}
+    document.getElementById('detailOverlay').classList.remove('show');
+    ALL_RECORDS = ALL_RECORDS.filter(r => r.row !== currentRecord.row);
+    currentRecord = null;
+    // キャッシュ更新
+    saveCache({shops: MASTERS.shops, kishus: MASTERS.kishus, uchis: MASTERS.uchis, records: ALL_RECORDS});
+    // 全タブをダーティにして現在タブのみ再描画
+    Object.keys(tabDirty).forEach(k => { tabDirty[k] = true; });
+    buildFilters();
+    tabDirty.records = false; render();
+  });
+};
+
+function fmtYen(v) { if (v==null||v==='') return '—'; return (v>=0?'+':'')+Math.round(v).toLocaleString('ja-JP')+'円'; }
+function fmtKitai(v) { if (v==null||v==='') return '—'; return (v>=0?'+':'')+Math.round(v).toLocaleString('ja-JP')+'円'; }
+function signCls(v) { if (v==null||v==='') return ''; return v>=0?'pos':'neg'; }
+function kitaiCls(v) { if (v==null||v==='') return ''; if(v>=3000)return 'kg'; if(v>=2500)return 'kb'; if(v>=2000)return 'ko'; if(v>=1500)return 'kw'; return 'kn'; }
+
+// 運%正規化：スプシから小数（例:1.05）で来た場合は×100して整数相当に変換
+// 整数（例:105）の場合はそのまま返す
+function normalizeUn(v) {
+  if (v == null || v === '') return null;
+  const n = parseFloat(v);
+  if (isNaN(n)) return null;
+  // 10未満の小数値（0.xx〜9.xx）は明らかに×100が必要
+  return n < 10 ? n * 100 : n;
+}
+
+let _cb = null;
+let currentAnTab = 'monthly';
+let rankPeriod = 'all';
+
+// =============================================
+// タブ切り替え
+// =============================================
+function switchTab(tab) {
+  currentTab = tab;
+  ['home','analysis','records','hoshu','master'].forEach(t => {
+    document.getElementById('tab-'+t).classList.toggle('active', t === tab);
+    document.getElementById('nav-'+t).classList.toggle('active', t === tab);
+  });
+  // ダーティな場合のみ再描画（遅延レンダリング）
+  if (tab === 'home'     && tabDirty.home)     { renderHome();     tabDirty.home     = false; }
+  if (tab === 'analysis' && tabDirty.analysis) { renderAnalysis(); tabDirty.analysis = false; }
+  if (tab === 'records'  && tabDirty.records)  { render();         tabDirty.records  = false; }
+  if (tab === 'master'   && tabDirty.master)   { renderSetting();  tabDirty.master   = false; }
+}
+
+// =============================================
+// ホームタブ
+// =============================================
+let calYear  = new Date().getFullYear();
+let calMonth = new Date().getMonth(); // 0-indexed
+
+function calPrev() { calMonth--; if (calMonth < 0) { calMonth = 11; calYear--; } renderHome(); }
+function calNext() { calMonth++; if (calMonth > 11) { calMonth = 0;  calYear++; } renderHome(); }
+
+function renderHome() {
+  renderCalendar();
+  renderHomeSummary();
+}
+
+function renderCalendar() {
+  const today = new Date();
+  const firstDay = new Date(calYear, calMonth, 1).getDay(); // 0=Sun
+  const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
+
+  document.getElementById('cal-title').textContent =
+    calYear + '年' + (calMonth+1) + '月';
+
+  // 当月の収支をdateでマップ
+  const byDate = {};
+  ALL_RECORDS.forEach(r => {
+    if (!r.date) return;
+    const d = new Date(r.date);
+    if (d.getFullYear() !== calYear || d.getMonth() !== calMonth) return;
+    const key = d.getDate();
+    if (!byDate[key]) byDate[key] = {total:0, count:0};
+    byDate[key].total += (r.kosshi||0);
+    byDate[key].count++;
+  });
+
+  const cells = [];
+  // 空白セル
+  for (let i=0; i<firstDay; i++) cells.push('<div class="cal-cell empty"></div>');
+
+  for (let d=1; d<=daysInMonth; d++) {
+    const dow = (firstDay + d - 1) % 7;
+    const isToday = today.getFullYear()===calYear && today.getMonth()===calMonth && today.getDate()===d;
+    const rec = byDate[d];
+    const dayClass = dow===0?'sun':dow===6?'sat':'';
+    const dateStr = calYear+'-'+String(calMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    const clickAttr = rec ? `onclick="openCalDay('${dateStr}')"` : '';
+    cells.push(`<div class="cal-cell${isToday?' today':''}${rec?' has-rec':''}" ${clickAttr}>
+      <div class="cal-day ${dayClass}">${d}</div>
+      ${rec ? `<div class="cal-val ${rec.total>=0?'pos':'neg'}">${fmtCalVal(rec.total)}</div>
+               <div class="cal-dot" style="background:${rec.total>=0?'var(--green)':'var(--red)'}"></div>` : ''}
+    </div>`);
+  }
+
+  document.getElementById('cal-body').innerHTML = cells.join('');
+}
+
+function fmtCalVal(v) {
+  const abs = Math.abs(Math.round(v));
+  if (abs >= 10000) return (v>=0?'+':'-') + (abs/1000).toFixed(0) + 'k';
+  if (abs >= 1000)  return (v>=0?'+':'-') + (abs/1000).toFixed(1) + 'k';
+  return (v>=0?'+':'') + Math.round(v);
+}
+
+function openCalDay(dateStr) {
+  const recs = ALL_RECORDS.filter(r => r.date === dateStr);
+  if (!recs.length) return;
+  const total = recs.reduce((s,r) => s+(r.kosshi||0), 0);
+  document.getElementById('detail-kishu').textContent = dateStr;
+  document.getElementById('detail-sub').textContent   =
+    recs.length + '件　合計 ' + (total>=0?'+':'') + Math.round(total).toLocaleString('ja-JP') + '円';
+  document.getElementById('detail-grid').innerHTML = recs.map(r => `
+    <div style="padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer;" onclick="closeDetail();setTimeout(()=>openDetail(ALL_RECORDS.find(x=>x.row===${r.row})),150)">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px;">
+        <div>
+          <div style="font-size:13px;">${r.kishu||'—'}</div>
+          <div style="font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace;">${r.shop||'—'}　${r.jikan||'—'}　${r.uchi||'自分'}</div>
+        </div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;" class="${(r.kosshi||0)>=0?'pos':'neg'}">${((r.kosshi||0)>=0?'+':'')}${Math.round(r.kosshi||0).toLocaleString('ja-JP')}</div>
+      </div>
+      <div style="display:flex;gap:6px;">
+        <div style="font-size:10px;color:var(--text3);">期待時給 <span class="${kitaiCls(r.kitaiJikyu)}" style="font-family:'JetBrains Mono',monospace;">${r.kitaiJikyu!=null?fmtKitai(r.kitaiJikyu):'—'}</span></div>
+        <div style="font-size:10px;color:var(--text3);">仕事量 <span class="${signCls(r.shigoto)}" style="font-family:'JetBrains Mono',monospace;">${r.shigoto!=null?fmtYen(r.shigoto):'—'}</span></div>
+      </div>
+    </div>`).join('');
+  document.getElementById('delete-btn').style.display = 'none';
+  currentRecord = null;
+  document.getElementById('detailOverlay').classList.add('show');
+}
+
+function renderHomeSummary() {
+  const el = document.getElementById('home-summary');
+  // 年集計
+  const recs = ALL_RECORDS.filter(r => {
+    if (!r.date) return false;
+    return new Date(r.date).getFullYear() === calYear;
+  });
+
+  if (!recs.length) {
+    el.innerHTML = '<div class="empty" style="padding:16px">' + calYear + '年の記録なし</div>';
+    return;
+  }
+
+  const total    = recs.reduce((s,r) => s+(r.kosshi||0), 0);
+  const wins     = recs.filter(r => (r.kosshi||0) > 0).length;
+  const wr       = Math.round(wins/recs.length*100);
+  const jikanMin = recs.reduce((s,r) => s+jikanToMin(r.jikan), 0);
+  const jikyu    = jikanMin ? Math.round(total/(jikanMin/60)) : null;
+  const shigoto  = recs.reduce((s,r) => s+(r.shigoto||0), 0);
+  const days     = new Set(recs.map(r=>r.date)).size;
+  let unW=0, unV=0;
+  recs.forEach(r => { const un=normalizeUn(r.un); if(un!=null){const m=jikanToMin(r.jikan);unW+=m;unV+=un*m;} });
+  const avgUn = unW ? Math.round(unV/unW) : null;
+
+  el.innerHTML = `
+    <div class="an-card-title">${calYear}年 サマリー</div>
+    <div class="home-summary">
+      <div class="detail-item"><div class="detail-label">総収支</div><div class="detail-val ${signCls(total)}" style="font-size:20px;">${(total>=0?'+':'')}${Math.round(total).toLocaleString('ja-JP')}</div></div>
+      <div class="detail-item"><div class="detail-label">実時給</div><div class="detail-val ${signCls(jikyu)}" style="font-size:20px;">${jikyu!=null?fmtYen(jikyu):'—'}</div></div>
+    </div>
+    <div class="home-summary-3">
+      <div class="detail-item"><div class="detail-label">稼働回数</div><div class="detail-val" style="font-size:14px;">${recs.length}回</div></div>
+      <div class="detail-item"><div class="detail-label">稼働日数</div><div class="detail-val" style="font-size:14px;">${days}日</div></div>
+      <div class="detail-item"><div class="detail-label">勝率</div><div class="detail-val ${wr>=50?'pos':'neg'}" style="font-size:14px;">${wr}%</div></div>
+      <div class="detail-item"><div class="detail-label">稼働時間</div><div class="detail-val" style="font-size:14px;">${jikanMin?(jikanMin/60).toFixed(1)+'h':'—'}</div></div>
+      <div class="detail-item"><div class="detail-label">仕事量</div><div class="detail-val ${signCls(shigoto)}" style="font-size:14px;">${fmtYen(shigoto)}</div></div>
+      <div class="detail-item"><div class="detail-label">平均運%</div><div class="detail-val ${avgUn!=null?(avgUn>=100?'pos':avgUn>=70?'':'neg'):''}" style="font-size:14px;">${avgUn!=null?avgUn+'%':'—'}</div></div>
+    </div>`;
+}
+
+function switchAnTab(tab) {
+  currentAnTab = tab;
+  const tabs = ['monthly','kishu','uchi','overall'];
+  document.querySelectorAll('.an-tab').forEach((el,i) => el.classList.toggle('active', tabs[i] === tab));
+  document.querySelectorAll('.an-section').forEach(el => el.classList.remove('active'));
+  document.getElementById('an-'+tab).classList.add('active');
+  // サブタブ切り替え時は常に描画（サブタブを変えたということはコンテンツを見たいから）
+  tabDirty.analysis = false;
+  renderAnalysis();
+}
+
+function setRankPeriod(p, btn) {
+  rankPeriod = p;
+  document.querySelectorAll('.an-period-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderOverall();
+}
+
+function renderAnalysis() {
+  if (currentAnTab === 'monthly')  renderMonthly();
+  if (currentAnTab === 'kishu')    renderKishu();
+  if (currentAnTab === 'uchi')     renderUchi();
+  if (currentAnTab === 'overall')  renderOverall();
+}
+
+// =============================================
+// 共通：稼働時間文字列→分に変換
+// =============================================
+function jikanToMin(str) {
+  if (!str) return 0;
+  const s = String(str).trim();
+  if (s === '—' || s === '-' || s === '–' || s === '') return 0;
+  const parts = s.split(':').map(Number);
+  if (isNaN(parts[0])) return 0;
+  return parts[0]*60 + (parts[1]||0);
+}
+function minToStr(m) {
+  if (!m) return '—';
+  return Math.floor(m/60) + ':' + String(m%60).padStart(2,'0');
+}
+
+// =============================================
+// 共通：集計ブロック生成
+// =============================================
+function makeStatGrid(items) {
+  return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">${
+    items.map(i => `<div class="detail-item">
+      <div class="detail-label">${i.label}</div>
+      <div class="detail-val ${i.cls||''}" style="font-size:12px;">${i.val}</div>
+      ${i.sub ? `<div style="font-size:9px;color:var(--text3);margin-top:2px;font-family:'JetBrains Mono',monospace;">${i.sub}</div>` : ''}
+    </div>`).join('')
+  }</div>`;
+}
+
+// =============================================
+// 月別
+// =============================================
+function renderMonthly() {
+  const byMonth = {};
+  ALL_RECORDS.forEach(r => {
+    const m = r.date ? r.date.slice(0,7) : '不明';
+    if (!byMonth[m]) byMonth[m] = {total:0,shigoto:0,jikanMin:0,count:0,wins:0,kitaiW:0,kitaiV:0,unW:0,unV:0};
+    const d = byMonth[m];
+    const min = jikanToMin(r.jikan);
+    d.total    += (r.kosshi||0);
+    d.shigoto  += (r.shigoto||0);
+    d.jikanMin += min;
+    d.count++;
+    if ((r.kosshi||0) > 0) d.wins++;
+    if (r.kitaiJikyu != null && r.kitaiJikyu !== '') { d.kitaiW += min; d.kitaiV += r.kitaiJikyu * min; }
+    const un = normalizeUn(r.un);
+    if (un != null) { d.unW += min; d.unV += un * min; }
+  });
+
+  const months = Object.keys(byMonth).sort().reverse();
+  const el = document.getElementById('monthly-list');
+  if (!months.length) { el.innerHTML = '<div class="empty">データなし</div>'; return; }
+
+  el.innerHTML = months.map(m => {
+    const d    = byMonth[m];
+    const pos  = d.total >= 0;
+    const wr   = d.count ? Math.round(d.wins/d.count*100) : 0;
+    const diff = d.total - d.shigoto;
+    const jikanH = d.jikanMin ? (d.jikanMin/60).toFixed(1) : '—';
+    const jikyu  = d.jikanMin ? Math.round(d.total / (d.jikanMin/60)) : null;
+    const avgKitai = d.kitaiW ? Math.round(d.kitaiV / d.kitaiW) : null;
+    const avgUn    = d.unW    ? Math.round(d.unV    / d.unW)    : null;
+    const items = [
+      {label:'総収支',       val: fmtYen(d.total),    cls: signCls(d.total)},
+      {label:'仕事量合計',   val: fmtYen(d.shigoto),  cls: signCls(d.shigoto)},
+      {label:'収支−仕事量',  val: fmtYen(diff),       cls: signCls(diff), sub:'運の影響額'},
+      {label:'実時給',       val: jikyu != null ? fmtYen(jikyu) : '—', cls: signCls(jikyu)},
+      {label:'稼働時間',     val: jikanH !== '—' ? jikanH+'h' : '—', cls:''},
+      {label:'稼働回数',     val: d.count+'戦', cls:''},
+      {label:'勝率',         val: wr+'%', cls: wr>=50?'pos':'neg'},
+      {label:'平均期待時給', val: avgKitai != null ? fmtYen(avgKitai) : '—', cls: kitaiCls(avgKitai)},
+      {label:'平均運%',      val: avgUn != null ? avgUn+'%' : '—', cls: avgUn!=null?(avgUn>=100?'pos':avgUn>=70?'':'neg'):''},
+    ];
+    return `<div class="an-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <div class="an-card-title" style="margin-bottom:0;">${m.replace('-','年')}月</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;" class="${pos?'pos':'neg'}">${(d.total>=0?'+':'')}${Math.round(d.total).toLocaleString('ja-JP')}</div>
+      </div>
+      ${makeStatGrid(items)}
+    </div>`;
+  }).join('');
+}
+
+// =============================================
+// 機種別
+// =============================================
+function renderKishu() {
+  const map = {};
+  ALL_RECORDS.forEach(r => {
+    const k = r.kishu || '不明';
+    if (!map[k]) map[k] = {total:0,shigoto:0,jikanMin:0,count:0,wins:0,kitaiW:0,kitaiV:0,unW:0,unV:0,kaitenW:0,kaitenV:0};
+    const d = map[k];
+    const min = jikanToMin(r.jikan);
+    d.total    += (r.kosshi||0);
+    d.shigoto  += (r.shigoto||0);
+    d.jikanMin += min;
+    d.count++;
+    if ((r.kosshi||0) > 0) d.wins++;
+    if (r.kitaiJikyu  != null && r.kitaiJikyu  !== '') { d.kitaiW  += min; d.kitaiV  += r.kitaiJikyu  * min; }
+    const un_k = normalizeUn(r.un);
+    if (un_k != null) { d.unW += min; d.unV += un_k * min; }
+    if (r.kaitenRitsu != null && r.kaitenRitsu !== '') { d.kaitenW += min; d.kaitenV += r.kaitenRitsu * min; }
+  });
+
+  const entries = Object.entries(map).sort((a,b) => b[1].count - a[1].count);
+  const el = document.getElementById('kishu-list');
+  if (!entries.length) { el.innerHTML = '<div class="empty">データなし</div>'; return; }
+
+  el.innerHTML = entries.map(([name, d]) => {
+    const pos  = d.total >= 0;
+    const wr   = d.count ? Math.round(d.wins/d.count*100) : 0;
+    const diff = d.total - d.shigoto;
+    const jikyu    = d.jikanMin ? Math.round(d.total / (d.jikanMin/60)) : null;
+    const avgKitai  = d.kitaiW  ? Math.round(d.kitaiV  / d.kitaiW)              : null;
+    const avgUn     = d.unW     ? Math.round(d.unV     / d.unW)                 : null;
+    const avgKaiten = d.kaitenW ? (d.kaitenV / d.kaitenW).toFixed(2)            : null;
+    const items = [
+      {label:'総収支',       val: fmtYen(d.total),    cls: signCls(d.total)},
+      {label:'仕事量合計',   val: fmtYen(d.shigoto),  cls: signCls(d.shigoto)},
+      {label:'収支−仕事量',  val: fmtYen(diff),       cls: signCls(diff)},
+      {label:'実時給',       val: jikyu != null ? fmtYen(jikyu) : '—', cls: signCls(jikyu)},
+      {label:'稼働回数',     val: d.count+'戦', cls:''},
+      {label:'勝率',         val: wr+'%', cls: wr>=50?'pos':'neg'},
+      {label:'平均期待時給', val: avgKitai != null ? fmtYen(avgKitai) : '—', cls: kitaiCls(avgKitai)},
+      {label:'平均回転率',   val: avgKaiten ? avgKaiten+'回/千円' : '—', cls:'info'},
+      {label:'稼働時間計',   val: d.jikanMin ? (d.jikanMin/60).toFixed(1)+'h' : '—', cls:''},
+      {label:'平均運%',      val: avgUn != null ? avgUn+'%' : '—', cls: avgUn!=null?(avgUn>=100?'pos':avgUn>=70?'':'neg'):''},
+    ];
+    return `<div class="an-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <div class="an-card-title" style="margin-bottom:0;">${name}</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:700;" class="${pos?'pos':'neg'}">${(d.total>=0?'+':'')}${Math.round(d.total).toLocaleString('ja-JP')}</div>
+      </div>
+      ${makeStatGrid(items)}
+    </div>`;
+  }).join('');
+}
+
+// =============================================
+// 打ち手別
+// =============================================
+function renderUchi() {
+  const map = {};
+  ALL_RECORDS.forEach(r => {
+    const k = r.uchi || '自分';
+    if (!map[k]) map[k] = {total:0,shigoto:0,hoshu:0,jikanMin:0,count:0,wins:0,kitaiW:0,kitaiV:0,unW:0,unV:0,genkinInvest:0,koujo:0,mochiRatioW:0,mochiRatioV:0};
+    const d = map[k];
+    const min = jikanToMin(r.jikan);
+    d.total    += (r.kosshi||0);
+    d.shigoto  += (r.shigoto||0);
+    d.hoshu    += (r.hoshu||0);
+    d.jikanMin += min;
+    d.count++;
+    if ((r.kosshi||0) > 0) d.wins++;
+    if (r.kitaiJikyu != null && r.kitaiJikyu !== '') { d.kitaiW += min; d.kitaiV += r.kitaiJikyu * min; }
+    const un_u = normalizeUn(r.un);
+    if (un_u != null) { d.unW += min; d.unV += un_u * min; }
+    d.genkinInvest += (r.genkinInvest || 0);
+    d.koujo        += (r.koujo || 0);
+    if (r.mochiRatio != null && r.mochiRatio !== '') { d.mochiRatioW += min; d.mochiRatioV += r.mochiRatio * min; }
+  });
+
+  const entries = Object.entries(map).sort((a,b) => b[1].count - a[1].count);
+  const el = document.getElementById('uchi-list');
+  if (!entries.length) { el.innerHTML = '<div class="empty">データなし</div>'; return; }
+
+  el.innerHTML = entries.map(([name, d]) => {
+    const isOwner = name === '自分';
+    const pos  = d.total >= 0;
+    const wr   = d.count ? Math.round(d.wins/d.count*100) : 0;
+    const torikomi = d.total - d.hoshu; // 取り分
+    const daROI  = d.hoshu ? Math.round((d.total - d.hoshu) / d.hoshu * 100) : null; // 代打ちROI
+    const shiROI = d.hoshu ? Math.round((d.shigoto - d.hoshu) / d.hoshu * 100) : null; // 仕事量ROI
+    const hoshuRitsu = d.total > 0 ? Math.round(d.hoshu / d.total * 100) : null; // 報酬÷収支
+    const hoshuShigoto = d.shigoto > 0 ? Math.round(d.hoshu / d.shigoto * 100) : null; // 報酬÷仕事量
+    const jikyu    = d.jikanMin ? Math.round(d.total / (d.jikanMin/60)) : null;
+    const avgKitai = d.kitaiW   ? Math.round(d.kitaiV / d.kitaiW)       : null;
+    const avgUn    = d.unW      ? Math.round(d.unV    / d.unW)          : null;
+
+    const baseItems = [
+      {label:'総収支',       val: fmtYen(d.total),   cls: signCls(d.total)},
+      {label:'仕事量合計',   val: fmtYen(d.shigoto), cls: signCls(d.shigoto)},
+      {label:'稼働回数',     val: d.count+'戦',      cls:''},
+      {label:'勝率',         val: wr+'%',            cls: wr>=50?'pos':'neg'},
+      {label:'実時給',       val: jikyu != null ? fmtYen(jikyu) : '—', cls: signCls(jikyu)},
+      {label:'平均期待時給', val: avgKitai != null ? fmtYen(avgKitai) : '—', cls: kitaiCls(avgKitai)},
+      {label:'稼働時間計',   val: d.jikanMin ? (d.jikanMin/60).toFixed(1)+'h' : '—', cls:''},
+      {label:'平均運%',      val: avgUn != null ? avgUn+'%' : '—', cls: avgUn!=null?(avgUn>=100?'pos':avgUn>=70?'':'neg'):''},
+    ];
+
+    const avgMochi = d.mochiRatioW > 0 ? Math.round(d.mochiRatioV / d.mochiRatioW * 100) : null;
+    const dauchiItems = isOwner ? [] : [
+      {label:'報酬合計',     val: d.hoshu ? '¥'+Math.round(d.hoshu).toLocaleString('ja-JP') : '¥0', cls:'warn'},
+      {label:'取り分',       val: fmtYen(torikomi), cls: signCls(torikomi), sub:'収支−報酬'},
+      {label:'代打ちROI',    val: daROI != null ? (daROI>=0?'+':'')+daROI+'%' : '—', cls: daROI!=null?(daROI>=0?'pos':'neg'):'', sub:'(収支−報酬)÷報酬'},
+      {label:'仕事量ROI',    val: shiROI != null ? (shiROI>=0?'+':'')+shiROI+'%' : '—', cls: shiROI!=null?(shiROI>=0?'pos':'neg'):'', sub:'(仕事量−報酬)÷報酬'},
+      {label:'報酬÷収支',    val: hoshuRitsu != null ? hoshuRitsu+'%' : '—', cls:'', sub:'勝ち分のうち報酬割合'},
+      {label:'報酬÷仕事量',  val: hoshuShigoto != null ? hoshuShigoto+'%' : '—', cls:'', sub:'期待値に対する報酬率'},
+      {label:'平均持玉比率', val: avgMochi != null ? avgMochi+'%' : '—', cls:'', sub:'V列から集計'},
+      {label:'現金投資合計', val: d.genkinInvest ? '¥'+Math.round(d.genkinInvest).toLocaleString('ja-JP') : '¥0', cls:'', sub:'W列合計'},
+      {label:'控除合計',     val: d.koujo ? '¥'+Math.round(d.koujo).toLocaleString('ja-JP') : '¥0', cls: d.koujo > 0 ? 'neg' : '', sub:'X列合計'},
+    ];
+
+    return `<div class="an-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div class="an-card-title" style="margin-bottom:0;">${name}</div>
+          <span class="rc-uchi-badge ${isOwner?'owner':''}">${isOwner?'OWNER':'代打ち'}</span>
+        </div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:700;" class="${pos?'pos':'neg'}">${(d.total>=0?'+':'')}${Math.round(d.total).toLocaleString('ja-JP')}</div>
+      </div>
+      ${makeStatGrid(baseItems)}
+      ${dauchiItems.length ? `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);">
+        <div class="an-card-title" style="margin-bottom:8px;">代打ち指標</div>
+        ${makeStatGrid(dauchiItems)}
+      </div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+// =============================================
+// 総合
+// =============================================
+function getPeriodRecords() {
+  const now = new Date();
+  return ALL_RECORDS.filter(r => {
+    if (rankPeriod === 'all') return true;
+    if (!r.date) return false;
+    const d = new Date(r.date);
+    const diffM = (now.getFullYear()-d.getFullYear())*12+(now.getMonth()-d.getMonth());
+    if (rankPeriod === '1m') return diffM === 0;
+    if (rankPeriod === '3m') return diffM < 3;
+    return true;
+  });
+}
+
+function groupBy(recs, key) {
+  const map = {};
+  recs.forEach(r => {
+    const k = r[key] || '不明';
+    if (!map[k]) map[k] = {total:0, count:0, wins:0, kitais:[]};
+    map[k].total += (r.kosshi||0);
+    map[k].count++;
+    if ((r.kosshi||0) > 0) map[k].wins++;
+    if (r.kitaiJikyu != null && r.kitaiJikyu !== '') map[k].kitais.push(r.kitaiJikyu);
+  });
+  return Object.entries(map).sort((a,b) => b[1].total - a[1].total);
+}
+
+function renderRankList(elId, entries) {
+  const el = document.getElementById(elId);
+  if (!entries.length) { el.innerHTML = '<div class="empty" style="padding:20px">データなし</div>'; return; }
+  const maxAbs = Math.max(...entries.map(e => Math.abs(e[1].total)), 1);
+  el.innerHTML = entries.slice(0,8).map(([name, d], i) => {
+    const pos = d.total >= 0;
+    const barW = Math.round(Math.abs(d.total)/maxAbs*100);
+    const wr = Math.round(d.wins/d.count*100);
+    return `<div class="rank-row">
+      <div class="rank-num">${i+1}</div>
+      <div class="rank-name">
+        <div>${name}</div>
+        <div class="rank-sub">${d.count}戦 勝率${wr}%</div>
+        <div class="rank-bar-wrap"><div class="rank-bar ${pos?'':'neg'}" style="width:${barW}%"></div></div>
+      </div>
+      <div class="rank-val ${pos?'pos':'neg'}">${(d.total>=0?'+':'')}${Math.round(d.total).toLocaleString('ja-JP')}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderKitaiList(elId, entries) {
+  const el = document.getElementById(elId);
+  if (!entries.length) { el.innerHTML = '<div class="empty" style="padding:20px">データなし</div>'; return; }
+  const max = Math.max(...entries.map(e => Math.abs(e[1].avg)), 1);
+  el.innerHTML = entries.slice(0,8).map(([name,d],i) => {
+    const cls = kitaiCls(d.avg);
+    const barW = Math.round(Math.abs(d.avg)/max*100);
+    return `<div class="rank-row">
+      <div class="rank-num">${i+1}</div>
+      <div class="rank-name">
+        <div>${name}</div>
+        <div class="rank-sub">${d.count}件</div>
+        <div class="rank-bar-wrap"><div class="rank-bar" style="width:${barW}%"></div></div>
+      </div>
+      <div class="rank-val ${cls}">${(d.avg>=0?'+':'')}${Math.round(d.avg).toLocaleString('ja-JP')}円</div>
+    </div>`;
+  }).join('');
+}
+
+function renderOverall() {
+  const recs = getPeriodRecords();
+  renderRankList('rank-kishu', groupBy(recs, 'kishu'));
+  renderRankList('rank-shop',  groupBy(recs, 'shop'));
+
+  // 期待時給（加重平均）
+  const byKishu = {}, byShop = {};
+  recs.filter(r => r.kitaiJikyu != null && r.kitaiJikyu !== '').forEach(r => {
+    const min = jikanToMin(r.jikan);
+    [byKishu, byShop].forEach((map, i) => {
+      const k = i===0 ? r.kishu : r.shop;
+      if (!k) return;
+      if (!map[k]) map[k] = {w:0, v:0, count:0};
+      map[k].w += min; map[k].v += r.kitaiJikyu * min; map[k].count++;
+    });
+  });
+  const toKitaiEntries = map => Object.entries(map)
+    .map(([k,v]) => [k, {avg: v.w ? v.v/v.w : 0, count: v.count}])
+    .sort((a,b) => b[1].avg - a[1].avg);
+  renderKitaiList('rank-kitai-kishu', toKitaiEntries(byKishu));
+  renderKitaiList('rank-kitai-shop',  toKitaiEntries(byShop));
+
+  // 運%分布（加重平均）※小数値（例:1.05）は正規化して使用
+  const unRecs = ALL_RECORDS.filter(r => normalizeUn(r.un) != null);
+  if (!unRecs.length) return;
+  let unW = 0, unV = 0;
+  unRecs.forEach(r => { const un=normalizeUn(r.un); const min = jikanToMin(r.jikan); unW += min; unV += un * min; });
+  const avg = unW ? unV / unW : 0;
+  const over100 = unRecs.filter(r=>normalizeUn(r.un)>=100).length;
+  const under70 = unRecs.filter(r=>normalizeUn(r.un)<70).length;
+  document.getElementById('un-summary').innerHTML = [
+    {label:'平均運%',   val: Math.round(avg)+'%', cls: avg>=100?'pos':avg>=70?'':'neg'},
+    {label:'100%超え',  val: over100+'件 ('+Math.round(over100/unRecs.length*100)+'%)', cls:'pos'},
+    {label:'70%未満',   val: under70+'件 ('+Math.round(under70/unRecs.length*100)+'%)', cls:'neg'},
+  ].map(i=>`<div class="detail-item"><div class="detail-label">${i.label}</div><div class="detail-val ${i.cls}" style="font-size:12px;">${i.val}</div></div>`).join('');
+  const bins = Array(10).fill(0);
+  unRecs.forEach(r => { const un=normalizeUn(r.un); bins[Math.min(9,Math.max(0,Math.floor(un/20)))]++; });
+  const maxBin = Math.max(...bins, 1);
+  const colors = ['#ff4466','#ff4466','#ff4466','#c8b400','#c8b400','#39ff6e','#00d4ff','#00d4ff','#ff6bff','#ff6bff'];
+  document.getElementById('un-dist').innerHTML = bins.map((b,i) =>
+    `<div class="un-bar-wrap"><div class="un-bar" style="height:${Math.round(b/maxBin*72)+2}px;background:${colors[i]};opacity:${b>0?1:0.2}"></div><div class="un-bar-label">${b}</div></div>`
+  ).join('');
+}
+// =============================================
+// 設定タブ
+// =============================================
+let MASTERS = {shops:[], kishus:[], uchis:[]};
+let currentSetTab = 'shop';
+let editingShopIdx  = null;
+let editingKishuIdx = null;
+let editingUchiIdx  = null;
+let currentMakerFilter = 'all'; // 機種マスタ メーカーフィルタ
+
+async function loadMasters() {
+  try {
+    const res  = await fetch(GAS_URL + '?action=masters', {redirect:'follow'});
+    const data = await res.json();
+    if (data.success) MASTERS = data;
+  } catch(e) {}
+}
+
+function switchSetTab(tab) {
+  currentSetTab = tab;
+  const tabs = ['shop','kishu','uchi'];
+  document.querySelectorAll('#tab-master .an-tab').forEach((el,i) => el.classList.toggle('active', tabs[i] === tab));
+  document.querySelectorAll('#tab-master .an-section').forEach(el => el.classList.remove('active'));
+  document.getElementById('set-'+tab).classList.add('active');
+  renderSetting();
+}
+
+function renderSetting() {
+  renderShopList();
+  renderKishuList();
+  renderUchiList();
+  buildRoundsGrid();
+}
+
+// ---------- 店 ----------
+function renderShopList() {
+  const el = document.getElementById('set-shop-list');
+  if (!MASTERS.shops.length) { el.innerHTML = '<div class="empty" style="padding:16px">データなし</div><button class="set-btn-add" onclick="newShop()">＋ 店を追加</button>'; return; }
+  el.innerHTML = MASTERS.shops.map((s,i) => `
+    <div class="set-row ${editingShopIdx===i?'selected':''}">
+      <div class="set-row-name">
+        <div>${s.name}</div>
+        <div class="set-row-sub">換金率 ${s.kokan}玉/100円</div>
+      </div>
+      <div class="set-row-actions">
+        <button class="set-icon-btn edit" onclick="editShop(${i})">編集</button>
+        <button class="set-icon-btn del"  onclick="deleteShop(${i})">削除</button>
+      </div>
+    </div>`).join('') + `<button class="set-btn-add" onclick="newShop()">＋ 店を追加</button>`;
+}
+
+function newShop() {
+  editingShopIdx = null;
+  document.getElementById('set-shop-form-title').textContent = '新規追加';
+  document.getElementById('shop-name').value  = '';
+  document.getElementById('shop-kokan').value = '';
+  renderShopList();
+}
+
+function editShop(i) {
+  editingShopIdx = i;
+  const s = MASTERS.shops[i];
+  document.getElementById('set-shop-form-title').textContent = '編集：' + s.name;
+  document.getElementById('shop-name').value  = s.name;
+  document.getElementById('shop-kokan').value = s.kokan;
+  renderShopList();
+  document.getElementById('set-shop-form').scrollIntoView({behavior:'smooth'});
+}
+
+function deleteShop(i) {
+  showConfirm(`「${MASTERS.shops[i].name}」を削除しますか？`, async () => {
+    MASTERS.shops.splice(i,1);
+    await saveMaster('shops', MASTERS.shops);
+    renderShopList();
+  });
+}
+
+async function saveShop() {
+  const name  = document.getElementById('shop-name').value.trim();
+  const kokan = parseFloat(document.getElementById('shop-kokan').value);
+  if (!name) { alert('店名を入力してください'); return; }
+  if (editingShopIdx !== null) {
+    MASTERS.shops[editingShopIdx] = {name, kokan};
+  } else {
+    MASTERS.shops.push({name, kokan});
+  }
+  await saveMaster('shops', MASTERS.shops);
+  editingShopIdx = null;
+  document.getElementById('shop-name').value  = '';
+  document.getElementById('shop-kokan').value = '';
+  document.getElementById('set-shop-form-title').textContent = '新規追加';
+  renderShopList();
+}
+
+function cancelSetEdit(type) {
+  if (type==='shop')  { editingShopIdx  = null; document.getElementById('set-shop-form-title').textContent  = '新規追加'; document.getElementById('shop-name').value=''; document.getElementById('shop-kokan').value=''; }
+  if (type==='kishu') { editingKishuIdx = null; document.getElementById('set-kishu-form-title').textContent = '新規追加'; clearKishuForm(); }
+  if (type==='uchi')  { editingUchiIdx  = null; document.getElementById('set-uchi-form-title').textContent  = '新規追加'; document.getElementById('uchi-name').value=''; }
+  renderShopList(); renderKishuList(); renderUchiList();
+}
+
+// ---------- 機種 ----------
+function buildRoundsGrid() {
+  const el = document.getElementById('kishu-rounds-grid');
+  if (!el) return;
+  el.innerHTML = Array.from({length:10},(_,i) => `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;align-items:center;">
+      <div><div class="detail-label">${i+1}R 出玉</div><input class="set-input" id="r-balls-${i}" type="number" placeholder="0"></div>
+      <div><div class="detail-label">${i+1}R R数</div><input class="set-input" id="r-count-${i}" type="number" placeholder="0"></div>
+    </div>`).join('');
+}
+
+function renderKishuList() {
+  // メーカーフィルタチップス描画
+  const filterEl = document.getElementById('set-kishu-maker-filter');
+  if (filterEl) {
+    const allMakers = [...new Set(MASTERS.kishus.map(k => k.maker || '').filter(Boolean))];
+    const chips = ['all', ...allMakers];
+    filterEl.innerHTML = allMakers.length
+      ? `<div class="maker-filter-row">${chips.map(m =>
+          `<div class="chip ${currentMakerFilter===m?'active':''}" onclick="setMakerFilter('${m}')">${m==='all'?'すべて':m}</div>`
+        ).join('')}</div>`
+      : '';
+  }
+
+  const el = document.getElementById('set-kishu-list');
+  // フィルタ適用（実インデックスを保持）
+  const filtered = MASTERS.kishus
+    .map((k, i) => ({k, i}))
+    .filter(({k}) => currentMakerFilter === 'all' || k.maker === currentMakerFilter);
+
+  // 「＋ 機種を追加」ボタンを先頭に配置
+  let html = `<button class="set-btn-add" onclick="newKishu()" style="margin-bottom:6px;">＋ 機種を追加</button>`;
+  if (!filtered.length) {
+    html += '<div class="empty" style="padding:16px">データなし</div>';
+  } else {
+    html += filtered.map(({k, i}) => `
+      <div class="set-row ${editingKishuIdx===i?'selected':''}">
+        <div class="set-row-name">
+          <div>${k.name}</div>
+          <div class="set-row-sub">${k.maker ? k.maker+' / ' : ''}初当 1/${k.hatsua} 平連 ${k.heiren} 平均出玉 ${k.heikin}</div>
+        </div>
+        <div class="set-row-actions">
+          <button class="set-icon-btn edit" onclick="editKishu(${i})">編集</button>
+          <button class="set-icon-btn del"  onclick="deleteKishu(${i})">削除</button>
+        </div>
+      </div>`).join('');
+  }
+  el.innerHTML = html;
+}
+
+// メーカーフィルタ切替
+function setMakerFilter(maker) {
+  currentMakerFilter = maker;
+  renderKishuList();
+}
+
+function clearKishuForm() {
+  ['kishu-name','kishu-heikin','kishu-total','kishu-total1r','kishu-jikan','kishu-hatsua','kishu-heiren'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  const makerEl = document.getElementById('kishu-maker');
+  if (makerEl) makerEl.value = '';
+  for (let i=0;i<10;i++) {
+    const b = document.getElementById('r-balls-'+i);
+    const c = document.getElementById('r-count-'+i);
+    if(b) b.value=''; if(c) c.value='';
+  }
+}
+
+function newKishu() {
+  editingKishuIdx = null;
+  document.getElementById('set-kishu-form-title').textContent = '新規追加';
+  clearKishuForm();
+  renderKishuList();
+}
+
+function editKishu(i) {
+  editingKishuIdx = i;
+  const k = MASTERS.kishus[i];
+  document.getElementById('set-kishu-form-title').textContent = '編集：' + k.name;
+  document.getElementById('kishu-name').value   = k.name;
+  document.getElementById('kishu-heikin').value = k.heikin;
+  document.getElementById('kishu-total').value  = k.total;
+  document.getElementById('kishu-total1r').value= k.total1R;
+  document.getElementById('kishu-jikan').value  = k.jikan;
+  document.getElementById('kishu-hatsua').value = k.hatsua;
+  document.getElementById('kishu-heiren').value = k.heiren;
+  const makerEl = document.getElementById('kishu-maker');
+  if (makerEl) makerEl.value = k.maker || '';
+  (k.rounds||[]).forEach((r,j) => {
+    const b = document.getElementById('r-balls-'+j);
+    const c = document.getElementById('r-count-'+j);
+    if(b) b.value = r.balls||'';
+    if(c) c.value = r.name ? parseInt(r.name) : '';
+  });
+  renderKishuList();
+  document.getElementById('set-kishu-form').scrollIntoView({behavior:'smooth'});
+}
+
+function deleteKishu(i) {
+  showConfirm(`「${MASTERS.kishus[i].name}」を削除しますか？`, async () => {
+    MASTERS.kishus.splice(i,1);
+    await saveMaster('kishus', MASTERS.kishus);
+    renderKishuList();
+  });
+}
+
+async function saveKishu() {
+  const name = document.getElementById('kishu-name').value.trim();
+  if (!name) { alert('機種名を入力してください'); return; }
+  const rounds = [];
+  for(let i=0;i<10;i++) {
+    const balls = parseFloat(document.getElementById('r-balls-'+i).value);
+    const cnt   = parseFloat(document.getElementById('r-count-'+i).value);
+    if (balls > 0 && cnt > 0) rounds.push({balls, name: cnt+'R'});
+  }
+  const makerEl = document.getElementById('kishu-maker');
+  const obj = {
+    name,
+    maker:   makerEl ? makerEl.value || '' : '',
+    heikin:  parseFloat(document.getElementById('kishu-heikin').value)||0,
+    total:   parseFloat(document.getElementById('kishu-total').value)||0,
+    total1R: parseFloat(document.getElementById('kishu-total1r').value)||0,
+    jikan:   parseFloat(document.getElementById('kishu-jikan').value)||0,
+    hatsua:  parseFloat(document.getElementById('kishu-hatsua').value)||0,
+    heiren:  parseFloat(document.getElementById('kishu-heiren').value)||0,
+    rounds,
+  };
+  if (editingKishuIdx !== null) {
+    MASTERS.kishus[editingKishuIdx] = obj; // 編集時は上書き
+  } else {
+    MASTERS.kishus.unshift(obj); // 新規追加は先頭に
+  }
+  await saveMaster('kishus', MASTERS.kishus);
+  editingKishuIdx = null;
+  document.getElementById('set-kishu-form-title').textContent = '新規追加';
+  clearKishuForm();
+  renderKishuList();
+}
+
+// ---------- 打ち手 ----------
+function renderUchiList() {
+  const el = document.getElementById('set-uchi-list');
+  if (!MASTERS.uchis.length) { el.innerHTML = '<div class="empty" style="padding:16px">データなし</div><button class="set-btn-add" onclick="newUchi()">＋ 打ち手を追加</button>'; return; }
+  el.innerHTML = MASTERS.uchis.map((u,i) => `
+    <div class="set-row ${editingUchiIdx===i?'selected':''}">
+      <div class="set-row-name">
+        <div>${u.name}</div>
+        <div class="set-row-sub">${u.type}</div>
+      </div>
+      <div class="set-row-actions">
+        <button class="set-icon-btn edit" onclick="editUchi(${i})">編集</button>
+        <button class="set-icon-btn del"  onclick="deleteUchi(${i})">削除</button>
+      </div>
+    </div>`).join('') + `<button class="set-btn-add" onclick="newUchi()">＋ 打ち手を追加</button>`;
+}
+
+function newUchi() {
+  editingUchiIdx = null;
+  document.getElementById('set-uchi-form-title').textContent = '新規追加';
+  document.getElementById('uchi-name').value = '';
+  renderUchiList();
+}
+
+function editUchi(i) {
+  editingUchiIdx = i;
+  const u = MASTERS.uchis[i];
+  document.getElementById('set-uchi-form-title').textContent = '編集：' + u.name;
+  document.getElementById('uchi-name').value = u.name;
+  document.getElementById('uchi-type').value = u.type;
+  renderUchiList();
+  document.getElementById('set-uchi-form').scrollIntoView({behavior:'smooth'});
+}
+
+function deleteUchi(i) {
+  showConfirm(`「${MASTERS.uchis[i].name}」を削除しますか？`, async () => {
+    MASTERS.uchis.splice(i,1);
+    await saveMaster('uchis', MASTERS.uchis);
+    renderUchiList();
+  });
+}
+
+async function saveUchi() {
+  const name = document.getElementById('uchi-name').value.trim();
+  const type = document.getElementById('uchi-type').value;
+  if (!name) { alert('名前を入力してください'); return; }
+
+  // 名前変更の場合、稼働記録も連動更新
+  if (editingUchiIdx !== null) {
+    const oldName = MASTERS.uchis[editingUchiIdx].name;
+    if (oldName !== name) {
+      // ALL_RECORDSのメモリ更新
+      ALL_RECORDS.forEach(r => { if (r.uchi === oldName) r.uchi = name; });
+      // GASの稼働記録も更新
+      await fetch(GAS_URL, {
+        method:'POST', redirect:'follow',
+        headers:{'Content-Type':'text/plain'},
+        body: JSON.stringify({action:'renameUchi', oldName, newName: name})
+      }).catch(()=>{});
+    }
+    MASTERS.uchis[editingUchiIdx] = {name, type};
+  } else {
+    MASTERS.uchis.push({name, type});
+  }
+  await saveMaster('uchis', MASTERS.uchis);
+  editingUchiIdx = null;
+  document.getElementById('set-uchi-form-title').textContent = '新規追加';
+  document.getElementById('uchi-name').value = '';
+  renderUchiList();
+}
+
+// ---------- GAS保存 ----------
+async function saveMaster(key, data) {
+  try {
+    await fetch(GAS_URL, {
+      method:'POST', redirect:'follow',
+      headers:{'Content-Type':'text/plain'},
+      body: JSON.stringify({action:'saveMaster', key, data})
+    });
+    // キャッシュ更新
+    saveCache({shops: MASTERS.shops, kishus: MASTERS.kishus, uchis: MASTERS.uchis, records: ALL_RECORDS});
+    // マスタタブを即再描画（他タブはダーティのまま）
+    tabDirty.master = false;
+  } catch(e) {}
+}
+
+// 初期ロード時にマスタ取得
+window.addEventListener('DOMContentLoaded', async () => {
+  await loadInit();
+});
+
+function showConfirm(msg, cb) {
+  document.getElementById('confirm-msg').textContent = msg;
+  _cb = cb;
+  document.getElementById('confirmModal').classList.add('show');
+}
+document.getElementById('confirm-ok').onclick = () => { document.getElementById('confirmModal').classList.remove('show'); if(_cb)_cb(); _cb=null; };
+document.getElementById('confirm-cancel').onclick = () => { document.getElementById('confirmModal').classList.remove('show'); _cb=null; };
+
+// =============================================
+// 報酬計算（2段階制：期待時給で単価判定）
+// 差玉合計と平均期待時給から確定報酬を計算
+// =============================================
+function calcHoshuConfirm(sagitamaTotal, avgKitaiJikyu, genkinInvestTotal) {
+  const startLine = (avgKitaiJikyu >= 1800) ? 5000 : 10000;
+  if (sagitamaTotal < startLine) return 0;
+  const baseHoshu = Math.floor(sagitamaTotal / 5000) * 5000;
+  const koujo = (genkinInvestTotal || 0) * 0.107 * 3.5;
+  return Math.max(0, Math.round(baseHoshu - koujo));
+}
+
+// =============================================
+// 報酬確定（報酬タブ）
+// ・当日の打ち手別に差玉・期待時給・現金投資を集計
+// ・期待時給1800円以上→5千スタート、未満→1万スタート + 持ち玉控除
+// ・全打ち手分を自動でP列（hoshu）にまとめて書き込み
+// ・結果は削除ボタン付きで表示（削除はUI上のみ、スプシ連動なし）
+// =============================================
+
+// 報酬結果の履歴をメモリで管理
+let hoshuResults = [];
+
+async function doHoshuConfirm() {
+  // 今日の日付をデフォルトに
+  const today = new Date();
+  const defaultDate = today.getFullYear() + '-' +
+    String(today.getMonth()+1).padStart(2,'0') + '-' +
+    String(today.getDate()).padStart(2,'0');
+
+  const dateInput = prompt('報酬確定する日付を入力してください（YYYY-MM-DD）', defaultDate);
+  if (!dateInput) return;
+  const targetDate = dateInput.trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(targetDate)) {
+    alert('日付の形式が正しくありません（例: 2025-01-15）');
+    return;
+  }
+
+  const btn = document.getElementById('hoshu-confirm-btn');
+  btn.textContent = '⏳ 取得中...';
+  btn.disabled = true;
+
+  try {
+    // GASから最新データを取得
+    const res  = await fetch(GAS_URL + '?action=init&limit=200', { redirect: 'follow' });
+    const data = await res.json();
+    if (!data.success) throw new Error('データ取得失敗');
+
+    // 対象日のレコードを絞り込み
+    const todayRecs = (data.records || []).filter(r => r.date === targetDate);
+    if (!todayRecs.length) {
+      alert(targetDate + ' の記録が見つかりませんでした');
+      return;
+    }
+
+    // 打ち手別に差玉・期待時給・現金投資を集計 ＆ 最後のセッション行番号を記録
+    const byUchi = {};
+    todayRecs.forEach(r => {
+      const uchi = r.uchi || '自分';
+      if (uchi === '自分') return; // 自分は報酬対象外
+      if (!byUchi[uchi]) byUchi[uchi] = { sagitamaTotal: 0, kitaiJikyuSum: 0, kitaiJikyuCount: 0, genkinInvestTotal: 0, lastRow: null, count: 0 };
+      byUchi[uchi].sagitamaTotal += (r.sagitama || 0);
+      byUchi[uchi].genkinInvestTotal += (r.genkinInvest || 0);
+      if (r.kitaiJikyu != null && r.kitaiJikyu !== '') {
+        byUchi[uchi].kitaiJikyuSum += r.kitaiJikyu;
+        byUchi[uchi].kitaiJikyuCount++;
+      }
+      byUchi[uchi].count++;
+      // row番号が大きい＝最後に入力された行
+      if (byUchi[uchi].lastRow === null || r.row > byUchi[uchi].lastRow) {
+        byUchi[uchi].lastRow = r.row;
+      }
+    });
+
+    const entries = Object.entries(byUchi);
+    if (!entries.length) {
+      alert(targetDate + ' に代打ちの記録がありません');
+      return;
+    }
+
+    // 確定報酬を計算（期待時給1800円以上→5千スタート、未満→1万スタート + 持ち玉控除）
+    const newRows = entries.map(([uchi, d]) => {
+      const avgKitaiJikyu = d.kitaiJikyuCount > 0 ? d.kitaiJikyuSum / d.kitaiJikyuCount : 0;
+      const startLine = (avgKitaiJikyu >= 1800) ? 5000 : 10000;
+      const koujo = Math.round(d.genkinInvestTotal * 0.107 * 3.5);
+      return {
+        id:        Date.now() + '_' + uchi,
+        date:      targetDate,
+        uchi,
+        sagitamaTotal: d.sagitamaTotal,
+        startLine,
+        koujo,
+        genkinInvest: d.genkinInvestTotal,
+        hoshu:     calcHoshuConfirm(d.sagitamaTotal, avgKitaiJikyu, d.genkinInvestTotal),
+        lastRow:   d.lastRow,
+        count:     d.count,
+        written:   false,
+      };
+    });
+
+    // 全打ち手分を自動でP列に書き込み
+    btn.textContent = '⏳ 書込中...';
+    await Promise.all(newRows.map(async r => {
+      try {
+        await fetch(GAS_URL, {
+          method: 'POST', redirect: 'follow',
+          headers: { 'Content-Type': 'text/plain' },
+          body: JSON.stringify({ action: 'writeHoshu', row: r.lastRow, hoshu: r.hoshu }),
+        });
+        r.written = true;
+      } catch(e) {
+        r.written = true; // CORSエラーでも書き込み成功とみなす
+      }
+    }));
+
+    // キャッシュ無効化（次回ロード時に最新データを取得）
+    try { localStorage.removeItem('pachinkob_cache_v1'); } catch(e) {}
+
+    // 結果を履歴の先頭に追加して表示更新
+    hoshuResults = newRows.concat(hoshuResults);
+    renderHoshuResults();
+
+  } catch(e) {
+    alert('データ取得に失敗しました。通信状態を確認してください。');
+  } finally {
+    btn.textContent = '💰 報酬確定';
+    btn.disabled = false;
+  }
+}
+
+// =============================================
+// 報酬結果一覧を描画（削除ボタン付き）
+// =============================================
+function renderHoshuResults() {
+  const panel = document.getElementById('hoshu-result-panel');
+  const body  = document.getElementById('hoshu-result-body');
+  if (!hoshuResults.length) {
+    panel.classList.remove('show');
+    return;
+  }
+  panel.classList.add('show');
+  body.innerHTML = hoshuResults.map(r =>
+    `<div class="hoshu-row" id="hoshu-row-${r.id}">
+      <div style="flex:1;">
+        <div class="hoshu-uchi">${r.uchi}</div>
+        <div class="hoshu-vals">${r.date}　差玉計 ${Math.round(r.sagitamaTotal).toLocaleString('ja-JP')}玉　${r.startLine === 5000 ? '5千' : '1万'}スタート${r.koujo > 0 ? '　控除¥'+r.koujo.toLocaleString('ja-JP') : ''}　${r.count}台</div>
+        <div class="hoshu-written">${r.written ? '✅ P列に書込済み' : ''}</div>
+        <button class="hoshu-delete-btn" onclick="deleteHoshuResult('${r.id}')">🗑 削除</button>
+      </div>
+      <div class="hoshu-yen">¥${r.hoshu.toLocaleString('ja-JP')}</div>
+    </div>`
+  ).join('');
+}
+
+// =============================================
+// 報酬結果をUI上から削除（スプシ連動なし）
+// =============================================
+function deleteHoshuResult(id) {
+  showConfirm('この報酬結果をリストから削除しますか？\n（スプシのデータは変更されません）', () => {
+    hoshuResults = hoshuResults.filter(r => r.id !== id);
+    renderHoshuResults();
+  });
+}
+</script>
+</body>
+</html>
