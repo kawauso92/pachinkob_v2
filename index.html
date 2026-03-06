@@ -737,7 +737,7 @@ document.getElementById('delete-btn').onclick = () => {
 function fmtYen(v) { if (v==null||v==='') return '—'; return (v>=0?'+':'')+Math.round(v).toLocaleString('ja-JP')+'円'; }
 function fmtKitai(v) { if (v==null||v==='') return '—'; return (v>=0?'+':'')+Math.round(v).toLocaleString('ja-JP')+'円'; }
 function signCls(v) { if (v==null||v==='') return ''; return v>=0?'pos':'neg'; }
-function kitaiCls(v) { if (v==null||v==='') return ''; if(v>=3000)return 'kg'; if(v>=2500)return 'kb'; if(v>=2000)return 'ko'; if(v>=1500)return 'kw'; return 'kn'; }
+function kitaiCls(v) { if (v==null||v==='') return ''; if(v>=2800)return 'kg'; if(v>=2300)return 'kb'; if(v>=1800)return 'ko'; if(v>=1500)return 'kw'; return 'kn'; }
 
 // 運%正規化：スプシから小数（例:1.05）で来た場合は×100して整数相当に変換
 // 整数（例:105）の場合はそのまま返す
