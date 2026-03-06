@@ -1081,7 +1081,11 @@ function renderUchi() {
     if (un_u != null) { d.unW += min; d.unV += un_u * min; }
     d.genkinInvest += (r.genkinInvest || 0);
     d.koujo        += (r.koujo || 0);
-    if (r.mochiRatio != null && r.mochiRatio !== '') { d.mochiRatioW += min; d.mochiRatioV += r.mochiRatio * min; }
+    if (r.mochiRatio != null && r.mochiRatio !== '') {
+      const sw = Math.abs(r.shigoto || 0); // 仕事量加重（稼働時間加重から変更）
+      d.mochiRatioW += sw > 0 ? sw : 1;
+      d.mochiRatioV += r.mochiRatio * (sw > 0 ? sw : 1);
+    }
   });
 
   const entries = Object.entries(map).sort((a,b) => b[1].count - a[1].count);
@@ -1658,6 +1662,8 @@ async function doHoshuConfirm() {
         sagitamaTotal: 0,
         kitaiJikyuWeightedSum: 0,  // 期待時給×仕事量の合計
         kitaiJikyuWeightTotal: 0,  // 仕事量の合計（加重平均用）
+        mochiRatioWeightedSum: 0,  // 持ち玉比率×仕事量の合計
+        mochiRatioWeightTotal: 0,  // 仕事量の合計（持ち玉比率加重平均用）
         genkinInvestTotal: 0,
         lastRow: null,
         count: 0
@@ -1675,6 +1681,12 @@ async function doHoshuConfirm() {
           byUchi[uchi].kitaiJikyuWeightedSum += r.kitaiJikyu;
           byUchi[uchi].kitaiJikyuWeightTotal += 1;
         }
+      }
+      // 持ち玉比率の仕事量加重平均（複数台合成用）
+      if (r.mochiRatio != null && r.mochiRatio !== '') {
+        const mw = Math.abs(r.shigoto || 0);
+        byUchi[uchi].mochiRatioWeightedSum += r.mochiRatio * (mw > 0 ? mw : 1);
+        byUchi[uchi].mochiRatioWeightTotal += mw > 0 ? mw : 1;
       }
       byUchi[uchi].count++;
       // row番号が大きい＝最後に入力された行
@@ -1695,20 +1707,25 @@ async function doHoshuConfirm() {
       const avgKitaiJikyu = d.kitaiJikyuWeightTotal > 0
         ? d.kitaiJikyuWeightedSum / d.kitaiJikyuWeightTotal
         : 0;
+      // 持ち玉比率の仕事量加重平均（複数台合成：shigoto加重）
+      const weightedRatio = d.mochiRatioWeightTotal > 0
+        ? d.mochiRatioWeightedSum / d.mochiRatioWeightTotal
+        : 1;
       const startLine = (avgKitaiJikyu >= 1800) ? 5000 : 10000;
       const koujo = Math.round(d.genkinInvestTotal * 0.107 * 3.5);
       return {
-        id:        Date.now() + '_' + uchi,
-        date:      targetDate,
+        id:          Date.now() + '_' + uchi,
+        date:        targetDate,
         uchi,
         sagitamaTotal: d.sagitamaTotal,
         startLine,
         koujo,
-        genkinInvest: d.genkinInvestTotal,
-        hoshu:     calcHoshuConfirm(d.sagitamaTotal, avgKitaiJikyu, d.genkinInvestTotal),
-        lastRow:   d.lastRow,
-        count:     d.count,
-        written:   false,
+        genkinInvest:  d.genkinInvestTotal,
+        mochiRatio:    weightedRatio,          // 持ち玉比率（仕事量加重平均）
+        hoshu:         calcHoshuConfirm(d.sagitamaTotal, avgKitaiJikyu, d.genkinInvestTotal),
+        lastRow:       d.lastRow,
+        count:         d.count,
+        written:       false,
       };
     });
 
