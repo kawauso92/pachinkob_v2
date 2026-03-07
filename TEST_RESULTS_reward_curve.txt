@@ -1,0 +1,8 @@
+﻿Reward Curve Test Results 2026-03-08T00:19:12.0630120+09:00
+[1] 差玉7500、期待時給1800以上 → 7500円 => got=7500, expect=7500, pass=True
+[2] 差玉12500 → 12500円 => got=12500, expect=12500, pass=True
+[3] 期待時給2300以上で現金投資あり → 控除0円 => got=0, expect=0, pass=True
+[4] 期待時給1500以下 → 控除率37.4% => got=37.4, expect=37.4, pass=True
+[5] 期待時給1800 → 控除率15.0% => got=15, expect=15, pass=True
+[6] 期待時給2000 → 控除率9.0% => got=9, expect=9, pass=True
+[7] AppA/AppB/GASで同額 => got=一致, expect=一致, pass=True
