@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
@@ -98,7 +98,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .loading{text-align:center;padding:60px 20px;color:var(--text3);font-family:'Rajdhani',sans-serif;letter-spacing:3px;font-size:13px;}
 .empty{text-align:center;padding:60px 20px;color:var(--text3);font-size:12px;}
 
-/* スケルトンUI */
+/* 繧ｹ繧ｱ繝ｫ繝医ΦUI */
 @keyframes skeleton-wave {
   0%{background-position:200% center}
   100%{background-position:-200% center}
@@ -120,14 +120,14 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .sk-stat{background:var(--surface2);border-radius:6px;padding:5px 6px;}
 .sk-stat-label{height:8px;width:60%;margin-bottom:6px;}
 .sk-stat-val{height:12px;width:80%;}
-/* サマリーバースケルトン */
+/* 繧ｵ繝槭Μ繝ｼ繝舌・繧ｹ繧ｱ繝ｫ繝医Φ */
 .sk-sb{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px;}
 .sk-sb-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px;text-align:center;}
 .sk-sb-label{height:9px;width:70%;margin:0 auto 6px;}
 .sk-sb-val{height:14px;width:60%;margin:0 auto;}
 .kg{color:#ff6bff;}.kb{color:var(--accent);}.ko{color:var(--green);}.kw{color:var(--warn);}.kn{color:var(--red);}.warn{color:var(--warn);}
 
-/* 報酬タブ */
+/* 蝣ｱ驟ｬ繧ｿ繝・*/
 .hoshu-confirm-btn{width:100%;padding:14px;background:rgba(255,107,255,0.08);border:1px solid rgba(255,107,255,0.35);border-radius:var(--radius);color:var(--magenta);font-size:14px;font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:2px;cursor:pointer;margin-bottom:6px;}
 .hoshu-confirm-btn:active{background:rgba(255,107,255,0.18);}
 .hoshu-confirm-btn:disabled{opacity:0.5;cursor:not-allowed;}
@@ -143,11 +143,11 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .hoshu-delete-btn{background:none;border:1px solid rgba(255,68,102,0.3);border-radius:6px;padding:4px 8px;color:var(--red);font-size:10px;font-family:'JetBrains Mono',monospace;cursor:pointer;margin-top:4px;}
 .hoshu-delete-btn:active{background:rgba(255,68,102,0.15);}
 
-/* 機種マスタ メーカーフィルタ */
+/* 讖溽ｨｮ繝槭せ繧ｿ 繝｡繝ｼ繧ｫ繝ｼ繝輔ぅ繝ｫ繧ｿ */
 .maker-filter-row{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;flex-wrap:nowrap;}
 .maker-filter-row::-webkit-scrollbar{display:none;}
 
-/* 設定タブ */
+/* 險ｭ螳壹ち繝・*/
 .set-input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 10px;color:var(--text);font-size:13px;font-family:'Noto Sans JP',sans-serif;outline:none;}
 .set-input:focus{border-color:var(--accent);}
 .set-btn-save{flex:1;padding:11px;background:rgba(0,212,255,0.1);border:1px solid var(--accent);border-radius:var(--radius-sm);color:var(--accent);font-size:13px;font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:1px;cursor:pointer;}
@@ -164,7 +164,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .set-icon-btn.del:active{border-color:var(--red);color:var(--red);}
 .set-row.selected{background:rgba(0,212,255,0.05);border-radius:var(--radius-sm);padding:9px 6px;}
 
-/* 分析タブ */
+/* 蛻・梵繧ｿ繝・*/
 .an-tabs{display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;}
 .an-tabs::-webkit-scrollbar{display:none;}
 .an-tab{background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:5px 12px;font-size:10px;color:var(--text2);white-space:nowrap;cursor:pointer;font-family:'JetBrains Mono',monospace;letter-spacing:1px;}
@@ -193,7 +193,7 @@ canvas{display:block;width:100%;border-radius:var(--radius-sm);}
 .an-period-btn{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 10px;font-size:10px;color:var(--text2);cursor:pointer;font-family:'JetBrains Mono',monospace;}
 .an-period-btn.active{border-color:var(--accent);color:var(--accent);}
 
-/* ホームタブ */
+/* 繝帙・繝繧ｿ繝・*/
 .cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
 .cal-title{font-family:'Rajdhani',sans-serif;font-size:18px;font-weight:700;letter-spacing:2px;color:var(--text);}
 .cal-nav-btn{background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;color:var(--text2);font-size:14px;cursor:pointer;}
@@ -219,18 +219,18 @@ canvas{display:block;width:100%;border-radius:var(--radius-sm);}
   <div class="header">
     <div>
       <div class="app-title">PACHINKO BOARD</div>
-      <div class="header-sub" id="header-sub">読み込み中...</div>
+      <div class="header-sub" id="header-sub">隱ｭ縺ｿ霎ｼ縺ｿ荳ｭ...</div>
     </div>
-    <button class="reload-btn" onclick="loadRecords()">↺ 更新</button>
+    <button class="reload-btn" onclick="loadRecords()">竊ｺ 譖ｴ譁ｰ</button>
   </div>
 
-  <!-- ホームタブ -->
+  <!-- 繝帙・繝繧ｿ繝・-->
   <div class="tab-content active" id="tab-home">
     <div class="an-card">
       <div class="cal-header">
-        <button class="cal-nav-btn" onclick="calPrev()">‹</button>
-        <div class="cal-title" id="cal-title">—</div>
-        <button class="cal-nav-btn" onclick="calNext()">›</button>
+        <button class="cal-nav-btn" onclick="calPrev()">窶ｹ</button>
+        <div class="cal-title" id="cal-title">窶・/div>
+        <button class="cal-nav-btn" onclick="calNext()">窶ｺ</button>
       </div>
       <div class="cal-grid">
         <div class="cal-dow sun">SUN</div>
@@ -249,70 +249,70 @@ canvas{display:block;width:100%;border-radius:var(--radius-sm);}
   <div class="tab-content" id="tab-records">
     <div class="filter-section">
       <div class="filter-row">
-        <div class="filter-label">打ち手</div>
+        <div class="filter-label">謇薙■謇・/div>
         <div class="filter-chips" id="uchi-filter"></div>
       </div>
       <div class="filter-row">
-        <div class="filter-label">月</div>
+        <div class="filter-label">譛・/div>
         <div class="filter-chips" id="month-filter"></div>
       </div>
     </div>
     <div class="summary-bar">
-      <div class="sb-item"><div class="sb-label">SESSIONS</div><div class="sb-val" id="sb-count">—</div></div>
-      <div class="sb-item"><div class="sb-label">TOTAL</div><div class="sb-val" id="sb-total">—</div></div>
-      <div class="sb-item"><div class="sb-label">WIN RATE</div><div class="sb-val" id="sb-winrate">—</div></div>
+      <div class="sb-item"><div class="sb-label">SESSIONS</div><div class="sb-val" id="sb-count">窶・/div></div>
+      <div class="sb-item"><div class="sb-label">TOTAL</div><div class="sb-val" id="sb-total">窶・/div></div>
+      <div class="sb-item"><div class="sb-label">WIN RATE</div><div class="sb-val" id="sb-winrate">窶・/div></div>
     </div>
     <div id="records-list"><div class="loading">LOADING...</div></div>
   </div>
 
   <div class="tab-content" id="tab-analysis">
     <div class="an-tabs">
-      <div class="an-tab active" onclick="switchAnTab('monthly')">月別</div>
-      <div class="an-tab" onclick="switchAnTab('kishu')">機種別</div>
-      <div class="an-tab" onclick="switchAnTab('uchi')">打ち手別</div>
-      <div class="an-tab" onclick="switchAnTab('overall')">総合</div>
+      <div class="an-tab active" onclick="switchAnTab('monthly')">譛亥挨</div>
+      <div class="an-tab" onclick="switchAnTab('kishu')">讖溽ｨｮ蛻･</div>
+      <div class="an-tab" onclick="switchAnTab('uchi')">謇薙■謇句挨</div>
+      <div class="an-tab" onclick="switchAnTab('overall')">邱丞粋</div>
     </div>
 
-    <!-- 月別 -->
+    <!-- 譛亥挨 -->
     <div class="an-section active" id="an-monthly">
       <div id="monthly-list"></div>
     </div>
 
-    <!-- 機種別 -->
+    <!-- 讖溽ｨｮ蛻･ -->
     <div class="an-section" id="an-kishu">
       <div id="kishu-list"></div>
     </div>
 
-    <!-- 打ち手別 -->
+    <!-- 謇薙■謇句挨 -->
     <div class="an-section" id="an-uchi">
       <div id="uchi-list"></div>
     </div>
 
-    <!-- 総合 -->
+    <!-- 邱丞粋 -->
     <div class="an-section" id="an-overall">
       <div class="an-period">
-        <button class="an-period-btn active" onclick="setRankPeriod('all',this)">全期間</button>
-        <button class="an-period-btn" onclick="setRankPeriod('3m',this)">3ヶ月</button>
-        <button class="an-period-btn" onclick="setRankPeriod('1m',this)">当月</button>
+        <button class="an-period-btn active" onclick="setRankPeriod('all',this)">蜈ｨ譛滄俣</button>
+        <button class="an-period-btn" onclick="setRankPeriod('3m',this)">3繝ｶ譛・/button>
+        <button class="an-period-btn" onclick="setRankPeriod('1m',this)">蠖捺怦</button>
       </div>
       <div class="an-card">
-        <div class="an-card-title">機種別収支ランキング</div>
+        <div class="an-card-title">讖溽ｨｮ蛻･蜿取髪繝ｩ繝ｳ繧ｭ繝ｳ繧ｰ</div>
         <div id="rank-kishu"></div>
       </div>
       <div class="an-card">
-        <div class="an-card-title">店別収支ランキング</div>
+        <div class="an-card-title">蠎怜挨蜿取髪繝ｩ繝ｳ繧ｭ繝ｳ繧ｰ</div>
         <div id="rank-shop"></div>
       </div>
       <div class="an-card">
-        <div class="an-card-title">機種別 平均期待時給</div>
+        <div class="an-card-title">讖溽ｨｮ蛻･ 蟷ｳ蝮・悄蠕・凾邨ｦ</div>
         <div id="rank-kitai-kishu"></div>
       </div>
       <div class="an-card">
-        <div class="an-card-title">店別 平均期待時給</div>
+        <div class="an-card-title">蠎怜挨 蟷ｳ蝮・悄蠕・凾邨ｦ</div>
         <div id="rank-kitai-shop"></div>
       </div>
       <div class="an-card">
-        <div class="an-card-title">運% 分布</div>
+        <div class="an-card-title">驕・ 蛻・ｸ・/div>
         <div id="un-summary" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px;"></div>
         <div class="un-dist" id="un-dist"></div>
         <div style="display:flex;justify-content:space-between;margin-top:4px;">
@@ -323,113 +323,113 @@ canvas{display:block;width:100%;border-radius:var(--radius-sm);}
       </div>
     </div>
   </div>
-  <!-- 報酬タブ -->
+  <!-- 蝣ｱ驟ｬ繧ｿ繝・-->
   <div class="tab-content" id="tab-hoshu">
-    <button class="hoshu-confirm-btn" id="hoshu-confirm-btn" onclick="doHoshuConfirm()">💰 報酬確定</button>
-    <div style="font-size:10px;color:var(--text3);text-align:center;margin-bottom:10px;font-family:'JetBrains Mono',monospace;letter-spacing:1px;">※ 全データ送信完了後に押してください</div>
+    <button class="hoshu-confirm-btn" id="hoshu-confirm-btn" onclick="doHoshuConfirm()">腸 蝣ｱ驟ｬ遒ｺ螳・/button>
+    <div style="font-size:10px;color:var(--text3);text-align:center;margin-bottom:10px;font-family:'JetBrains Mono',monospace;letter-spacing:1px;">窶ｻ 蜈ｨ繝・・繧ｿ騾∽ｿ｡螳御ｺ・ｾ後↓謚ｼ縺励※縺上□縺輔＞</div>
     <div class="hoshu-result-panel" id="hoshu-result-panel">
       <div class="hoshu-result-title">REWARD SUMMARY</div>
       <div id="hoshu-result-body"></div>
     </div>
   </div>
 
-  <!-- マスタタブ -->
+  <!-- 繝槭せ繧ｿ繧ｿ繝・-->
   <div class="tab-content" id="tab-master">
     <div class="an-tabs">
-      <div class="an-tab active" onclick="switchSetTab('shop')">店</div>
-      <div class="an-tab" onclick="switchSetTab('kishu')">機種</div>
-      <div class="an-tab" onclick="switchSetTab('uchi')">打ち手</div>
+      <div class="an-tab active" onclick="switchSetTab('shop')">蠎・/div>
+      <div class="an-tab" onclick="switchSetTab('kishu')">讖溽ｨｮ</div>
+      <div class="an-tab" onclick="switchSetTab('uchi')">謇薙■謇・/div>
     </div>
 
-    <!-- 店マスタ -->
+    <!-- 蠎励・繧ｹ繧ｿ -->
     <div class="an-section active" id="set-shop">
       <div class="an-card" id="set-shop-form">
-        <div class="an-card-title" id="set-shop-form-title">新規追加</div>
+        <div class="an-card-title" id="set-shop-form-title">譁ｰ隕剰ｿｽ蜉</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
           <div>
-            <div class="detail-label">店名</div>
-            <input class="set-input" id="shop-name" type="text" placeholder="店名">
+            <div class="detail-label">蠎怜錐</div>
+            <input class="set-input" id="shop-name" type="text" placeholder="蠎怜錐">
           </div>
           <div>
-            <div class="detail-label">換金率（玉/100円）</div>
+            <div class="detail-label">謠幃≡邇・ｼ育脂/100蜀・ｼ・/div>
             <input class="set-input" id="shop-kokan" type="number" placeholder="28">
           </div>
         </div>
         <div style="display:flex;gap:8px;">
-          <button class="set-btn-save" onclick="saveShop()">保存</button>
-          <button class="set-btn-cancel" onclick="cancelSetEdit('shop')">キャンセル</button>
+          <button class="set-btn-save" onclick="saveShop()">菫晏ｭ・/button>
+          <button class="set-btn-cancel" onclick="cancelSetEdit('shop')">繧ｭ繝｣繝ｳ繧ｻ繝ｫ</button>
         </div>
       </div>
       <div class="an-card" id="set-shop-list"></div>
     </div>
 
-    <!-- 機種一覧 -->
+    <!-- 讖溽ｨｮ荳隕ｧ -->
     <div class="an-section" id="set-kishu">
       <div class="an-card" id="set-kishu-form">
-        <div class="an-card-title" id="set-kishu-form-title">新規追加</div>
+        <div class="an-card-title" id="set-kishu-form-title">譁ｰ隕剰ｿｽ蜉</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
           <div>
-            <div class="detail-label">機種名</div>
-            <input class="set-input" id="kishu-name" type="text" placeholder="機種名" style="width:100%;">
+            <div class="detail-label">讖溽ｨｮ蜷・/div>
+            <input class="set-input" id="kishu-name" type="text" placeholder="讖溽ｨｮ蜷・ style="width:100%;">
           </div>
           <div>
-            <div class="detail-label">メーカー</div>
+            <div class="detail-label">繝｡繝ｼ繧ｫ繝ｼ</div>
             <select class="set-input" id="kishu-maker" style="width:100%;">
-              <option value="">未設定</option>
+              <option value="">譛ｪ險ｭ螳・/option>
               <option value="SANKYO">SANKYO</option>
-              <option value="京楽">京楽</option>
-              <option value="ニューギン">ニューギン</option>
+              <option value="莠ｬ讌ｽ">莠ｬ讌ｽ</option>
+              <option value="繝九Η繝ｼ繧ｮ繝ｳ">繝九Η繝ｼ繧ｮ繝ｳ</option>
               <option value="SANYO">SANYO</option>
-              <option value="平和">平和</option>
-              <option value="サミー">サミー</option>
+              <option value="蟷ｳ蜥・>蟷ｳ蜥・/option>
+              <option value="繧ｵ繝溘・">繧ｵ繝溘・</option>
               <option value="SanseiR&D">SanseiR&D</option>
               <option value="DAIICHI">DAIICHI</option>
-              <option value="藤商事">藤商事</option>
-              <option value="大都技研">大都技研</option>
-              <option value="その他">その他</option>
+              <option value="阯､蝠・ｺ・>阯､蝠・ｺ・/option>
+              <option value="螟ｧ驛ｽ謚遐・>螟ｧ驛ｽ謚遐・/option>
+              <option value="縺昴・莉・>縺昴・莉・/option>
             </select>
           </div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px;">
-          <div><div class="detail-label">平均出玉</div><input class="set-input" id="kishu-heikin" type="number" placeholder="0"></div>
-          <div><div class="detail-label">トータル</div><input class="set-input" id="kishu-total" type="number" placeholder="0"></div>
-          <div><div class="detail-label">トータル1R</div><input class="set-input" id="kishu-total1r" type="number" placeholder="0"></div>
-          <div><div class="detail-label">時間効率</div><input class="set-input" id="kishu-jikan" type="number" placeholder="0"></div>
-          <div><div class="detail-label">初当たり</div><input class="set-input" id="kishu-hatsua" type="number" placeholder="0"></div>
-          <div><div class="detail-label">平均連</div><input class="set-input" id="kishu-heiren" type="number" placeholder="0"></div>
+          <div><div class="detail-label">蟷ｳ蝮・・邇・/div><input class="set-input" id="kishu-heikin" type="number" placeholder="0"></div>
+          <div><div class="detail-label">繝医・繧ｿ繝ｫ</div><input class="set-input" id="kishu-total" type="number" placeholder="0"></div>
+          <div><div class="detail-label">繝医・繧ｿ繝ｫ1R</div><input class="set-input" id="kishu-total1r" type="number" placeholder="0"></div>
+          <div><div class="detail-label">譎る俣蜉ｹ邇・/div><input class="set-input" id="kishu-jikan" type="number" placeholder="0"></div>
+          <div><div class="detail-label">蛻晏ｽ薙◆繧・/div><input class="set-input" id="kishu-hatsua" type="number" placeholder="0"></div>
+          <div><div class="detail-label">蟷ｳ蝮・｣</div><input class="set-input" id="kishu-heiren" type="number" placeholder="0"></div>
         </div>
-        <div class="an-card-title" style="margin-bottom:6px;">ラウンド別出玉</div>
+        <div class="an-card-title" style="margin-bottom:6px;">繝ｩ繧ｦ繝ｳ繝牙挨蜃ｺ邇・/div>
         <div id="kishu-rounds-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;"></div>
         <div style="display:flex;gap:8px;">
-          <button class="set-btn-save" onclick="saveKishu()">保存</button>
-          <button class="set-btn-cancel" onclick="cancelSetEdit('kishu')">キャンセル</button>
+          <button class="set-btn-save" onclick="saveKishu()">菫晏ｭ・/button>
+          <button class="set-btn-cancel" onclick="cancelSetEdit('kishu')">繧ｭ繝｣繝ｳ繧ｻ繝ｫ</button>
         </div>
       </div>
-      <!-- メーカーフィルタチップス -->
+      <!-- 繝｡繝ｼ繧ｫ繝ｼ繝輔ぅ繝ｫ繧ｿ繝√ャ繝励せ -->
       <div id="set-kishu-maker-filter" style="margin-bottom:6px;"></div>
       <div class="an-card" id="set-kishu-list"></div>
     </div>
 
-    <!-- 打ち手マスタ -->
+    <!-- 謇薙■謇九・繧ｹ繧ｿ -->
     <div class="an-section" id="set-uchi">
       <div class="an-card" id="set-uchi-form">
-        <div class="an-card-title" id="set-uchi-form-title">新規追加</div>
+        <div class="an-card-title" id="set-uchi-form-title">譁ｰ隕剰ｿｽ蜉</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
           <div>
-            <div class="detail-label">名前</div>
-            <input class="set-input" id="uchi-name" type="text" placeholder="打ち手名">
+            <div class="detail-label">蜷榊燕</div>
+            <input class="set-input" id="uchi-name" type="text" placeholder="謇薙■謇句錐">
           </div>
           <div>
-            <div class="detail-label">タイプ</div>
+            <div class="detail-label">繧ｿ繧､繝・/div>
             <select class="set-input" id="uchi-type">
-              <option value="自分">自分</option>
-              <option value="代打ち">代打ち</option>
+              <option value="閾ｪ蛻・>閾ｪ蛻・/option>
+              <option value="莉｣謇薙■">莉｣謇薙■</option>
             </select>
           </div>
         </div>
         <div style="display:flex;gap:8px;">
-          <button class="set-btn-save" onclick="saveUchi()">保存</button>
-          <button class="set-btn-cancel" onclick="cancelSetEdit('uchi')">キャンセル</button>
+          <button class="set-btn-save" onclick="saveUchi()">菫晏ｭ・/button>
+          <button class="set-btn-cancel" onclick="cancelSetEdit('uchi')">繧ｭ繝｣繝ｳ繧ｻ繝ｫ</button>
         </div>
       </div>
       <div class="an-card" id="set-uchi-list"></div>
@@ -437,28 +437,28 @@ canvas{display:block;width:100%;border-radius:var(--radius-sm);}
   </div>
 </div>
 <div class="bottom-nav">
-  <button class="nav-btn active" id="nav-home"     onclick="switchTab('home')"><div class="icon">🏠</div><div>ホーム</div></button>
-  <button class="nav-btn" id="nav-analysis" onclick="switchTab('analysis')"><div class="icon">📊</div><div>分析</div></button>
-  <button class="nav-btn" id="nav-records"  onclick="switchTab('records')"><div class="icon">📋</div><div>記録</div></button>
-  <button class="nav-btn" id="nav-hoshu"    onclick="switchTab('hoshu')"><div class="icon">💰</div><div>報酬</div></button>
-  <button class="nav-btn" id="nav-master"   onclick="switchTab('master')"><div class="icon">⚙️</div><div>マスタ</div></button>
+  <button class="nav-btn active" id="nav-home"     onclick="switchTab('home')"><div class="icon">匠</div><div>繝帙・繝</div></button>
+  <button class="nav-btn" id="nav-analysis" onclick="switchTab('analysis')"><div class="icon">投</div><div>蛻・梵</div></button>
+  <button class="nav-btn" id="nav-records"  onclick="switchTab('records')"><div class="icon">搭</div><div>險倬鹸</div></button>
+  <button class="nav-btn" id="nav-hoshu"    onclick="switchTab('hoshu')"><div class="icon">腸</div><div>蝣ｱ驟ｬ</div></button>
+  <button class="nav-btn" id="nav-master"   onclick="switchTab('master')"><div class="icon">笞呻ｸ・/div><div>繝槭せ繧ｿ</div></button>
 </div>
 <div class="detail-overlay" id="detailOverlay" onclick="closeDetail(event)">
   <div class="detail-panel">
     <div class="detail-handle"></div>
-    <div class="detail-title" id="detail-kishu">—</div>
-    <div class="detail-sub" id="detail-sub">—</div>
+    <div class="detail-title" id="detail-kishu">窶・/div>
+    <div class="detail-sub" id="detail-sub">窶・/div>
     <div class="detail-grid" id="detail-grid"></div>
-    <button class="delete-btn" id="delete-btn">🗑️ この記録を削除</button>
+    <button class="delete-btn" id="delete-btn">卵・・縺薙・險倬鹸繧貞炎髯､</button>
   </div>
 </div>
 <div class="modal-overlay" id="confirmModal">
   <div class="modal">
-    <div class="modal-title">削除確認</div>
+    <div class="modal-title">蜑企勁遒ｺ隱・/div>
     <div class="modal-msg" id="confirm-msg"></div>
     <div class="modal-btns">
-      <button class="modal-btn cancel" id="confirm-cancel">キャンセル</button>
-      <button class="modal-btn ok" id="confirm-ok">削除</button>
+      <button class="modal-btn cancel" id="confirm-cancel">繧ｭ繝｣繝ｳ繧ｻ繝ｫ</button>
+      <button class="modal-btn ok" id="confirm-ok">蜑企勁</button>
     </div>
   </div>
 </div>
@@ -474,21 +474,21 @@ function currentMonth() {
 
 async function loadRecords() {
   document.getElementById('records-list').innerHTML = '<div class="loading">LOADING...</div>';
-  document.getElementById('header-sub').textContent = '読み込み中...';
+  document.getElementById('header-sub').textContent = '隱ｭ縺ｿ霎ｼ縺ｿ荳ｭ...';
   try {
     const res  = await fetch(GAS_URL + '?action=records&limit=200', {redirect:'follow'});
     const data = await res.json();
     if (data.success) {
       ALL_RECORDS = data.records;
       showCount = PAGE_SIZE;
-      // 全タブをダーティにして現在タブのみ再描画
+      // 蜈ｨ繧ｿ繝悶ｒ繝繝ｼ繝・ぅ縺ｫ縺励※迴ｾ蝨ｨ繧ｿ繝悶・縺ｿ蜀肴緒逕ｻ
       Object.keys(tabDirty).forEach(k => { tabDirty[k] = true; });
       buildFilters();
       tabDirty.records = false; render();
     }
   } catch(e) {
-    document.getElementById('records-list').innerHTML = '<div class="empty">データ取得失敗<br>更新ボタンを押してください</div>';
-    document.getElementById('header-sub').textContent = '取得失敗';
+    document.getElementById('records-list').innerHTML = '<div class="empty">繝・・繧ｿ蜿門ｾ怜､ｱ謨・br>譖ｴ譁ｰ繝懊ち繝ｳ繧呈款縺励※縺上□縺輔＞</div>';
+    document.getElementById('header-sub').textContent = '蜿門ｾ怜､ｱ謨・;
   }
 }
 
@@ -504,26 +504,26 @@ function loadCache() {
     return JSON.parse(raw).data;
   } catch(e) { return null; }
 }
-// 現在表示中のメインタブを追跡（初期値はホーム）
+// 迴ｾ蝨ｨ陦ｨ遉ｺ荳ｭ縺ｮ繝｡繧､繝ｳ繧ｿ繝悶ｒ霑ｽ霍｡・亥・譛溷､縺ｯ繝帙・繝・・
 let currentTab = 'home';
 
-// タブごとに「要再描画」フラグを管理（データ更新時にセット）
+// 繧ｿ繝悶＃縺ｨ縺ｫ縲瑚ｦ∝・謠冗判縲阪ヵ繝ｩ繧ｰ繧堤ｮ｡逅・ｼ医ョ繝ｼ繧ｿ譖ｴ譁ｰ譎ゅ↓繧ｻ繝・ヨ・・
 const tabDirty = { home: true, analysis: true, records: true, master: true };
 
-// データ適用：グローバル変数を更新し、現在のタブのみ再描画
+// 繝・・繧ｿ驕ｩ逕ｨ・壹げ繝ｭ繝ｼ繝舌Ν螟画焚繧呈峩譁ｰ縺励∫樟蝨ｨ縺ｮ繧ｿ繝悶・縺ｿ蜀肴緒逕ｻ
 function applyData(data) {
   MASTERS     = {shops: data.shops, kishus: data.kishus, uchis: data.uchis};
   ALL_RECORDS = data.records;
   showCount   = PAGE_SIZE;
-  // 全タブをダーティにする（次に開いた時に再描画）
+  // 蜈ｨ繧ｿ繝悶ｒ繝繝ｼ繝・ぅ縺ｫ縺吶ｋ・域ｬ｡縺ｫ髢九＞縺滓凾縺ｫ蜀肴緒逕ｻ・・
   Object.keys(tabDirty).forEach(k => { tabDirty[k] = true; });
-  // フィルターは記録タブ用（軽量なので常に更新）
+  // 繝輔ぅ繝ｫ繧ｿ繝ｼ縺ｯ險倬鹸繧ｿ繝也畑・郁ｻｽ驥上↑縺ｮ縺ｧ蟶ｸ縺ｫ譖ｴ譁ｰ・・
   buildFilters();
-  // 現在表示中のタブだけ即座に描画
+  // 迴ｾ蝨ｨ陦ｨ遉ｺ荳ｭ縺ｮ繧ｿ繝悶□縺大叉蠎ｧ縺ｫ謠冗判
   renderCurrentTab();
 }
 
-// 現在表示中のタブを描画
+// 迴ｾ蝨ｨ陦ｨ遉ｺ荳ｭ縺ｮ繧ｿ繝悶ｒ謠冗判
 function renderCurrentTab() {
   if (currentTab === 'home')     { renderHome();     tabDirty.home     = false; }
   if (currentTab === 'records')  { render();         tabDirty.records  = false; }
@@ -531,15 +531,15 @@ function renderCurrentTab() {
   if (currentTab === 'master')   { renderSetting();  tabDirty.master   = false; }
 }
 
-// スケルトンUIを表示（キャッシュなし時の初回ロード用）
+// 繧ｹ繧ｱ繝ｫ繝医ΦUI繧定｡ｨ遉ｺ・医く繝｣繝・す繝･縺ｪ縺玲凾縺ｮ蛻晏屓繝ｭ繝ｼ繝臥畑・・
 function showSkeleton() {
-  // サマリーバーのスケルトン
+  // 繧ｵ繝槭Μ繝ｼ繝舌・縺ｮ繧ｹ繧ｱ繝ｫ繝医Φ
   const sb = document.getElementById('sb-count');
-  if (sb) sb.textContent = '—';
-  document.getElementById('sb-total').textContent   = '—';
-  document.getElementById('sb-winrate').textContent = '—';
+  if (sb) sb.textContent = '窶・;
+  document.getElementById('sb-total').textContent   = '窶・;
+  document.getElementById('sb-winrate').textContent = '窶・;
 
-  // 記録リストのスケルトンカードを3枚表示
+  // 險倬鹸繝ｪ繧ｹ繝医・繧ｹ繧ｱ繝ｫ繝医Φ繧ｫ繝ｼ繝峨ｒ3譫夊｡ｨ遉ｺ
   const list = document.getElementById('records-list');
   const skCard = () => `
     <div class="sk-card">
@@ -559,17 +559,17 @@ function showSkeleton() {
 }
 
 async function loadInit() {
-  // キャッシュがあれば即座に表示
+  // 繧ｭ繝｣繝・す繝･縺後≠繧後・蜊ｳ蠎ｧ縺ｫ陦ｨ遉ｺ
   const cache = loadCache();
   if (cache) {
     applyData(cache);
-    document.getElementById('header-sub').textContent += ' （更新中...）';
+    document.getElementById('header-sub').textContent += ' ・域峩譁ｰ荳ｭ...・・;
   } else {
-    // キャッシュなし時はスケルトンUIを表示
+    // 繧ｭ繝｣繝・す繝･縺ｪ縺玲凾縺ｯ繧ｹ繧ｱ繝ｫ繝医ΦUI繧定｡ｨ遉ｺ
     showSkeleton();
-    document.getElementById('header-sub').textContent = '読み込み中...';
+    document.getElementById('header-sub').textContent = '隱ｭ縺ｿ霎ｼ縺ｿ荳ｭ...';
   }
-  // バックグラウンドでGASから最新取得
+  // 繝舌ャ繧ｯ繧ｰ繝ｩ繧ｦ繝ｳ繝峨〒GAS縺九ｉ譛譁ｰ蜿門ｾ・
   try {
     const res  = await fetch(GAS_URL + '?action=init&limit=200', {redirect:'follow'});
     const data = await res.json();
@@ -579,8 +579,8 @@ async function loadInit() {
     }
   } catch(e) {
     if (!cache) {
-      document.getElementById('records-list').innerHTML = '<div class="empty">データ取得失敗<br>更新ボタンを押してください</div>';
-      document.getElementById('header-sub').textContent = '取得失敗';
+      document.getElementById('records-list').innerHTML = '<div class="empty">繝・・繧ｿ蜿門ｾ怜､ｱ謨・br>譖ｴ譁ｰ繝懊ち繝ｳ繧呈款縺励※縺上□縺輔＞</div>';
+      document.getElementById('header-sub').textContent = '蜿門ｾ怜､ｱ謨・;
     }
   }
 }
@@ -595,14 +595,14 @@ function buildFilters() {
   uchis.forEach(u => {
     const c = makeChip(u === 'all' ? 'ALL' : u, u === filterUchi, () => {
       filterUchi = u; buildFilters(); showCount = PAGE_SIZE;
-      tabDirty.records = false; render(); // フィルター変更→即時描画
+      tabDirty.records = false; render(); // 繝輔ぅ繝ｫ繧ｿ繝ｼ螟画峩竊貞叉譎よ緒逕ｻ
     });
     uBar.appendChild(c);
   });
   months.forEach(m => {
-    const c = makeChip(m === 'all' ? 'ALL' : m.replace('-','年')+'月', m === filterMonth, () => {
+    const c = makeChip(m === 'all' ? 'ALL' : m.replace('-','蟷ｴ')+'譛・, m === filterMonth, () => {
       filterMonth = m; buildFilters(); showCount = PAGE_SIZE;
-      tabDirty.records = false; render(); // フィルター変更→即時描画
+      tabDirty.records = false; render(); // 繝輔ぅ繝ｫ繧ｿ繝ｼ螟画峩竊貞叉譎よ緒逕ｻ
     });
     c.dataset.val = m;
     mBar.appendChild(c);
@@ -630,21 +630,21 @@ function render() {
   const total = recs.reduce((s, r) => s + (r.kosshi || 0), 0);
   const wins  = recs.filter(r => (r.kosshi || 0) > 0).length;
   const wr    = recs.length > 0 ? Math.round(wins / recs.length * 100) : 0;
-  document.getElementById('sb-count').textContent = recs.length + '件';
+  document.getElementById('sb-count').textContent = recs.length + '莉ｶ';
   const tel = document.getElementById('sb-total');
   tel.textContent = (total >= 0 ? '+' : '') + Math.round(total).toLocaleString('ja-JP');
   tel.className   = 'sb-val ' + (total >= 0 ? 'pos' : 'neg');
   document.getElementById('sb-winrate').textContent = wr + '%';
-  document.getElementById('header-sub').textContent = '全' + ALL_RECORDS.length + '件 / 表示' + Math.min(showCount, recs.length) + '件';
+  document.getElementById('header-sub').textContent = '蜈ｨ' + ALL_RECORDS.length + '莉ｶ / 陦ｨ遉ｺ' + Math.min(showCount, recs.length) + '莉ｶ';
 
   const list = document.getElementById('records-list');
-  if (recs.length === 0) { list.innerHTML = '<div class="empty">該当する記録がありません</div>'; return; }
+  if (recs.length === 0) { list.innerHTML = '<div class="empty">隧ｲ蠖薙☆繧玖ｨ倬鹸縺後≠繧翫∪縺帙ｓ</div>'; return; }
   list.innerHTML = '';
   recs.slice(0, showCount).forEach(r => list.appendChild(makeCard(r)));
   if (recs.length > showCount) {
     const btn = document.createElement('button');
     btn.className   = 'load-more';
-    btn.textContent = `▼ さらに読み込む（残り${recs.length - showCount}件）`;
+    btn.textContent = `笆ｼ 縺輔ｉ縺ｫ隱ｭ縺ｿ霎ｼ繧・域ｮ九ｊ${recs.length - showCount}莉ｶ・荏;
     btn.onclick     = () => { showCount += PAGE_SIZE; render(); };
     list.appendChild(btn);
   }
@@ -655,32 +655,32 @@ function makeCard(r) {
   const card = document.createElement('div');
   card.className = 'record-card ' + (pos ? 'pos' : 'neg');
   card.onclick   = () => openDetail(r);
-  const isOwner = !r.uchi || r.uchi === '自分';
+  const isOwner = !r.uchi || r.uchi === '閾ｪ蛻・;
   const stats = [
-    {label:'期待時給', val: fmtKitai(r.kitaiJikyu), cls: kitaiCls(r.kitaiJikyu)},
-    {label:'仕事量',   val: fmtYen(r.shigoto),  cls: signCls(r.shigoto)},
-    {label:'総回転',   val: r.soKaiten ? Math.round(r.soKaiten).toLocaleString('ja-JP')+'回' : '—', cls:'info'},
-    {label:'回転率',   val: r.kaitenRitsu ? r.kaitenRitsu+'回/千円' : '—', cls:''},
-    {label:'差玉',     val: r.sagitama != null ? (r.sagitama>=0?'+':'')+Math.round(r.sagitama).toLocaleString('ja-JP')+'玉' : '—', cls: signCls(r.sagitama)},
-    {label:'運(%)',    val: normalizeUn(r.un) != null ? Math.round(normalizeUn(r.un))+'%' : '—', cls: (normalizeUn(r.un)||0)>=100?'pos':(normalizeUn(r.un)||0)>=70?'':'neg'},
+    {label:'譛溷ｾ・凾邨ｦ', val: fmtKitai(r.kitaiJikyu), cls: kitaiCls(r.kitaiJikyu)},
+    {label:'莉穂ｺ矩㍼',   val: fmtYen(r.shigoto),  cls: signCls(r.shigoto)},
+    {label:'邱丞屓霆｢',   val: r.soKaiten ? Math.round(r.soKaiten).toLocaleString('ja-JP')+'蝗・ : '窶・, cls:'info'},
+    {label:'蝗櫁ｻ｢邇・,   val: r.kaitenRitsu ? r.kaitenRitsu+'蝗・蜊・・' : '窶・, cls:''},
+    {label:'蟾ｮ邇・,     val: r.sagitama != null ? (r.sagitama>=0?'+':'')+Math.round(r.sagitama).toLocaleString('ja-JP')+'邇・ : '窶・, cls: signCls(r.sagitama)},
+    {label:'驕・%)',    val: normalizeUn(r.un) != null ? Math.round(normalizeUn(r.un))+'%' : '窶・, cls: (normalizeUn(r.un)||0)>=100?'pos':(normalizeUn(r.un)||0)>=70?'':'neg'},
   ];
   card.innerHTML = `
     <div class="rc-row1">
       <div class="rc-left1">
-        <div class="rc-date">${r.date||'—'}</div>
-        <div class="rc-shop-dai">${r.shop||'—'}${r.daiban ? '　台：'+r.daiban : ''}</div>
-        <div class="rc-kishu">${r.kishu||'—'}</div>
+        <div class="rc-date">${r.date||'窶・}</div>
+        <div class="rc-shop-dai">${r.shop||'窶・}${r.daiban ? '縲蜿ｰ・・+r.daiban : ''}</div>
+        <div class="rc-kishu">${r.kishu||'窶・}</div>
       </div>
       <div class="rc-right1">
         <div class="rc-kosshi ${pos?'pos':'neg'}">${(r.kosshi>=0?'+':'')}${Math.round(r.kosshi||0).toLocaleString('ja-JP')}</div>
-        <div class="rc-jikan">${r.jikan||'—'}</div>
+        <div class="rc-jikan">${r.jikan||'窶・}</div>
       </div>
     </div>
     <div class="rc-divider"></div>
     <div class="rc-stats">${stats.map(s=>`<div class="rc-stat"><div class="rc-stat-label">${s.label}</div><div class="rc-stat-val ${s.cls}">${s.val}</div></div>`).join('')}</div>
     <div class="rc-footer">
-      <span class="rc-uchi-badge ${isOwner?'owner':''}">${r.uchi||'自分'}</span>
-      ${r.hoshu ? `<span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--green);">報酬 ¥${Math.round(r.hoshu).toLocaleString('ja-JP')}</span>` : ''}
+      <span class="rc-uchi-badge ${isOwner?'owner':''}">${r.uchi||'閾ｪ蛻・}</span>
+      ${r.hoshu ? `<span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--green);">蝣ｱ驟ｬ ﾂ･${Math.round(r.hoshu).toLocaleString('ja-JP')}</span>` : ''}
     </div>`;
   return card;
 }
@@ -688,21 +688,21 @@ function makeCard(r) {
 function openDetail(r) {
   currentRecord = r;
   document.getElementById('delete-btn').style.display = '';
-  document.getElementById('detail-kishu').textContent = r.kishu || '—';
+  document.getElementById('detail-kishu').textContent = r.kishu || '窶・;
   document.getElementById('detail-sub').textContent =
-    [r.date, r.shop, r.daiban ? '台：'+r.daiban : '', r.uchi||'自分'].filter(Boolean).join('　');
+    [r.date, r.shop, r.daiban ? '蜿ｰ・・+r.daiban : '', r.uchi||'閾ｪ蛻・].filter(Boolean).join('縲');
   const items = [
-    {label:'収支',       val: fmtYen(r.kosshi),       cls: signCls(r.kosshi)},
-    {label:'稼働時間',   val: r.jikan||'—',           cls:''},
-    {label:'差玉',       val: r.sagitama!=null ? (r.sagitama>=0?'+':'')+Math.round(r.sagitama).toLocaleString('ja-JP')+'玉':'—', cls:signCls(r.sagitama)},
-    {label:'期待時給',   val: fmtKitai(r.kitaiJikyu), cls: kitaiCls(r.kitaiJikyu)},
-    {label:'仕事量',     val: fmtYen(r.shigoto),      cls: signCls(r.shigoto)},
-    {label:'仕事量時給', val: fmtYen(r.shigotoJikyu), cls:''},
-    {label:'総回転',     val: r.soKaiten ? Math.round(r.soKaiten).toLocaleString('ja-JP')+'回':'—', cls:'info'},
-    {label:'回転率',     val: r.kaitenRitsu ? r.kaitenRitsu+'回/千円':'—', cls:'info'},
-    {label:'ボーダー',   val: r.border ? r.border+'回/千円':'—', cls:''},
-    {label:'運(%)',      val: normalizeUn(r.un)!=null ? Math.round(normalizeUn(r.un))+'%':'—', cls:(normalizeUn(r.un)||0)>=100?'pos':(normalizeUn(r.un)||0)>=70?'':'neg'},
-    {label:'報酬',       val: r.hoshu ? '¥'+Math.round(r.hoshu).toLocaleString('ja-JP'):'¥0', cls:'pos'},
+    {label:'蜿取髪',       val: fmtYen(r.kosshi),       cls: signCls(r.kosshi)},
+    {label:'遞ｼ蜒肴凾髢・,   val: r.jikan||'窶・,           cls:''},
+    {label:'蟾ｮ邇・,       val: r.sagitama!=null ? (r.sagitama>=0?'+':'')+Math.round(r.sagitama).toLocaleString('ja-JP')+'邇・:'窶・, cls:signCls(r.sagitama)},
+    {label:'譛溷ｾ・凾邨ｦ',   val: fmtKitai(r.kitaiJikyu), cls: kitaiCls(r.kitaiJikyu)},
+    {label:'莉穂ｺ矩㍼',     val: fmtYen(r.shigoto),      cls: signCls(r.shigoto)},
+    {label:'莉穂ｺ矩㍼譎らｵｦ', val: fmtYen(r.shigotoJikyu), cls:''},
+    {label:'邱丞屓霆｢',     val: r.soKaiten ? Math.round(r.soKaiten).toLocaleString('ja-JP')+'蝗・:'窶・, cls:'info'},
+    {label:'蝗櫁ｻ｢邇・,     val: r.kaitenRitsu ? r.kaitenRitsu+'蝗・蜊・・':'窶・, cls:'info'},
+    {label:'繝懊・繝繝ｼ',   val: r.border ? r.border+'蝗・蜊・・':'窶・, cls:''},
+    {label:'驕・%)',      val: normalizeUn(r.un)!=null ? Math.round(normalizeUn(r.un))+'%':'窶・, cls:(normalizeUn(r.un)||0)>=100?'pos':(normalizeUn(r.un)||0)>=70?'':'neg'},
+    {label:'蝣ｱ驟ｬ',       val: r.hoshu ? 'ﾂ･'+Math.round(r.hoshu).toLocaleString('ja-JP'):'ﾂ･0', cls:'pos'},
   ];
   document.getElementById('detail-grid').innerHTML = items.map(i =>
     `<div class="detail-item"><div class="detail-label">${i.label}</div><div class="detail-val ${i.cls}">${i.val}</div></div>`
@@ -718,34 +718,34 @@ function closeDetail(e) {
 
 document.getElementById('delete-btn').onclick = () => {
   if (!currentRecord) return;
-  showConfirm(`${currentRecord.date}　${currentRecord.kishu}\n収支：${fmtYen(currentRecord.kosshi)}\n\nこの記録を削除しますか？`, async () => {
+  showConfirm(`${currentRecord.date}縲${currentRecord.kishu}\n蜿取髪・・{fmtYen(currentRecord.kosshi)}\n\n縺薙・險倬鹸繧貞炎髯､縺励∪縺吶°・歔, async () => {
     try {
       await fetch(GAS_URL, {method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain'},body:JSON.stringify({action:'delete',row:currentRecord.row})});
     } catch(e) {}
     document.getElementById('detailOverlay').classList.remove('show');
     ALL_RECORDS = ALL_RECORDS.filter(r => r.row !== currentRecord.row);
     currentRecord = null;
-    // キャッシュ更新
+    // 繧ｭ繝｣繝・す繝･譖ｴ譁ｰ
     saveCache({shops: MASTERS.shops, kishus: MASTERS.kishus, uchis: MASTERS.uchis, records: ALL_RECORDS});
-    // 全タブをダーティにして現在タブのみ再描画
+    // 蜈ｨ繧ｿ繝悶ｒ繝繝ｼ繝・ぅ縺ｫ縺励※迴ｾ蝨ｨ繧ｿ繝悶・縺ｿ蜀肴緒逕ｻ
     Object.keys(tabDirty).forEach(k => { tabDirty[k] = true; });
     buildFilters();
     tabDirty.records = false; render();
   });
 };
 
-function fmtYen(v) { if (v==null||v==='') return '—'; return (v>=0?'+':'')+Math.round(v).toLocaleString('ja-JP')+'円'; }
-function fmtKitai(v) { if (v==null||v==='') return '—'; return (v>=0?'+':'')+Math.round(v).toLocaleString('ja-JP')+'円'; }
+function fmtYen(v) { if (v==null||v==='') return '窶・; return (v>=0?'+':'')+Math.round(v).toLocaleString('ja-JP')+'蜀・; }
+function fmtKitai(v) { if (v==null||v==='') return '窶・; return (v>=0?'+':'')+Math.round(v).toLocaleString('ja-JP')+'蜀・; }
 function signCls(v) { if (v==null||v==='') return ''; return v>=0?'pos':'neg'; }
 function kitaiCls(v) { if (v==null||v==='') return ''; if(v>=2800)return 'kg'; if(v>=2300)return 'kb'; if(v>=1800)return 'ko'; if(v>=1500)return 'kw'; return 'kn'; }
 
-// 運%正規化：スプシから小数（例:1.05）で来た場合は×100して整数相当に変換
-// 整数（例:105）の場合はそのまま返す
+// 驕・豁｣隕丞喧・壹せ繝励す縺九ｉ蟆乗焚・井ｾ・1.05・峨〒譚･縺溷ｴ蜷医・ﾃ・00縺励※謨ｴ謨ｰ逶ｸ蠖薙↓螟画鋤
+// 謨ｴ謨ｰ・井ｾ・105・峨・蝣ｴ蜷医・縺昴・縺ｾ縺ｾ霑斐☆
 function normalizeUn(v) {
   if (v == null || v === '') return null;
   const n = parseFloat(v);
   if (isNaN(n)) return null;
-  // 10未満の小数値（0.xx〜9.xx）は明らかに×100が必要
+  // 10譛ｪ貅縺ｮ蟆乗焚蛟､・・.xx縲・.xx・峨・譏弱ｉ縺九↓ﾃ・00縺悟ｿ・ｦ・
   return n < 10 ? n * 100 : n;
 }
 
@@ -754,7 +754,7 @@ let currentAnTab = 'monthly';
 let rankPeriod = 'all';
 
 // =============================================
-// タブ切り替え
+// 繧ｿ繝門・繧頑崛縺・
 // =============================================
 function switchTab(tab) {
   currentTab = tab;
@@ -762,7 +762,7 @@ function switchTab(tab) {
     document.getElementById('tab-'+t).classList.toggle('active', t === tab);
     document.getElementById('nav-'+t).classList.toggle('active', t === tab);
   });
-  // ダーティな場合のみ再描画（遅延レンダリング）
+  // 繝繝ｼ繝・ぅ縺ｪ蝣ｴ蜷医・縺ｿ蜀肴緒逕ｻ・磯≦蟒ｶ繝ｬ繝ｳ繝繝ｪ繝ｳ繧ｰ・・
   if (tab === 'home'     && tabDirty.home)     { renderHome();     tabDirty.home     = false; }
   if (tab === 'analysis' && tabDirty.analysis) { renderAnalysis(); tabDirty.analysis = false; }
   if (tab === 'records'  && tabDirty.records)  { render();         tabDirty.records  = false; }
@@ -770,7 +770,7 @@ function switchTab(tab) {
 }
 
 // =============================================
-// ホームタブ
+// 繝帙・繝繧ｿ繝・
 // =============================================
 let calYear  = new Date().getFullYear();
 let calMonth = new Date().getMonth(); // 0-indexed
@@ -789,9 +789,9 @@ function renderCalendar() {
   const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
 
   document.getElementById('cal-title').textContent =
-    calYear + '年' + (calMonth+1) + '月';
+    calYear + '蟷ｴ' + (calMonth+1) + '譛・;
 
-  // 当月の収支をdateでマップ
+  // 蠖捺怦縺ｮ蜿取髪繧壇ate縺ｧ繝槭ャ繝・
   const byDate = {};
   ALL_RECORDS.forEach(r => {
     if (!r.date) return;
@@ -804,7 +804,7 @@ function renderCalendar() {
   });
 
   const cells = [];
-  // 空白セル
+  // 遨ｺ逋ｽ繧ｻ繝ｫ
   for (let i=0; i<firstDay; i++) cells.push('<div class="cal-cell empty"></div>');
 
   for (let d=1; d<=daysInMonth; d++) {
@@ -837,19 +837,19 @@ function openCalDay(dateStr) {
   const total = recs.reduce((s,r) => s+(r.kosshi||0), 0);
   document.getElementById('detail-kishu').textContent = dateStr;
   document.getElementById('detail-sub').textContent   =
-    recs.length + '件　合計 ' + (total>=0?'+':'') + Math.round(total).toLocaleString('ja-JP') + '円';
+    recs.length + '莉ｶ縲蜷郁ｨ・' + (total>=0?'+':'') + Math.round(total).toLocaleString('ja-JP') + '蜀・;
   document.getElementById('detail-grid').innerHTML = recs.map(r => `
     <div style="padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer;" onclick="closeDetail();setTimeout(()=>openDetail(ALL_RECORDS.find(x=>x.row===${r.row})),150)">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px;">
         <div>
-          <div style="font-size:13px;">${r.kishu||'—'}</div>
-          <div style="font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace;">${r.shop||'—'}　${r.jikan||'—'}　${r.uchi||'自分'}</div>
+          <div style="font-size:13px;">${r.kishu||'窶・}</div>
+          <div style="font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace;">${r.shop||'窶・}縲${r.jikan||'窶・}縲${r.uchi||'閾ｪ蛻・}</div>
         </div>
         <div style="font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;" class="${(r.kosshi||0)>=0?'pos':'neg'}">${((r.kosshi||0)>=0?'+':'')}${Math.round(r.kosshi||0).toLocaleString('ja-JP')}</div>
       </div>
       <div style="display:flex;gap:6px;">
-        <div style="font-size:10px;color:var(--text3);">期待時給 <span class="${kitaiCls(r.kitaiJikyu)}" style="font-family:'JetBrains Mono',monospace;">${r.kitaiJikyu!=null?fmtKitai(r.kitaiJikyu):'—'}</span></div>
-        <div style="font-size:10px;color:var(--text3);">仕事量 <span class="${signCls(r.shigoto)}" style="font-family:'JetBrains Mono',monospace;">${r.shigoto!=null?fmtYen(r.shigoto):'—'}</span></div>
+        <div style="font-size:10px;color:var(--text3);">譛溷ｾ・凾邨ｦ <span class="${kitaiCls(r.kitaiJikyu)}" style="font-family:'JetBrains Mono',monospace;">${r.kitaiJikyu!=null?fmtKitai(r.kitaiJikyu):'窶・}</span></div>
+        <div style="font-size:10px;color:var(--text3);">莉穂ｺ矩㍼ <span class="${signCls(r.shigoto)}" style="font-family:'JetBrains Mono',monospace;">${r.shigoto!=null?fmtYen(r.shigoto):'窶・}</span></div>
       </div>
     </div>`).join('');
   document.getElementById('delete-btn').style.display = 'none';
@@ -859,14 +859,14 @@ function openCalDay(dateStr) {
 
 function renderHomeSummary() {
   const el = document.getElementById('home-summary');
-  // 年集計
+  // 蟷ｴ髮・ｨ・
   const recs = ALL_RECORDS.filter(r => {
     if (!r.date) return false;
     return new Date(r.date).getFullYear() === calYear;
   });
 
   if (!recs.length) {
-    el.innerHTML = '<div class="empty" style="padding:16px">' + calYear + '年の記録なし</div>';
+    el.innerHTML = '<div class="empty" style="padding:16px">' + calYear + '蟷ｴ縺ｮ險倬鹸縺ｪ縺・/div>';
     return;
   }
 
@@ -882,18 +882,18 @@ function renderHomeSummary() {
   const avgUn = unW ? Math.round(unV/unW) : null;
 
   el.innerHTML = `
-    <div class="an-card-title">${calYear}年 サマリー</div>
+    <div class="an-card-title">${calYear}蟷ｴ 繧ｵ繝槭Μ繝ｼ</div>
     <div class="home-summary">
-      <div class="detail-item"><div class="detail-label">総収支</div><div class="detail-val ${signCls(total)}" style="font-size:20px;">${(total>=0?'+':'')}${Math.round(total).toLocaleString('ja-JP')}</div></div>
-      <div class="detail-item"><div class="detail-label">実時給</div><div class="detail-val ${signCls(jikyu)}" style="font-size:20px;">${jikyu!=null?fmtYen(jikyu):'—'}</div></div>
+      <div class="detail-item"><div class="detail-label">邱丞庶謾ｯ</div><div class="detail-val ${signCls(total)}" style="font-size:20px;">${(total>=0?'+':'')}${Math.round(total).toLocaleString('ja-JP')}</div></div>
+      <div class="detail-item"><div class="detail-label">螳滓凾邨ｦ</div><div class="detail-val ${signCls(jikyu)}" style="font-size:20px;">${jikyu!=null?fmtYen(jikyu):'窶・}</div></div>
     </div>
     <div class="home-summary-3">
-      <div class="detail-item"><div class="detail-label">稼働回数</div><div class="detail-val" style="font-size:14px;">${recs.length}回</div></div>
-      <div class="detail-item"><div class="detail-label">稼働日数</div><div class="detail-val" style="font-size:14px;">${days}日</div></div>
-      <div class="detail-item"><div class="detail-label">勝率</div><div class="detail-val ${wr>=50?'pos':'neg'}" style="font-size:14px;">${wr}%</div></div>
-      <div class="detail-item"><div class="detail-label">稼働時間</div><div class="detail-val" style="font-size:14px;">${jikanMin?(jikanMin/60).toFixed(1)+'h':'—'}</div></div>
-      <div class="detail-item"><div class="detail-label">仕事量</div><div class="detail-val ${signCls(shigoto)}" style="font-size:14px;">${fmtYen(shigoto)}</div></div>
-      <div class="detail-item"><div class="detail-label">平均運%</div><div class="detail-val ${avgUn!=null?(avgUn>=100?'pos':avgUn>=70?'':'neg'):''}" style="font-size:14px;">${avgUn!=null?avgUn+'%':'—'}</div></div>
+      <div class="detail-item"><div class="detail-label">遞ｼ蜒榊屓謨ｰ</div><div class="detail-val" style="font-size:14px;">${recs.length}蝗・/div></div>
+      <div class="detail-item"><div class="detail-label">遞ｼ蜒肴律謨ｰ</div><div class="detail-val" style="font-size:14px;">${days}譌･</div></div>
+      <div class="detail-item"><div class="detail-label">蜍晉紫</div><div class="detail-val ${wr>=50?'pos':'neg'}" style="font-size:14px;">${wr}%</div></div>
+      <div class="detail-item"><div class="detail-label">遞ｼ蜒肴凾髢・/div><div class="detail-val" style="font-size:14px;">${jikanMin?(jikanMin/60).toFixed(1)+'h':'窶・}</div></div>
+      <div class="detail-item"><div class="detail-label">莉穂ｺ矩㍼</div><div class="detail-val ${signCls(shigoto)}" style="font-size:14px;">${fmtYen(shigoto)}</div></div>
+      <div class="detail-item"><div class="detail-label">蟷ｳ蝮・°%</div><div class="detail-val ${avgUn!=null?(avgUn>=100?'pos':avgUn>=70?'':'neg'):''}" style="font-size:14px;">${avgUn!=null?avgUn+'%':'窶・}</div></div>
     </div>`;
 }
 
@@ -903,7 +903,7 @@ function switchAnTab(tab) {
   document.querySelectorAll('.an-tab').forEach((el,i) => el.classList.toggle('active', tabs[i] === tab));
   document.querySelectorAll('.an-section').forEach(el => el.classList.remove('active'));
   document.getElementById('an-'+tab).classList.add('active');
-  // サブタブ切り替え時は常に描画（サブタブを変えたということはコンテンツを見たいから）
+  // 繧ｵ繝悶ち繝門・繧頑崛縺域凾縺ｯ蟶ｸ縺ｫ謠冗判・医し繝悶ち繝悶ｒ螟峨∴縺溘→縺・≧縺薙→縺ｯ繧ｳ繝ｳ繝・Φ繝・ｒ隕九◆縺・°繧会ｼ・
   tabDirty.analysis = false;
   renderAnalysis();
 }
@@ -923,23 +923,23 @@ function renderAnalysis() {
 }
 
 // =============================================
-// 共通：稼働時間文字列→分に変換
+// 蜈ｱ騾夲ｼ夂ｨｼ蜒肴凾髢捺枚蟄怜・竊貞・縺ｫ螟画鋤
 // =============================================
 function jikanToMin(str) {
   if (!str) return 0;
   const s = String(str).trim();
-  if (s === '—' || s === '-' || s === '–' || s === '') return 0;
+  if (s === '窶・ || s === '-' || s === '窶・ || s === '') return 0;
   const parts = s.split(':').map(Number);
   if (isNaN(parts[0])) return 0;
   return parts[0]*60 + (parts[1]||0);
 }
 function minToStr(m) {
-  if (!m) return '—';
+  if (!m) return '窶・;
   return Math.floor(m/60) + ':' + String(m%60).padStart(2,'0');
 }
 
 // =============================================
-// 共通：集計ブロック生成
+// 蜈ｱ騾夲ｼ夐寔險医ヶ繝ｭ繝・け逕滓・
 // =============================================
 function makeStatGrid(items) {
   return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">${
@@ -952,12 +952,12 @@ function makeStatGrid(items) {
 }
 
 // =============================================
-// 月別
+// 譛亥挨
 // =============================================
 function renderMonthly() {
   const byMonth = {};
   ALL_RECORDS.forEach(r => {
-    const m = r.date ? r.date.slice(0,7) : '不明';
+    const m = r.date ? r.date.slice(0,7) : '荳肴・';
     if (!byMonth[m]) byMonth[m] = {total:0,shigoto:0,jikanMin:0,count:0,wins:0,kitaiW:0,kitaiV:0,unW:0,unV:0};
     const d = byMonth[m];
     const min = jikanToMin(r.jikan);
@@ -973,31 +973,31 @@ function renderMonthly() {
 
   const months = Object.keys(byMonth).sort().reverse();
   const el = document.getElementById('monthly-list');
-  if (!months.length) { el.innerHTML = '<div class="empty">データなし</div>'; return; }
+  if (!months.length) { el.innerHTML = '<div class="empty">繝・・繧ｿ縺ｪ縺・/div>'; return; }
 
   el.innerHTML = months.map(m => {
     const d    = byMonth[m];
     const pos  = d.total >= 0;
     const wr   = d.count ? Math.round(d.wins/d.count*100) : 0;
     const diff = d.total - d.shigoto;
-    const jikanH = d.jikanMin ? (d.jikanMin/60).toFixed(1) : '—';
+    const jikanH = d.jikanMin ? (d.jikanMin/60).toFixed(1) : '窶・;
     const jikyu  = d.jikanMin ? Math.round(d.total / (d.jikanMin/60)) : null;
     const avgKitai = d.kitaiW ? Math.round(d.kitaiV / d.kitaiW) : null;
     const avgUn    = d.unW    ? Math.round(d.unV    / d.unW)    : null;
     const items = [
-      {label:'総収支',       val: fmtYen(d.total),    cls: signCls(d.total)},
-      {label:'仕事量合計',   val: fmtYen(d.shigoto),  cls: signCls(d.shigoto)},
-      {label:'収支−仕事量',  val: fmtYen(diff),       cls: signCls(diff), sub:'運の影響額'},
-      {label:'実時給',       val: jikyu != null ? fmtYen(jikyu) : '—', cls: signCls(jikyu)},
-      {label:'稼働時間',     val: jikanH !== '—' ? jikanH+'h' : '—', cls:''},
-      {label:'稼働回数',     val: d.count+'戦', cls:''},
-      {label:'勝率',         val: wr+'%', cls: wr>=50?'pos':'neg'},
-      {label:'平均期待時給', val: avgKitai != null ? fmtYen(avgKitai) : '—', cls: kitaiCls(avgKitai)},
-      {label:'平均運%',      val: avgUn != null ? avgUn+'%' : '—', cls: avgUn!=null?(avgUn>=100?'pos':avgUn>=70?'':'neg'):''},
+      {label:'邱丞庶謾ｯ',       val: fmtYen(d.total),    cls: signCls(d.total)},
+      {label:'莉穂ｺ矩㍼蜷郁ｨ・,   val: fmtYen(d.shigoto),  cls: signCls(d.shigoto)},
+      {label:'蜿取髪竏剃ｻ穂ｺ矩㍼',  val: fmtYen(diff),       cls: signCls(diff), sub:'驕九・蠖ｱ髻ｿ鬘・},
+      {label:'螳滓凾邨ｦ',       val: jikyu != null ? fmtYen(jikyu) : '窶・, cls: signCls(jikyu)},
+      {label:'遞ｼ蜒肴凾髢・,     val: jikanH !== '窶・ ? jikanH+'h' : '窶・, cls:''},
+      {label:'遞ｼ蜒榊屓謨ｰ',     val: d.count+'謌ｦ', cls:''},
+      {label:'蜍晉紫',         val: wr+'%', cls: wr>=50?'pos':'neg'},
+      {label:'蟷ｳ蝮・悄蠕・凾邨ｦ', val: avgKitai != null ? fmtYen(avgKitai) : '窶・, cls: kitaiCls(avgKitai)},
+      {label:'蟷ｳ蝮・°%',      val: avgUn != null ? avgUn+'%' : '窶・, cls: avgUn!=null?(avgUn>=100?'pos':avgUn>=70?'':'neg'):''},
     ];
     return `<div class="an-card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-        <div class="an-card-title" style="margin-bottom:0;">${m.replace('-','年')}月</div>
+        <div class="an-card-title" style="margin-bottom:0;">${m.replace('-','蟷ｴ')}譛・/div>
         <div style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;" class="${pos?'pos':'neg'}">${(d.total>=0?'+':'')}${Math.round(d.total).toLocaleString('ja-JP')}</div>
       </div>
       ${makeStatGrid(items)}
@@ -1006,12 +1006,12 @@ function renderMonthly() {
 }
 
 // =============================================
-// 機種別
+// 讖溽ｨｮ蛻･
 // =============================================
 function renderKishu() {
   const map = {};
   ALL_RECORDS.forEach(r => {
-    const k = r.kishu || '不明';
+    const k = r.kishu || '荳肴・';
     if (!map[k]) map[k] = {total:0,shigoto:0,jikanMin:0,count:0,wins:0,kitaiW:0,kitaiV:0,unW:0,unV:0,kaitenW:0,kaitenV:0};
     const d = map[k];
     const min = jikanToMin(r.jikan);
@@ -1028,7 +1028,7 @@ function renderKishu() {
 
   const entries = Object.entries(map).sort((a,b) => b[1].count - a[1].count);
   const el = document.getElementById('kishu-list');
-  if (!entries.length) { el.innerHTML = '<div class="empty">データなし</div>'; return; }
+  if (!entries.length) { el.innerHTML = '<div class="empty">繝・・繧ｿ縺ｪ縺・/div>'; return; }
 
   el.innerHTML = entries.map(([name, d]) => {
     const pos  = d.total >= 0;
@@ -1039,16 +1039,16 @@ function renderKishu() {
     const avgUn     = d.unW     ? Math.round(d.unV     / d.unW)                 : null;
     const avgKaiten = d.kaitenW ? (d.kaitenV / d.kaitenW).toFixed(2)            : null;
     const items = [
-      {label:'総収支',       val: fmtYen(d.total),    cls: signCls(d.total)},
-      {label:'仕事量合計',   val: fmtYen(d.shigoto),  cls: signCls(d.shigoto)},
-      {label:'収支−仕事量',  val: fmtYen(diff),       cls: signCls(diff)},
-      {label:'実時給',       val: jikyu != null ? fmtYen(jikyu) : '—', cls: signCls(jikyu)},
-      {label:'稼働回数',     val: d.count+'戦', cls:''},
-      {label:'勝率',         val: wr+'%', cls: wr>=50?'pos':'neg'},
-      {label:'平均期待時給', val: avgKitai != null ? fmtYen(avgKitai) : '—', cls: kitaiCls(avgKitai)},
-      {label:'平均回転率',   val: avgKaiten ? avgKaiten+'回/千円' : '—', cls:'info'},
-      {label:'稼働時間計',   val: d.jikanMin ? (d.jikanMin/60).toFixed(1)+'h' : '—', cls:''},
-      {label:'平均運%',      val: avgUn != null ? avgUn+'%' : '—', cls: avgUn!=null?(avgUn>=100?'pos':avgUn>=70?'':'neg'):''},
+      {label:'邱丞庶謾ｯ',       val: fmtYen(d.total),    cls: signCls(d.total)},
+      {label:'莉穂ｺ矩㍼蜷郁ｨ・,   val: fmtYen(d.shigoto),  cls: signCls(d.shigoto)},
+      {label:'蜿取髪竏剃ｻ穂ｺ矩㍼',  val: fmtYen(diff),       cls: signCls(diff)},
+      {label:'螳滓凾邨ｦ',       val: jikyu != null ? fmtYen(jikyu) : '窶・, cls: signCls(jikyu)},
+      {label:'遞ｼ蜒榊屓謨ｰ',     val: d.count+'謌ｦ', cls:''},
+      {label:'蜍晉紫',         val: wr+'%', cls: wr>=50?'pos':'neg'},
+      {label:'蟷ｳ蝮・悄蠕・凾邨ｦ', val: avgKitai != null ? fmtYen(avgKitai) : '窶・, cls: kitaiCls(avgKitai)},
+      {label:'蟷ｳ蝮・屓霆｢邇・,   val: avgKaiten ? avgKaiten+'蝗・蜊・・' : '窶・, cls:'info'},
+      {label:'遞ｼ蜒肴凾髢楢ｨ・,   val: d.jikanMin ? (d.jikanMin/60).toFixed(1)+'h' : '窶・, cls:''},
+      {label:'蟷ｳ蝮・°%',      val: avgUn != null ? avgUn+'%' : '窶・, cls: avgUn!=null?(avgUn>=100?'pos':avgUn>=70?'':'neg'):''},
     ];
     return `<div class="an-card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
@@ -1061,12 +1061,12 @@ function renderKishu() {
 }
 
 // =============================================
-// 打ち手別
+// 謇薙■謇句挨
 // =============================================
 function renderUchi() {
   const map = {};
   ALL_RECORDS.forEach(r => {
-    const k = r.uchi || '自分';
+    const k = r.uchi || '閾ｪ蛻・;
     if (!map[k]) map[k] = {total:0,shigoto:0,hoshu:0,jikanMin:0,count:0,wins:0,kitaiW:0,kitaiV:0,unW:0,unV:0,genkinInvest:0,koujo:0,mochiRatioW:0,mochiRatioV:0};
     const d = map[k];
     const min = jikanToMin(r.jikan);
@@ -1082,7 +1082,7 @@ function renderUchi() {
     d.genkinInvest += (r.genkinInvest || 0);
     d.koujo        += (r.koujo || 0);
     if (r.mochiRatio != null && r.mochiRatio !== '') {
-      const sw = Math.abs(r.shigoto || 0); // 仕事量加重（稼働時間加重から変更）
+      const sw = Math.abs(r.shigoto || 0); // 莉穂ｺ矩㍼蜉驥搾ｼ育ｨｼ蜒肴凾髢灘刈驥阪°繧牙､画峩・・
       d.mochiRatioW += sw > 0 ? sw : 1;
       d.mochiRatioV += r.mochiRatio * (sw > 0 ? sw : 1);
     }
@@ -1090,56 +1090,56 @@ function renderUchi() {
 
   const entries = Object.entries(map).sort((a,b) => b[1].count - a[1].count);
   const el = document.getElementById('uchi-list');
-  if (!entries.length) { el.innerHTML = '<div class="empty">データなし</div>'; return; }
+  if (!entries.length) { el.innerHTML = '<div class="empty">繝・・繧ｿ縺ｪ縺・/div>'; return; }
 
   el.innerHTML = entries.map(([name, d]) => {
-    const isOwner = name === '自分';
+    const isOwner = name === '閾ｪ蛻・;
     const pos  = d.total >= 0;
     const wr   = d.count ? Math.round(d.wins/d.count*100) : 0;
-    const torikomi = d.total - d.hoshu; // 取り分
-    const daROI  = d.hoshu ? Math.round((d.total - d.hoshu) / d.hoshu * 100) : null; // 代打ちROI
-    const shiROI = d.hoshu ? Math.round((d.shigoto - d.hoshu) / d.hoshu * 100) : null; // 仕事量ROI
-    const hoshuRitsu = d.total > 0 ? Math.round(d.hoshu / d.total * 100) : null; // 報酬÷収支
-    const hoshuShigoto = d.shigoto > 0 ? Math.round(d.hoshu / d.shigoto * 100) : null; // 報酬÷仕事量
+    const torikomi = d.total - d.hoshu; // 蜿悶ｊ蛻・
+    const daROI  = d.hoshu ? Math.round((d.total - d.hoshu) / d.hoshu * 100) : null; // 莉｣謇薙■ROI
+    const shiROI = d.hoshu ? Math.round((d.shigoto - d.hoshu) / d.hoshu * 100) : null; // 莉穂ｺ矩㍼ROI
+    const hoshuRitsu = d.total > 0 ? Math.round(d.hoshu / d.total * 100) : null; // 蝣ｱ驟ｬﾃｷ蜿取髪
+    const hoshuShigoto = d.shigoto > 0 ? Math.round(d.hoshu / d.shigoto * 100) : null; // 蝣ｱ驟ｬﾃｷ莉穂ｺ矩㍼
     const jikyu    = d.jikanMin ? Math.round(d.total / (d.jikanMin/60)) : null;
     const avgKitai = d.kitaiW   ? Math.round(d.kitaiV / d.kitaiW)       : null;
     const avgUn    = d.unW      ? Math.round(d.unV    / d.unW)          : null;
 
     const baseItems = [
-      {label:'総収支',       val: fmtYen(d.total),   cls: signCls(d.total)},
-      {label:'仕事量合計',   val: fmtYen(d.shigoto), cls: signCls(d.shigoto)},
-      {label:'稼働回数',     val: d.count+'戦',      cls:''},
-      {label:'勝率',         val: wr+'%',            cls: wr>=50?'pos':'neg'},
-      {label:'実時給',       val: jikyu != null ? fmtYen(jikyu) : '—', cls: signCls(jikyu)},
-      {label:'平均期待時給', val: avgKitai != null ? fmtYen(avgKitai) : '—', cls: kitaiCls(avgKitai)},
-      {label:'稼働時間計',   val: d.jikanMin ? (d.jikanMin/60).toFixed(1)+'h' : '—', cls:''},
-      {label:'平均運%',      val: avgUn != null ? avgUn+'%' : '—', cls: avgUn!=null?(avgUn>=100?'pos':avgUn>=70?'':'neg'):''},
+      {label:'邱丞庶謾ｯ',       val: fmtYen(d.total),   cls: signCls(d.total)},
+      {label:'莉穂ｺ矩㍼蜷郁ｨ・,   val: fmtYen(d.shigoto), cls: signCls(d.shigoto)},
+      {label:'遞ｼ蜒榊屓謨ｰ',     val: d.count+'謌ｦ',      cls:''},
+      {label:'蜍晉紫',         val: wr+'%',            cls: wr>=50?'pos':'neg'},
+      {label:'螳滓凾邨ｦ',       val: jikyu != null ? fmtYen(jikyu) : '窶・, cls: signCls(jikyu)},
+      {label:'蟷ｳ蝮・悄蠕・凾邨ｦ', val: avgKitai != null ? fmtYen(avgKitai) : '窶・, cls: kitaiCls(avgKitai)},
+      {label:'遞ｼ蜒肴凾髢楢ｨ・,   val: d.jikanMin ? (d.jikanMin/60).toFixed(1)+'h' : '窶・, cls:''},
+      {label:'蟷ｳ蝮・°%',      val: avgUn != null ? avgUn+'%' : '窶・, cls: avgUn!=null?(avgUn>=100?'pos':avgUn>=70?'':'neg'):''},
     ];
 
     const avgMochi = d.mochiRatioW > 0 ? Math.round(d.mochiRatioV / d.mochiRatioW * 100) : null;
     const dauchiItems = isOwner ? [] : [
-      {label:'報酬合計',     val: d.hoshu ? '¥'+Math.round(d.hoshu).toLocaleString('ja-JP') : '¥0', cls:'warn'},
-      {label:'取り分',       val: fmtYen(torikomi), cls: signCls(torikomi), sub:'収支−報酬'},
-      {label:'代打ちROI',    val: daROI != null ? (daROI>=0?'+':'')+daROI+'%' : '—', cls: daROI!=null?(daROI>=0?'pos':'neg'):'', sub:'(収支−報酬)÷報酬'},
-      {label:'仕事量ROI',    val: shiROI != null ? (shiROI>=0?'+':'')+shiROI+'%' : '—', cls: shiROI!=null?(shiROI>=0?'pos':'neg'):'', sub:'(仕事量−報酬)÷報酬'},
-      {label:'報酬÷収支',    val: hoshuRitsu != null ? hoshuRitsu+'%' : '—', cls:'', sub:'勝ち分のうち報酬割合'},
-      {label:'報酬÷仕事量',  val: hoshuShigoto != null ? hoshuShigoto+'%' : '—', cls:'', sub:'期待値に対する報酬率'},
-      {label:'平均持玉比率', val: avgMochi != null ? avgMochi+'%' : '—', cls:'', sub:'V列から集計'},
-      {label:'現金投資合計', val: d.genkinInvest ? '¥'+Math.round(d.genkinInvest).toLocaleString('ja-JP') : '¥0', cls:'', sub:'W列合計'},
-      {label:'控除合計',     val: d.koujo ? '¥'+Math.round(d.koujo).toLocaleString('ja-JP') : '¥0', cls: d.koujo > 0 ? 'neg' : '', sub:'X列合計'},
+      {label:'蝣ｱ驟ｬ蜷郁ｨ・,     val: d.hoshu ? 'ﾂ･'+Math.round(d.hoshu).toLocaleString('ja-JP') : 'ﾂ･0', cls:'warn'},
+      {label:'蜿悶ｊ蛻・,       val: fmtYen(torikomi), cls: signCls(torikomi), sub:'蜿取髪竏貞ｱ驟ｬ'},
+      {label:'莉｣謇薙■ROI',    val: daROI != null ? (daROI>=0?'+':'')+daROI+'%' : '窶・, cls: daROI!=null?(daROI>=0?'pos':'neg'):'', sub:'(蜿取髪竏貞ｱ驟ｬ)ﾃｷ蝣ｱ驟ｬ'},
+      {label:'莉穂ｺ矩㍼ROI',    val: shiROI != null ? (shiROI>=0?'+':'')+shiROI+'%' : '窶・, cls: shiROI!=null?(shiROI>=0?'pos':'neg'):'', sub:'(莉穂ｺ矩㍼竏貞ｱ驟ｬ)ﾃｷ蝣ｱ驟ｬ'},
+      {label:'蝣ｱ驟ｬﾃｷ蜿取髪',    val: hoshuRitsu != null ? hoshuRitsu+'%' : '窶・, cls:'', sub:'蜍昴■蛻・・縺・■蝣ｱ驟ｬ蜑ｲ蜷・},
+      {label:'蝣ｱ驟ｬﾃｷ莉穂ｺ矩㍼',  val: hoshuShigoto != null ? hoshuShigoto+'%' : '窶・, cls:'', sub:'譛溷ｾ・､縺ｫ蟇ｾ縺吶ｋ蝣ｱ驟ｬ邇・},
+      {label:'蟷ｳ蝮・戟邇画ｯ皮紫', val: avgMochi != null ? avgMochi+'%' : '窶・, cls:'', sub:'V蛻励°繧蛾寔險・},
+      {label:'迴ｾ驥第兜雉・粋險・, val: d.genkinInvest ? 'ﾂ･'+Math.round(d.genkinInvest).toLocaleString('ja-JP') : 'ﾂ･0', cls:'', sub:'W蛻怜粋險・},
+      {label:'謗ｧ髯､蜷郁ｨ・,     val: d.koujo ? 'ﾂ･'+Math.round(d.koujo).toLocaleString('ja-JP') : 'ﾂ･0', cls: d.koujo > 0 ? 'neg' : '', sub:'X蛻怜粋險・},
     ];
 
     return `<div class="an-card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
         <div style="display:flex;align-items:center;gap:8px;">
           <div class="an-card-title" style="margin-bottom:0;">${name}</div>
-          <span class="rc-uchi-badge ${isOwner?'owner':''}">${isOwner?'OWNER':'代打ち'}</span>
+          <span class="rc-uchi-badge ${isOwner?'owner':''}">${isOwner?'OWNER':'莉｣謇薙■'}</span>
         </div>
         <div style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:700;" class="${pos?'pos':'neg'}">${(d.total>=0?'+':'')}${Math.round(d.total).toLocaleString('ja-JP')}</div>
       </div>
       ${makeStatGrid(baseItems)}
       ${dauchiItems.length ? `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);">
-        <div class="an-card-title" style="margin-bottom:8px;">代打ち指標</div>
+        <div class="an-card-title" style="margin-bottom:8px;">莉｣謇薙■謖・ｨ・/div>
         ${makeStatGrid(dauchiItems)}
       </div>` : ''}
     </div>`;
@@ -1147,7 +1147,7 @@ function renderUchi() {
 }
 
 // =============================================
-// 総合
+// 邱丞粋
 // =============================================
 function getPeriodRecords() {
   const now = new Date();
@@ -1165,7 +1165,7 @@ function getPeriodRecords() {
 function groupBy(recs, key) {
   const map = {};
   recs.forEach(r => {
-    const k = r[key] || '不明';
+    const k = r[key] || '荳肴・';
     if (!map[k]) map[k] = {total:0, count:0, wins:0, kitais:[]};
     map[k].total += (r.kosshi||0);
     map[k].count++;
@@ -1177,7 +1177,7 @@ function groupBy(recs, key) {
 
 function renderRankList(elId, entries) {
   const el = document.getElementById(elId);
-  if (!entries.length) { el.innerHTML = '<div class="empty" style="padding:20px">データなし</div>'; return; }
+  if (!entries.length) { el.innerHTML = '<div class="empty" style="padding:20px">繝・・繧ｿ縺ｪ縺・/div>'; return; }
   const maxAbs = Math.max(...entries.map(e => Math.abs(e[1].total)), 1);
   el.innerHTML = entries.slice(0,8).map(([name, d], i) => {
     const pos = d.total >= 0;
@@ -1187,7 +1187,7 @@ function renderRankList(elId, entries) {
       <div class="rank-num">${i+1}</div>
       <div class="rank-name">
         <div>${name}</div>
-        <div class="rank-sub">${d.count}戦 勝率${wr}%</div>
+        <div class="rank-sub">${d.count}謌ｦ 蜍晉紫${wr}%</div>
         <div class="rank-bar-wrap"><div class="rank-bar ${pos?'':'neg'}" style="width:${barW}%"></div></div>
       </div>
       <div class="rank-val ${pos?'pos':'neg'}">${(d.total>=0?'+':'')}${Math.round(d.total).toLocaleString('ja-JP')}</div>
@@ -1197,7 +1197,7 @@ function renderRankList(elId, entries) {
 
 function renderKitaiList(elId, entries) {
   const el = document.getElementById(elId);
-  if (!entries.length) { el.innerHTML = '<div class="empty" style="padding:20px">データなし</div>'; return; }
+  if (!entries.length) { el.innerHTML = '<div class="empty" style="padding:20px">繝・・繧ｿ縺ｪ縺・/div>'; return; }
   const max = Math.max(...entries.map(e => Math.abs(e[1].avg)), 1);
   el.innerHTML = entries.slice(0,8).map(([name,d],i) => {
     const cls = kitaiCls(d.avg);
@@ -1206,10 +1206,10 @@ function renderKitaiList(elId, entries) {
       <div class="rank-num">${i+1}</div>
       <div class="rank-name">
         <div>${name}</div>
-        <div class="rank-sub">${d.count}件</div>
+        <div class="rank-sub">${d.count}莉ｶ</div>
         <div class="rank-bar-wrap"><div class="rank-bar" style="width:${barW}%"></div></div>
       </div>
-      <div class="rank-val ${cls}">${(d.avg>=0?'+':'')}${Math.round(d.avg).toLocaleString('ja-JP')}円</div>
+      <div class="rank-val ${cls}">${(d.avg>=0?'+':'')}${Math.round(d.avg).toLocaleString('ja-JP')}蜀・/div>
     </div>`;
   }).join('');
 }
@@ -1219,7 +1219,7 @@ function renderOverall() {
   renderRankList('rank-kishu', groupBy(recs, 'kishu'));
   renderRankList('rank-shop',  groupBy(recs, 'shop'));
 
-  // 期待時給（加重平均）
+  // 譛溷ｾ・凾邨ｦ・亥刈驥榊ｹｳ蝮・ｼ・
   const byKishu = {}, byShop = {};
   recs.filter(r => r.kitaiJikyu != null && r.kitaiJikyu !== '').forEach(r => {
     const min = jikanToMin(r.jikan);
@@ -1236,7 +1236,7 @@ function renderOverall() {
   renderKitaiList('rank-kitai-kishu', toKitaiEntries(byKishu));
   renderKitaiList('rank-kitai-shop',  toKitaiEntries(byShop));
 
-  // 運%分布（加重平均）※小数値（例:1.05）は正規化して使用
+  // 驕・蛻・ｸ・ｼ亥刈驥榊ｹｳ蝮・ｼ俄ｻ蟆乗焚蛟､・井ｾ・1.05・峨・豁｣隕丞喧縺励※菴ｿ逕ｨ
   const unRecs = ALL_RECORDS.filter(r => normalizeUn(r.un) != null);
   if (!unRecs.length) return;
   let unW = 0, unV = 0;
@@ -1245,9 +1245,9 @@ function renderOverall() {
   const over100 = unRecs.filter(r=>normalizeUn(r.un)>=100).length;
   const under70 = unRecs.filter(r=>normalizeUn(r.un)<70).length;
   document.getElementById('un-summary').innerHTML = [
-    {label:'平均運%',   val: Math.round(avg)+'%', cls: avg>=100?'pos':avg>=70?'':'neg'},
-    {label:'100%超え',  val: over100+'件 ('+Math.round(over100/unRecs.length*100)+'%)', cls:'pos'},
-    {label:'70%未満',   val: under70+'件 ('+Math.round(under70/unRecs.length*100)+'%)', cls:'neg'},
+    {label:'蟷ｳ蝮・°%',   val: Math.round(avg)+'%', cls: avg>=100?'pos':avg>=70?'':'neg'},
+    {label:'100%雜・∴',  val: over100+'莉ｶ ('+Math.round(over100/unRecs.length*100)+'%)', cls:'pos'},
+    {label:'70%譛ｪ貅',   val: under70+'莉ｶ ('+Math.round(under70/unRecs.length*100)+'%)', cls:'neg'},
   ].map(i=>`<div class="detail-item"><div class="detail-label">${i.label}</div><div class="detail-val ${i.cls}" style="font-size:12px;">${i.val}</div></div>`).join('');
   const bins = Array(10).fill(0);
   unRecs.forEach(r => { const un=normalizeUn(r.un); bins[Math.min(9,Math.max(0,Math.floor(un/20)))]++; });
@@ -1258,14 +1258,14 @@ function renderOverall() {
   ).join('');
 }
 // =============================================
-// 設定タブ
+// 險ｭ螳壹ち繝・
 // =============================================
 let MASTERS = {shops:[], kishus:[], uchis:[]};
 let currentSetTab = 'shop';
 let editingShopIdx  = null;
 let editingKishuIdx = null;
 let editingUchiIdx  = null;
-let currentMakerFilter = 'all'; // 機種マスタ メーカーフィルタ
+let currentMakerFilter = 'all'; // 讖溽ｨｮ繝槭せ繧ｿ 繝｡繝ｼ繧ｫ繝ｼ繝輔ぅ繝ｫ繧ｿ
 
 async function loadMasters() {
   try {
@@ -1291,26 +1291,26 @@ function renderSetting() {
   buildRoundsGrid();
 }
 
-// ---------- 店 ----------
+// ---------- 蠎・----------
 function renderShopList() {
   const el = document.getElementById('set-shop-list');
-  if (!MASTERS.shops.length) { el.innerHTML = '<div class="empty" style="padding:16px">データなし</div><button class="set-btn-add" onclick="newShop()">＋ 店を追加</button>'; return; }
+  if (!MASTERS.shops.length) { el.innerHTML = '<div class="empty" style="padding:16px">繝・・繧ｿ縺ｪ縺・/div><button class="set-btn-add" onclick="newShop()">・・蠎励ｒ霑ｽ蜉</button>'; return; }
   el.innerHTML = MASTERS.shops.map((s,i) => `
     <div class="set-row ${editingShopIdx===i?'selected':''}">
       <div class="set-row-name">
         <div>${s.name}</div>
-        <div class="set-row-sub">換金率 ${s.kokan}玉/100円</div>
+        <div class="set-row-sub">謠幃≡邇・${s.kokan}邇・100蜀・/div>
       </div>
       <div class="set-row-actions">
-        <button class="set-icon-btn edit" onclick="editShop(${i})">編集</button>
-        <button class="set-icon-btn del"  onclick="deleteShop(${i})">削除</button>
+        <button class="set-icon-btn edit" onclick="editShop(${i})">邱ｨ髮・/button>
+        <button class="set-icon-btn del"  onclick="deleteShop(${i})">蜑企勁</button>
       </div>
-    </div>`).join('') + `<button class="set-btn-add" onclick="newShop()">＋ 店を追加</button>`;
+    </div>`).join('') + `<button class="set-btn-add" onclick="newShop()">・・蠎励ｒ霑ｽ蜉</button>`;
 }
 
 function newShop() {
   editingShopIdx = null;
-  document.getElementById('set-shop-form-title').textContent = '新規追加';
+  document.getElementById('set-shop-form-title').textContent = '譁ｰ隕剰ｿｽ蜉';
   document.getElementById('shop-name').value  = '';
   document.getElementById('shop-kokan').value = '';
   renderShopList();
@@ -1319,7 +1319,7 @@ function newShop() {
 function editShop(i) {
   editingShopIdx = i;
   const s = MASTERS.shops[i];
-  document.getElementById('set-shop-form-title').textContent = '編集：' + s.name;
+  document.getElementById('set-shop-form-title').textContent = '邱ｨ髮・ｼ・ + s.name;
   document.getElementById('shop-name').value  = s.name;
   document.getElementById('shop-kokan').value = s.kokan;
   renderShopList();
@@ -1327,7 +1327,7 @@ function editShop(i) {
 }
 
 function deleteShop(i) {
-  showConfirm(`「${MASTERS.shops[i].name}」を削除しますか？`, async () => {
+  showConfirm(`縲・{MASTERS.shops[i].name}縲阪ｒ蜑企勁縺励∪縺吶°・歔, async () => {
     MASTERS.shops.splice(i,1);
     await saveMaster('shops', MASTERS.shops);
     renderShopList();
@@ -1337,7 +1337,7 @@ function deleteShop(i) {
 async function saveShop() {
   const name  = document.getElementById('shop-name').value.trim();
   const kokan = parseFloat(document.getElementById('shop-kokan').value);
-  if (!name) { alert('店名を入力してください'); return; }
+  if (!name) { alert('蠎怜錐繧貞・蜉帙＠縺ｦ縺上□縺輔＞'); return; }
   if (editingShopIdx !== null) {
     MASTERS.shops[editingShopIdx] = {name, kokan};
   } else {
@@ -1347,68 +1347,68 @@ async function saveShop() {
   editingShopIdx = null;
   document.getElementById('shop-name').value  = '';
   document.getElementById('shop-kokan').value = '';
-  document.getElementById('set-shop-form-title').textContent = '新規追加';
+  document.getElementById('set-shop-form-title').textContent = '譁ｰ隕剰ｿｽ蜉';
   renderShopList();
 }
 
 function cancelSetEdit(type) {
-  if (type==='shop')  { editingShopIdx  = null; document.getElementById('set-shop-form-title').textContent  = '新規追加'; document.getElementById('shop-name').value=''; document.getElementById('shop-kokan').value=''; }
-  if (type==='kishu') { editingKishuIdx = null; document.getElementById('set-kishu-form-title').textContent = '新規追加'; clearKishuForm(); }
-  if (type==='uchi')  { editingUchiIdx  = null; document.getElementById('set-uchi-form-title').textContent  = '新規追加'; document.getElementById('uchi-name').value=''; }
+  if (type==='shop')  { editingShopIdx  = null; document.getElementById('set-shop-form-title').textContent  = '譁ｰ隕剰ｿｽ蜉'; document.getElementById('shop-name').value=''; document.getElementById('shop-kokan').value=''; }
+  if (type==='kishu') { editingKishuIdx = null; document.getElementById('set-kishu-form-title').textContent = '譁ｰ隕剰ｿｽ蜉'; clearKishuForm(); }
+  if (type==='uchi')  { editingUchiIdx  = null; document.getElementById('set-uchi-form-title').textContent  = '譁ｰ隕剰ｿｽ蜉'; document.getElementById('uchi-name').value=''; }
   renderShopList(); renderKishuList(); renderUchiList();
 }
 
-// ---------- 機種 ----------
+// ---------- 讖溽ｨｮ ----------
 function buildRoundsGrid() {
   const el = document.getElementById('kishu-rounds-grid');
   if (!el) return;
   el.innerHTML = Array.from({length:10},(_,i) => `
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;align-items:center;">
-      <div><div class="detail-label">${i+1}R 出玉</div><input class="set-input" id="r-balls-${i}" type="number" placeholder="0"></div>
-      <div><div class="detail-label">${i+1}R R数</div><input class="set-input" id="r-count-${i}" type="number" placeholder="0"></div>
+      <div><div class="detail-label">${i+1}R 蜃ｺ邇・/div><input class="set-input" id="r-balls-${i}" type="number" placeholder="0"></div>
+      <div><div class="detail-label">${i+1}R R謨ｰ</div><input class="set-input" id="r-count-${i}" type="number" placeholder="0"></div>
     </div>`).join('');
 }
 
 function renderKishuList() {
-  // メーカーフィルタチップス描画
+  // 繝｡繝ｼ繧ｫ繝ｼ繝輔ぅ繝ｫ繧ｿ繝√ャ繝励せ謠冗判
   const filterEl = document.getElementById('set-kishu-maker-filter');
   if (filterEl) {
     const allMakers = [...new Set(MASTERS.kishus.map(k => k.maker || '').filter(Boolean))];
     const chips = ['all', ...allMakers];
     filterEl.innerHTML = allMakers.length
       ? `<div class="maker-filter-row">${chips.map(m =>
-          `<div class="chip ${currentMakerFilter===m?'active':''}" onclick="setMakerFilter('${m}')">${m==='all'?'すべて':m}</div>`
+          `<div class="chip ${currentMakerFilter===m?'active':''}" onclick="setMakerFilter('${m}')">${m==='all'?'縺吶∋縺ｦ':m}</div>`
         ).join('')}</div>`
       : '';
   }
 
   const el = document.getElementById('set-kishu-list');
-  // フィルタ適用（実インデックスを保持）
+  // 繝輔ぅ繝ｫ繧ｿ驕ｩ逕ｨ・亥ｮ溘う繝ｳ繝・ャ繧ｯ繧ｹ繧剃ｿ晄戟・・
   const filtered = MASTERS.kishus
     .map((k, i) => ({k, i}))
     .filter(({k}) => currentMakerFilter === 'all' || k.maker === currentMakerFilter);
 
-  // 「＋ 機種を追加」ボタンを先頭に配置
-  let html = `<button class="set-btn-add" onclick="newKishu()" style="margin-bottom:6px;">＋ 機種を追加</button>`;
+  // 縲鯉ｼ・讖溽ｨｮ繧定ｿｽ蜉縲阪・繧ｿ繝ｳ繧貞・鬆ｭ縺ｫ驟咲ｽｮ
+  let html = `<button class="set-btn-add" onclick="newKishu()" style="margin-bottom:6px;">・・讖溽ｨｮ繧定ｿｽ蜉</button>`;
   if (!filtered.length) {
-    html += '<div class="empty" style="padding:16px">データなし</div>';
+    html += '<div class="empty" style="padding:16px">繝・・繧ｿ縺ｪ縺・/div>';
   } else {
     html += filtered.map(({k, i}) => `
       <div class="set-row ${editingKishuIdx===i?'selected':''}">
         <div class="set-row-name">
           <div>${k.name}</div>
-          <div class="set-row-sub">${k.maker ? k.maker+' / ' : ''}初当 1/${k.hatsua} 平連 ${k.heiren} 平均出玉 ${k.heikin}</div>
+          <div class="set-row-sub">${k.maker ? k.maker+' / ' : ''}蛻晏ｽ・1/${k.hatsua} 蟷ｳ騾｣ ${k.heiren} 蟷ｳ蝮・・邇・${k.heikin}</div>
         </div>
         <div class="set-row-actions">
-          <button class="set-icon-btn edit" onclick="editKishu(${i})">編集</button>
-          <button class="set-icon-btn del"  onclick="deleteKishu(${i})">削除</button>
+          <button class="set-icon-btn edit" onclick="editKishu(${i})">邱ｨ髮・/button>
+          <button class="set-icon-btn del"  onclick="deleteKishu(${i})">蜑企勁</button>
         </div>
       </div>`).join('');
   }
   el.innerHTML = html;
 }
 
-// メーカーフィルタ切替
+// 繝｡繝ｼ繧ｫ繝ｼ繝輔ぅ繝ｫ繧ｿ蛻・崛
 function setMakerFilter(maker) {
   currentMakerFilter = maker;
   renderKishuList();
@@ -1429,7 +1429,7 @@ function clearKishuForm() {
 
 function newKishu() {
   editingKishuIdx = null;
-  document.getElementById('set-kishu-form-title').textContent = '新規追加';
+  document.getElementById('set-kishu-form-title').textContent = '譁ｰ隕剰ｿｽ蜉';
   clearKishuForm();
   renderKishuList();
 }
@@ -1437,7 +1437,7 @@ function newKishu() {
 function editKishu(i) {
   editingKishuIdx = i;
   const k = MASTERS.kishus[i];
-  document.getElementById('set-kishu-form-title').textContent = '編集：' + k.name;
+  document.getElementById('set-kishu-form-title').textContent = '邱ｨ髮・ｼ・ + k.name;
   document.getElementById('kishu-name').value   = k.name;
   document.getElementById('kishu-heikin').value = k.heikin;
   document.getElementById('kishu-total').value  = k.total;
@@ -1458,7 +1458,7 @@ function editKishu(i) {
 }
 
 function deleteKishu(i) {
-  showConfirm(`「${MASTERS.kishus[i].name}」を削除しますか？`, async () => {
+  showConfirm(`縲・{MASTERS.kishus[i].name}縲阪ｒ蜑企勁縺励∪縺吶°・歔, async () => {
     MASTERS.kishus.splice(i,1);
     await saveMaster('kishus', MASTERS.kishus);
     renderKishuList();
@@ -1467,7 +1467,7 @@ function deleteKishu(i) {
 
 async function saveKishu() {
   const name = document.getElementById('kishu-name').value.trim();
-  if (!name) { alert('機種名を入力してください'); return; }
+  if (!name) { alert('讖溽ｨｮ蜷阪ｒ蜈･蜉帙＠縺ｦ縺上□縺輔＞'); return; }
   const rounds = [];
   for(let i=0;i<10;i++) {
     const balls = parseFloat(document.getElementById('r-balls-'+i).value);
@@ -1487,21 +1487,21 @@ async function saveKishu() {
     rounds,
   };
   if (editingKishuIdx !== null) {
-    MASTERS.kishus[editingKishuIdx] = obj; // 編集時は上書き
+    MASTERS.kishus[editingKishuIdx] = obj; // 邱ｨ髮・凾縺ｯ荳頑嶌縺・
   } else {
-    MASTERS.kishus.unshift(obj); // 新規追加は先頭に
+    MASTERS.kishus.unshift(obj); // 譁ｰ隕剰ｿｽ蜉縺ｯ蜈磯ｭ縺ｫ
   }
   await saveMaster('kishus', MASTERS.kishus);
   editingKishuIdx = null;
-  document.getElementById('set-kishu-form-title').textContent = '新規追加';
+  document.getElementById('set-kishu-form-title').textContent = '譁ｰ隕剰ｿｽ蜉';
   clearKishuForm();
   renderKishuList();
 }
 
-// ---------- 打ち手 ----------
+// ---------- 謇薙■謇・----------
 function renderUchiList() {
   const el = document.getElementById('set-uchi-list');
-  if (!MASTERS.uchis.length) { el.innerHTML = '<div class="empty" style="padding:16px">データなし</div><button class="set-btn-add" onclick="newUchi()">＋ 打ち手を追加</button>'; return; }
+  if (!MASTERS.uchis.length) { el.innerHTML = '<div class="empty" style="padding:16px">繝・・繧ｿ縺ｪ縺・/div><button class="set-btn-add" onclick="newUchi()">・・謇薙■謇九ｒ霑ｽ蜉</button>'; return; }
   el.innerHTML = MASTERS.uchis.map((u,i) => `
     <div class="set-row ${editingUchiIdx===i?'selected':''}">
       <div class="set-row-name">
@@ -1509,15 +1509,15 @@ function renderUchiList() {
         <div class="set-row-sub">${u.type}</div>
       </div>
       <div class="set-row-actions">
-        <button class="set-icon-btn edit" onclick="editUchi(${i})">編集</button>
-        <button class="set-icon-btn del"  onclick="deleteUchi(${i})">削除</button>
+        <button class="set-icon-btn edit" onclick="editUchi(${i})">邱ｨ髮・/button>
+        <button class="set-icon-btn del"  onclick="deleteUchi(${i})">蜑企勁</button>
       </div>
-    </div>`).join('') + `<button class="set-btn-add" onclick="newUchi()">＋ 打ち手を追加</button>`;
+    </div>`).join('') + `<button class="set-btn-add" onclick="newUchi()">・・謇薙■謇九ｒ霑ｽ蜉</button>`;
 }
 
 function newUchi() {
   editingUchiIdx = null;
-  document.getElementById('set-uchi-form-title').textContent = '新規追加';
+  document.getElementById('set-uchi-form-title').textContent = '譁ｰ隕剰ｿｽ蜉';
   document.getElementById('uchi-name').value = '';
   renderUchiList();
 }
@@ -1525,7 +1525,7 @@ function newUchi() {
 function editUchi(i) {
   editingUchiIdx = i;
   const u = MASTERS.uchis[i];
-  document.getElementById('set-uchi-form-title').textContent = '編集：' + u.name;
+  document.getElementById('set-uchi-form-title').textContent = '邱ｨ髮・ｼ・ + u.name;
   document.getElementById('uchi-name').value = u.name;
   document.getElementById('uchi-type').value = u.type;
   renderUchiList();
@@ -1533,7 +1533,7 @@ function editUchi(i) {
 }
 
 function deleteUchi(i) {
-  showConfirm(`「${MASTERS.uchis[i].name}」を削除しますか？`, async () => {
+  showConfirm(`縲・{MASTERS.uchis[i].name}縲阪ｒ蜑企勁縺励∪縺吶°・歔, async () => {
     MASTERS.uchis.splice(i,1);
     await saveMaster('uchis', MASTERS.uchis);
     renderUchiList();
@@ -1543,15 +1543,15 @@ function deleteUchi(i) {
 async function saveUchi() {
   const name = document.getElementById('uchi-name').value.trim();
   const type = document.getElementById('uchi-type').value;
-  if (!name) { alert('名前を入力してください'); return; }
+  if (!name) { alert('蜷榊燕繧貞・蜉帙＠縺ｦ縺上□縺輔＞'); return; }
 
-  // 名前変更の場合、稼働記録も連動更新
+  // 蜷榊燕螟画峩縺ｮ蝣ｴ蜷医∫ｨｼ蜒崎ｨ倬鹸繧る｣蜍墓峩譁ｰ
   if (editingUchiIdx !== null) {
     const oldName = MASTERS.uchis[editingUchiIdx].name;
     if (oldName !== name) {
-      // ALL_RECORDSのメモリ更新
+      // ALL_RECORDS縺ｮ繝｡繝｢繝ｪ譖ｴ譁ｰ
       ALL_RECORDS.forEach(r => { if (r.uchi === oldName) r.uchi = name; });
-      // GASの稼働記録も更新
+      // GAS縺ｮ遞ｼ蜒崎ｨ倬鹸繧よ峩譁ｰ
       await fetch(GAS_URL, {
         method:'POST', redirect:'follow',
         headers:{'Content-Type':'text/plain'},
@@ -1564,12 +1564,12 @@ async function saveUchi() {
   }
   await saveMaster('uchis', MASTERS.uchis);
   editingUchiIdx = null;
-  document.getElementById('set-uchi-form-title').textContent = '新規追加';
+  document.getElementById('set-uchi-form-title').textContent = '譁ｰ隕剰ｿｽ蜉';
   document.getElementById('uchi-name').value = '';
   renderUchiList();
 }
 
-// ---------- GAS保存 ----------
+// ---------- GAS菫晏ｭ・----------
 async function saveMaster(key, data) {
   try {
     await fetch(GAS_URL, {
@@ -1577,14 +1577,14 @@ async function saveMaster(key, data) {
       headers:{'Content-Type':'text/plain'},
       body: JSON.stringify({action:'saveMaster', key, data})
     });
-    // キャッシュ更新
+    // 繧ｭ繝｣繝・す繝･譖ｴ譁ｰ
     saveCache({shops: MASTERS.shops, kishus: MASTERS.kishus, uchis: MASTERS.uchis, records: ALL_RECORDS});
-    // マスタタブを即再描画（他タブはダーティのまま）
+    // 繝槭せ繧ｿ繧ｿ繝悶ｒ蜊ｳ蜀肴緒逕ｻ・井ｻ悶ち繝悶・繝繝ｼ繝・ぅ縺ｮ縺ｾ縺ｾ・・
     tabDirty.master = false;
   } catch(e) {}
 }
 
-// 初期ロード時にマスタ取得
+// 蛻晄悄繝ｭ繝ｼ繝画凾縺ｫ繝槭せ繧ｿ蜿門ｾ・
 window.addEventListener('DOMContentLoaded', async () => {
   await loadInit();
 });
@@ -1598,98 +1598,120 @@ document.getElementById('confirm-ok').onclick = () => { document.getElementById(
 document.getElementById('confirm-cancel').onclick = () => { document.getElementById('confirmModal').classList.remove('show'); _cb=null; };
 
 // =============================================
-// 報酬計算（2段階制：期待時給で単価判定）
-// 差玉合計と平均期待時給から確定報酬を計算
+// 蝣ｱ驟ｬ險育ｮ暦ｼ・谿ｵ髫主宛・壽悄蠕・凾邨ｦ縺ｧ蜊倅ｾ｡蛻､螳夲ｼ・
+// 蟾ｮ邇牙粋險医→蟷ｳ蝮・悄蠕・凾邨ｦ縺九ｉ遒ｺ螳壼ｱ驟ｬ繧定ｨ育ｮ・
 // =============================================
-function calcHoshuConfirm(sagitamaTotal, avgKitaiJikyu, genkinInvestTotal) {
-  const startLine = (avgKitaiJikyu >= 1800) ? 5000 : 10000;
-  if (sagitamaTotal < startLine) return 0;
-  const baseHoshu = Math.floor(sagitamaTotal / 5000) * 5000;
-  const koujo = (genkinInvestTotal || 0) * 0.107 * 3.5;
-  return Math.max(0, Math.round(baseHoshu - koujo));
+function getKoujoRate(kitaiJikyu) {
+  if (kitaiJikyu <= 1500) {
+    return 0.374;
+  } else if (kitaiJikyu <= 1800) {
+    return 0.374 - (0.374 - 0.15) * (kitaiJikyu - 1500) / 300;
+  } else if (kitaiJikyu <= 2300) {
+    return 0.15 - 0.15 * (kitaiJikyu - 1800) / 500;
+  } else {
+    return 0;
+  }
+}
+function calcBaseReward(sagitama, kitaiJikyu) {
+  const startLine = (kitaiJikyu >= 1800) ? 5000 : 10000;
+  if (sagitama < startLine) return 0;
+  return Math.floor(sagitama / 2500) * 2500;
+}
+function calcFinalReward(sagitama, kitaiJikyu100, genkinInvestYen, uchi) {
+  if (uchi === '自分') return { base: 0, koujo: 0, final: 0, rate: 0 };
+  const startLine = (kitaiJikyu100 >= 1800) ? 5000 : 10000;
+  if (sagitama < startLine) return { base: 0, koujo: 0, final: 0, rate: 0 };
+  const baseReward = Math.floor(sagitama / 2500) * 2500;
+  const rate = getKoujoRate(kitaiJikyu100);
+  const koujo = Math.round((genkinInvestYen || 0) * rate);
+  const finalReward = Math.max(0, baseReward - koujo);
+  return { base: baseReward, koujo: koujo, final: finalReward, rate: rate };
+}
+function calcHoshuConfirm(sagitamaTotal, avgKitaiJikyu, genkinInvestTotal, uchi) {
+  return calcFinalReward(sagitamaTotal, avgKitaiJikyu, genkinInvestTotal, uchi).final;
 }
 
 // =============================================
-// 報酬確定（報酬タブ）
-// ・当日の打ち手別に差玉・期待時給・現金投資を集計
-// ・期待時給1800円以上→5千スタート、未満→1万スタート + 持ち玉控除
-// ・全打ち手分を自動でP列（hoshu）にまとめて書き込み
-// ・結果は削除ボタン付きで表示（削除はUI上のみ、スプシ連動なし）
+// 蝣ｱ驟ｬ遒ｺ螳夲ｼ亥ｱ驟ｬ繧ｿ繝厄ｼ・
+// 繝ｻ蠖捺律縺ｮ謇薙■謇句挨縺ｫ蟾ｮ邇峨・譛溷ｾ・凾邨ｦ繝ｻ迴ｾ驥第兜雉・ｒ髮・ｨ・
+// 繝ｻ譛溷ｾ・凾邨ｦ1800蜀・ｻ･荳岩・5蜊・せ繧ｿ繝ｼ繝医∵悴貅竊・荳・せ繧ｿ繝ｼ繝・+ 謖√■邇画而髯､
+// 繝ｻ蜈ｨ謇薙■謇句・繧定・蜍輔〒P蛻暦ｼ・oshu・峨↓縺ｾ縺ｨ繧√※譖ｸ縺崎ｾｼ縺ｿ
+// 繝ｻ邨先棡縺ｯ蜑企勁繝懊ち繝ｳ莉倥″縺ｧ陦ｨ遉ｺ・亥炎髯､縺ｯUI荳翫・縺ｿ縲√せ繝励す騾｣蜍輔↑縺暦ｼ・
 // =============================================
 
-// 報酬結果の履歴をメモリで管理
+// 蝣ｱ驟ｬ邨先棡縺ｮ螻･豁ｴ繧偵Γ繝｢繝ｪ縺ｧ邂｡逅・
 let hoshuResults = [];
 
 async function doHoshuConfirm() {
-  // 今日の日付をデフォルトに
+  // 莉頑律縺ｮ譌･莉倥ｒ繝・ヵ繧ｩ繝ｫ繝医↓
   const today = new Date();
   const defaultDate = today.getFullYear() + '-' +
     String(today.getMonth()+1).padStart(2,'0') + '-' +
     String(today.getDate()).padStart(2,'0');
 
-  const dateInput = prompt('報酬確定する日付を入力してください（YYYY-MM-DD）', defaultDate);
+  const dateInput = prompt('蝣ｱ驟ｬ遒ｺ螳壹☆繧区律莉倥ｒ蜈･蜉帙＠縺ｦ縺上□縺輔＞・・YYY-MM-DD・・, defaultDate);
   if (!dateInput) return;
   const targetDate = dateInput.trim();
   if (!/^\d{4}-\d{2}-\d{2}$/.test(targetDate)) {
-    alert('日付の形式が正しくありません（例: 2025-01-15）');
+    alert('譌･莉倥・蠖｢蠑上′豁｣縺励￥縺ゅｊ縺ｾ縺帙ｓ・井ｾ・ 2025-01-15・・);
     return;
   }
 
   const btn = document.getElementById('hoshu-confirm-btn');
-  btn.textContent = '⏳ 取得中...';
+  btn.textContent = '竢ｳ 蜿門ｾ嶺ｸｭ...';
   btn.disabled = true;
 
   try {
-    // GASから最新データを取得
+    // GAS縺九ｉ譛譁ｰ繝・・繧ｿ繧貞叙蠕・
     const res  = await fetch(GAS_URL + '?action=init&limit=200', { redirect: 'follow' });
     const data = await res.json();
-    if (!data.success) throw new Error('データ取得失敗');
+    if (!data.success) throw new Error('繝・・繧ｿ蜿門ｾ怜､ｱ謨・);
 
-    // 対象日のレコードを絞り込み
+    // 蟇ｾ雎｡譌･縺ｮ繝ｬ繧ｳ繝ｼ繝峨ｒ邨槭ｊ霎ｼ縺ｿ
     const todayRecs = (data.records || []).filter(r => r.date === targetDate);
     if (!todayRecs.length) {
-      alert(targetDate + ' の記録が見つかりませんでした');
+      alert(targetDate + ' 縺ｮ險倬鹸縺瑚ｦ九▽縺九ｊ縺ｾ縺帙ｓ縺ｧ縺励◆');
       return;
     }
 
-    // 打ち手別に差玉・期待時給（加重平均）・現金投資を集計 ＆ 最後のセッション行番号を記録
-    // 期待時給の加重平均：仕事量（shigoto）ベース
+    // 謇薙■謇句挨縺ｫ蟾ｮ邇峨・譛溷ｾ・凾邨ｦ・亥刈驥榊ｹｳ蝮・ｼ峨・迴ｾ驥第兜雉・ｒ髮・ｨ・・・譛蠕後・繧ｻ繝・す繝ｧ繝ｳ陦檎分蜿ｷ繧定ｨ倬鹸
+    // 譛溷ｾ・凾邨ｦ縺ｮ蜉驥榊ｹｳ蝮・ｼ壻ｻ穂ｺ矩㍼・・higoto・峨・繝ｼ繧ｹ
     const byUchi = {};
     todayRecs.forEach(r => {
-      const uchi = r.uchi || '自分';
-      if (uchi === '自分') return; // 自分は報酬対象外
+      const uchi = r.uchi || '閾ｪ蛻・;
+      if (uchi === '閾ｪ蛻・) return; // 閾ｪ蛻・・蝣ｱ驟ｬ蟇ｾ雎｡螟・
       if (!byUchi[uchi]) byUchi[uchi] = {
         sagitamaTotal: 0,
-        kitaiJikyuWeightedSum: 0,  // 期待時給×仕事量の合計
-        kitaiJikyuWeightTotal: 0,  // 仕事量の合計（加重平均用）
-        mochiRatioWeightedSum: 0,  // 持ち玉比率×仕事量の合計
-        mochiRatioWeightTotal: 0,  // 仕事量の合計（持ち玉比率加重平均用）
+        kitaiJikyuWeightedSum: 0,  // 譛溷ｾ・凾邨ｦﾃ嶺ｻ穂ｺ矩㍼縺ｮ蜷郁ｨ・
+        kitaiJikyuWeightTotal: 0,  // 莉穂ｺ矩㍼縺ｮ蜷郁ｨ茨ｼ亥刈驥榊ｹｳ蝮・畑・・
+        mochiRatioWeightedSum: 0,  // 謖√■邇画ｯ皮紫ﾃ嶺ｻ穂ｺ矩㍼縺ｮ蜷郁ｨ・
+        mochiRatioWeightTotal: 0,  // 莉穂ｺ矩㍼縺ｮ蜷郁ｨ茨ｼ域戟縺｡邇画ｯ皮紫蜉驥榊ｹｳ蝮・畑・・
         genkinInvestTotal: 0,
         lastRow: null,
         count: 0
       };
       byUchi[uchi].sagitamaTotal += (r.sagitama || 0);
       byUchi[uchi].genkinInvestTotal += (r.genkinInvest || 0);
-      // 仕事量（shigoto）ベースの加重平均（期待時給の判定に使用）
+      // 莉穂ｺ矩㍼・・higoto・峨・繝ｼ繧ｹ縺ｮ蜉驥榊ｹｳ蝮・ｼ域悄蠕・凾邨ｦ縺ｮ蛻､螳壹↓菴ｿ逕ｨ・・
       if (r.kitaiJikyu != null && r.kitaiJikyu !== '') {
-        const w = Math.abs(r.shigoto || 0); // 仕事量の絶対値を重みとして使用
+        const w = Math.abs(r.shigoto || 0); // 莉穂ｺ矩㍼縺ｮ邨ｶ蟇ｾ蛟､繧帝㍾縺ｿ縺ｨ縺励※菴ｿ逕ｨ
         if (w > 0) {
           byUchi[uchi].kitaiJikyuWeightedSum += r.kitaiJikyu * w;
           byUchi[uchi].kitaiJikyuWeightTotal += w;
         } else {
-          // shigotoが0または未定義の場合は重み1でフォールバック
+          // shigoto縺・縺ｾ縺溘・譛ｪ螳夂ｾｩ縺ｮ蝣ｴ蜷医・驥阪∩1縺ｧ繝輔か繝ｼ繝ｫ繝舌ャ繧ｯ
           byUchi[uchi].kitaiJikyuWeightedSum += r.kitaiJikyu;
           byUchi[uchi].kitaiJikyuWeightTotal += 1;
         }
       }
-      // 持ち玉比率の仕事量加重平均（複数台合成用）
+      // 謖√■邇画ｯ皮紫縺ｮ莉穂ｺ矩㍼蜉驥榊ｹｳ蝮・ｼ郁､・焚蜿ｰ蜷域・逕ｨ・・
       if (r.mochiRatio != null && r.mochiRatio !== '') {
         const mw = Math.abs(r.shigoto || 0);
         byUchi[uchi].mochiRatioWeightedSum += r.mochiRatio * (mw > 0 ? mw : 1);
         byUchi[uchi].mochiRatioWeightTotal += mw > 0 ? mw : 1;
       }
       byUchi[uchi].count++;
-      // row番号が大きい＝最後に入力された行
+      // row逡ｪ蜿ｷ縺悟､ｧ縺阪＞・晄怙蠕後↓蜈･蜉帙＆繧後◆陦・
       if (byUchi[uchi].lastRow === null || r.row > byUchi[uchi].lastRow) {
         byUchi[uchi].lastRow = r.row;
       }
@@ -1697,22 +1719,23 @@ async function doHoshuConfirm() {
 
     const entries = Object.entries(byUchi);
     if (!entries.length) {
-      alert(targetDate + ' に代打ちの記録がありません');
+      alert(targetDate + ' 縺ｫ莉｣謇薙■縺ｮ險倬鹸縺後≠繧翫∪縺帙ｓ');
       return;
     }
 
-    // 確定報酬を計算（期待時給1800円以上→5千スタート、未満→1万スタート + 持ち玉控除）
-    // 期待時給の判定はAppA v7修正後のH列（持ち玉100%ベース）の仕事量加重平均を使用
+    // 遒ｺ螳壼ｱ驟ｬ繧定ｨ育ｮ暦ｼ域悄蠕・凾邨ｦ1800蜀・ｻ･荳岩・5蜊・せ繧ｿ繝ｼ繝医∵悴貅竊・荳・せ繧ｿ繝ｼ繝・+ 謖√■邇画而髯､・・
+    // 譛溷ｾ・凾邨ｦ縺ｮ蛻､螳壹・AppA v7菫ｮ豁｣蠕後・H蛻暦ｼ域戟縺｡邇・00%繝吶・繧ｹ・峨・莉穂ｺ矩㍼蜉驥榊ｹｳ蝮・ｒ菴ｿ逕ｨ
     const newRows = entries.map(([uchi, d]) => {
       const avgKitaiJikyu = d.kitaiJikyuWeightTotal > 0
         ? d.kitaiJikyuWeightedSum / d.kitaiJikyuWeightTotal
         : 0;
-      // 持ち玉比率の仕事量加重平均（複数台合成：shigoto加重）
+      // 謖√■邇画ｯ皮紫縺ｮ莉穂ｺ矩㍼蜉驥榊ｹｳ蝮・ｼ郁､・焚蜿ｰ蜷域・・嘖higoto蜉驥搾ｼ・
       const weightedRatio = d.mochiRatioWeightTotal > 0
         ? d.mochiRatioWeightedSum / d.mochiRatioWeightTotal
         : 1;
+      const reward = calcFinalReward(d.sagitamaTotal, avgKitaiJikyu, d.genkinInvestTotal, uchi);
       const startLine = (avgKitaiJikyu >= 1800) ? 5000 : 10000;
-      const koujo = Math.round(d.genkinInvestTotal * 0.107 * 3.5);
+      const koujo = reward.koujo;
       return {
         id:          Date.now() + '_' + uchi,
         date:        targetDate,
@@ -1721,16 +1744,17 @@ async function doHoshuConfirm() {
         startLine,
         koujo,
         genkinInvest:  d.genkinInvestTotal,
-        mochiRatio:    weightedRatio,          // 持ち玉比率（仕事量加重平均）
-        hoshu:         calcHoshuConfirm(d.sagitamaTotal, avgKitaiJikyu, d.genkinInvestTotal),
+        mochiRatio:    weightedRatio,          // 謖√■邇画ｯ皮紫・井ｻ穂ｺ矩㍼蜉驥榊ｹｳ蝮・ｼ・
+        hoshu:         reward.final,
+        rate:          reward.rate,
         lastRow:       d.lastRow,
         count:         d.count,
         written:       false,
       };
     });
 
-    // 全打ち手分を自動でP列に書き込み
-    btn.textContent = '⏳ 書込中...';
+    // 蜈ｨ謇薙■謇句・繧定・蜍輔〒P蛻励↓譖ｸ縺崎ｾｼ縺ｿ
+    btn.textContent = '竢ｳ 譖ｸ霎ｼ荳ｭ...';
     await Promise.all(newRows.map(async r => {
       try {
         await fetch(GAS_URL, {
@@ -1740,27 +1764,27 @@ async function doHoshuConfirm() {
         });
         r.written = true;
       } catch(e) {
-        r.written = true; // CORSエラーでも書き込み成功とみなす
+        r.written = true; // CORS繧ｨ繝ｩ繝ｼ縺ｧ繧よ嶌縺崎ｾｼ縺ｿ謌仙粥縺ｨ縺ｿ縺ｪ縺・
       }
     }));
 
-    // キャッシュ無効化（次回ロード時に最新データを取得）
+    // 繧ｭ繝｣繝・す繝･辟｡蜉ｹ蛹厄ｼ域ｬ｡蝗槭Ο繝ｼ繝画凾縺ｫ譛譁ｰ繝・・繧ｿ繧貞叙蠕暦ｼ・
     try { localStorage.removeItem('pachinkob_cache_v1'); } catch(e) {}
 
-    // 結果を履歴の先頭に追加して表示更新
+    // 邨先棡繧貞ｱ･豁ｴ縺ｮ蜈磯ｭ縺ｫ霑ｽ蜉縺励※陦ｨ遉ｺ譖ｴ譁ｰ
     hoshuResults = newRows.concat(hoshuResults);
     renderHoshuResults();
 
   } catch(e) {
-    alert('データ取得に失敗しました。通信状態を確認してください。');
+    alert('繝・・繧ｿ蜿門ｾ励↓螟ｱ謨励＠縺ｾ縺励◆縲る壻ｿ｡迥ｶ諷九ｒ遒ｺ隱阪＠縺ｦ縺上□縺輔＞縲・);
   } finally {
-    btn.textContent = '💰 報酬確定';
+    btn.textContent = '腸 蝣ｱ驟ｬ遒ｺ螳・;
     btn.disabled = false;
   }
 }
 
 // =============================================
-// 報酬結果一覧を描画（削除ボタン付き）
+// 蝣ｱ驟ｬ邨先棡荳隕ｧ繧呈緒逕ｻ・亥炎髯､繝懊ち繝ｳ莉倥″・・
 // =============================================
 function renderHoshuResults() {
   const panel = document.getElementById('hoshu-result-panel');
@@ -1774,20 +1798,20 @@ function renderHoshuResults() {
     `<div class="hoshu-row" id="hoshu-row-${r.id}">
       <div style="flex:1;">
         <div class="hoshu-uchi">${r.uchi}</div>
-        <div class="hoshu-vals">${r.date}　差玉計 ${Math.round(r.sagitamaTotal).toLocaleString('ja-JP')}玉　${r.startLine === 5000 ? '5千' : '1万'}スタート${r.koujo > 0 ? '　控除¥'+r.koujo.toLocaleString('ja-JP') : ''}　${r.count}台</div>
-        <div class="hoshu-written">${r.written ? '✅ P列に書込済み' : ''}</div>
-        <button class="hoshu-delete-btn" onclick="deleteHoshuResult('${r.id}')">🗑 削除</button>
+        <div class="hoshu-vals">${r.date}　差玉計 ${Math.round(r.sagitamaTotal).toLocaleString('ja-JP')}玉　${r.startLine === 5000 ? '5千' : '1万'}スタート　控除率${((r.rate || 0) * 100).toFixed(1)}%　控除¥${Math.round(r.koujo || 0).toLocaleString('ja-JP')}　${r.count}台</div>
+        <div class="hoshu-written">${r.written ? '笨・P蛻励↓譖ｸ霎ｼ貂医∩' : ''}</div>
+        <button class="hoshu-delete-btn" onclick="deleteHoshuResult('${r.id}')">卵 蜑企勁</button>
       </div>
-      <div class="hoshu-yen">¥${r.hoshu.toLocaleString('ja-JP')}</div>
+      <div class="hoshu-yen">ﾂ･${r.hoshu.toLocaleString('ja-JP')}</div>
     </div>`
   ).join('');
 }
 
 // =============================================
-// 報酬結果をUI上から削除（スプシ連動なし）
+// 蝣ｱ驟ｬ邨先棡繧旦I荳翫°繧牙炎髯､・医せ繝励す騾｣蜍輔↑縺暦ｼ・
 // =============================================
 function deleteHoshuResult(id) {
-  showConfirm('この報酬結果をリストから削除しますか？\n（スプシのデータは変更されません）', () => {
+  showConfirm('縺薙・蝣ｱ驟ｬ邨先棡繧偵Μ繧ｹ繝医°繧牙炎髯､縺励∪縺吶°・歃n・医せ繝励す縺ｮ繝・・繧ｿ縺ｯ螟画峩縺輔ｌ縺ｾ縺帙ｓ・・, () => {
     hoshuResults = hoshuResults.filter(r => r.id !== id);
     renderHoshuResults();
   });
@@ -1795,3 +1819,4 @@ function deleteHoshuResult(id) {
 </script>
 </body>
 </html>
+
