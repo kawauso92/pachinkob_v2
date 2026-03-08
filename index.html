@@ -780,8 +780,47 @@ function normalizeUn(v) {
   if (v == null || v === '') return null;
   const n = parseFloat(v);
   if (isNaN(n)) return null;
-  // 10未満の小数値（0.xx〜9.xx）は明らかに×100が必要
+  // Normalize legacy decimal values like 1.05 into 105.
   return n < 10 ? n * 100 : n;
+}
+function buildMachineTotal1RMap(kishus) {
+  const map = {};
+  (kishus || []).forEach(k => {
+    if (!k || !k.name) return;
+    const total1R = Number(k.total1R);
+    map[k.name] = Number.isFinite(total1R) && total1R > 0 ? total1R : 0;
+  });
+  return map;
+}
+function createAggregateUnStat() {
+  return { sumSoRounds: 0, sumRironR: 0, validCount: 0, excludedCount: 0 };
+}
+function getRecordAggregateUnParts(r, total1RMap) {
+  if (!r || isTrialRecord(r)) return null;
+  const soRounds = Number(r.soRounds);
+  const soKaiten = Number(r.soKaiten);
+  const recordTotal1R = Number(r.total1R);
+  const masterTotal1R = total1RMap && r.kishu ? Number(total1RMap[r.kishu]) : 0;
+  const total1R = Number.isFinite(recordTotal1R) && recordTotal1R > 0 ? recordTotal1R : masterTotal1R;
+  if (!Number.isFinite(soRounds) || !Number.isFinite(soKaiten) || !Number.isFinite(total1R)) return null;
+  if (soRounds < 0 || soKaiten <= 0 || total1R <= 0) return null;
+  return { soRounds, rironR: soKaiten / total1R };
+}
+function accumulateAggregateUnStat(stat, r, total1RMap) {
+  if (!stat) stat = createAggregateUnStat();
+  if (isTrialRecord(r)) return stat;
+  const parts = getRecordAggregateUnParts(r, total1RMap);
+  if (!parts) {
+    stat.excludedCount += 1;
+    return stat;
+  }
+  stat.sumSoRounds += parts.soRounds;
+  stat.sumRironR += parts.rironR;
+  stat.validCount += 1;
+  return stat;
+}
+function calcAggregateUnPercent(stat) {
+  return stat && stat.sumRironR > 0 ? Math.round(stat.sumSoRounds / stat.sumRironR * 100) : null;
 }
 
 let _cb = null;
@@ -912,9 +951,9 @@ function renderHomeSummary() {
   const jikyu    = jikanMin ? Math.round(total/(jikanMin/60)) : null;
   const shigoto  = recs.reduce((s,r) => s + (isTrialRecord(r) ? 0 : (r.shigoto||0)), 0);
   const days     = new Set(recs.map(r=>r.date)).size;
-  let unW=0, unV=0;
-  recs.forEach(r => { if (isTrialRecord(r)) return; const un=normalizeUn(r.un); if(un!=null){const m=jikanToMin(r.jikan);unW+=m;unV+=un*m;} });
-  const avgUn = unW ? Math.round(unV/unW) : null;
+  const total1RMap = buildMachineTotal1RMap(MASTERS.kishus || []);
+  const unStat = recs.reduce((stat, r) => accumulateAggregateUnStat(stat, r, total1RMap), createAggregateUnStat());
+  const avgUn = calcAggregateUnPercent(unStat);
   const paidHoshuTotal = recs.reduce((s,r) => s + (r.hoshu || 0), 0);
   const ownerRecs = recs.filter(r => (r.uchi || '自分') === '自分');
   const ownerJikanMin = ownerRecs.reduce((s,r) => s + (isTrialRecord(r) ? 0 : jikanToMin(r.jikan)), 0);
@@ -1001,9 +1040,10 @@ function makeStatGrid(items) {
 // =============================================
 function renderMonthly() {
   const byMonth = {};
+  const total1RMap = buildMachineTotal1RMap(MASTERS.kishus || []);
   ALL_RECORDS.forEach(r => {
     const m = r.date ? r.date.slice(0,7) : '不明';
-    if (!byMonth[m]) byMonth[m] = {total:0,shigoto:0,jikanMin:0,count:0,wins:0,kitaiW:0,kitaiV:0,unW:0,unV:0};
+    if (!byMonth[m]) byMonth[m] = {total:0,shigoto:0,jikanMin:0,count:0,wins:0,kitaiW:0,kitaiV:0,unStat:createAggregateUnStat()};
     const d = byMonth[m];
     const isTrial = isTrialRecord(r);
     const min = isTrial ? 0 : jikanToMin(r.jikan);
@@ -1013,8 +1053,7 @@ function renderMonthly() {
     d.count++;
     if ((r.kosshi||0) > 0) d.wins++;
     if (r.kitaiJikyu != null && r.kitaiJikyu !== '') { d.kitaiW += min; d.kitaiV += r.kitaiJikyu * min; }
-    const un = normalizeUn(r.un);
-    if (un != null) { d.unW += min; d.unV += un * min; }
+    accumulateAggregateUnStat(d.unStat, r, total1RMap);
   });
 
   const months = Object.keys(byMonth).sort().reverse();
@@ -1029,7 +1068,7 @@ function renderMonthly() {
     const jikanH = d.jikanMin ? (d.jikanMin/60).toFixed(1) : '—';
     const jikyu    = d.jikanMin ? Math.round(d.total / (d.jikanMin/60)) : null;
     const avgKitai = d.kitaiW ? Math.round(d.kitaiV / d.kitaiW) : null;
-    const avgUn    = d.unW    ? Math.round(d.unV    / d.unW)    : null;
+    const avgUn    = calcAggregateUnPercent(d.unStat);
     const items = [
       {label:'総収支',       val: fmtYen(d.total),    cls: signCls(d.total)},
       {label:'仕事量合計',   val: fmtYen(d.shigoto),  cls: signCls(d.shigoto)},
@@ -1056,9 +1095,10 @@ function renderMonthly() {
 // =============================================
 function renderKishu() {
   const map = {};
+  const total1RMap = buildMachineTotal1RMap(MASTERS.kishus || []);
   ALL_RECORDS.forEach(r => {
     const k = r.kishu || '不明';
-    if (!map[k]) map[k] = {total:0,shigoto:0,jikanMin:0,count:0,wins:0,kitaiW:0,kitaiV:0,unW:0,unV:0,kaitenW:0,kaitenV:0};
+    if (!map[k]) map[k] = {total:0,shigoto:0,jikanMin:0,count:0,wins:0,kitaiW:0,kitaiV:0,unStat:createAggregateUnStat(),kaitenW:0,kaitenV:0};
     const d = map[k];
     const isTrial = isTrialRecord(r);
     const min = isTrial ? 0 : jikanToMin(r.jikan);
@@ -1068,8 +1108,7 @@ function renderKishu() {
     d.count++;
     if ((r.kosshi||0) > 0) d.wins++;
     if (r.kitaiJikyu  != null && r.kitaiJikyu  !== '') { d.kitaiW  += min; d.kitaiV  += r.kitaiJikyu  * min; }
-    const un_k = normalizeUn(r.un);
-    if (un_k != null) { d.unW += min; d.unV += un_k * min; }
+    accumulateAggregateUnStat(d.unStat, r, total1RMap);
     if (r.kaitenRitsu != null && r.kaitenRitsu !== '') { d.kaitenW += min; d.kaitenV += r.kaitenRitsu * min; }
   });
 
@@ -1083,7 +1122,7 @@ function renderKishu() {
     const diff = d.total - d.shigoto;
     const jikyu    = d.jikanMin ? Math.round(d.total / (d.jikanMin/60)) : null;
     const avgKitai  = d.kitaiW  ? Math.round(d.kitaiV  / d.kitaiW)              : null;
-    const avgUn     = d.unW     ? Math.round(d.unV     / d.unW)                 : null;
+    const avgUn     = calcAggregateUnPercent(d.unStat);
     const avgKaiten = d.kaitenW ? (d.kaitenV / d.kaitenW).toFixed(2)            : null;
     const items = [
       {label:'総収支',       val: fmtYen(d.total),    cls: signCls(d.total)},
@@ -1112,9 +1151,10 @@ function renderKishu() {
 // =============================================
 function renderUchi() {
   const map = {};
+  const total1RMap = buildMachineTotal1RMap(MASTERS.kishus || []);
   ALL_RECORDS.forEach(r => {
     const k = r.uchi || '自分';
-    if (!map[k]) map[k] = {total:0,shigoto:0,hoshu:0,jikanMin:0,count:0,wins:0,kitaiW:0,kitaiV:0,unW:0,unV:0,genkinInvest:0,koujo:0,mochiRatioW:0,mochiRatioV:0};
+    if (!map[k]) map[k] = {total:0,shigoto:0,hoshu:0,jikanMin:0,count:0,wins:0,kitaiW:0,kitaiV:0,unStat:createAggregateUnStat(),genkinInvest:0,koujo:0,mochiRatioW:0,mochiRatioV:0};
     const d = map[k];
     const isTrial = isTrialRecord(r);
     const min = isTrial ? 0 : jikanToMin(r.jikan);
@@ -1125,8 +1165,7 @@ function renderUchi() {
     d.count++;
     if ((r.kosshi||0) > 0) d.wins++;
     if (r.kitaiJikyu != null && r.kitaiJikyu !== '') { d.kitaiW += min; d.kitaiV += r.kitaiJikyu * min; }
-    const un_u = normalizeUn(r.un);
-    if (un_u != null) { d.unW += min; d.unV += un_u * min; }
+    accumulateAggregateUnStat(d.unStat, r, total1RMap);
     d.genkinInvest += (r.genkinInvest || 0);
     d.koujo        += (r.koujo || 0);
     if (r.mochiRatio != null && r.mochiRatio !== '') {
@@ -1151,7 +1190,7 @@ function renderUchi() {
     const hoshuShigoto = d.shigoto > 0 ? Math.round(d.hoshu / d.shigoto * 100) : null; // 報酬÷仕事量
     const jikyu    = d.jikanMin ? Math.round(d.total / (d.jikanMin/60)) : null;
     const avgKitai = d.kitaiW   ? Math.round(d.kitaiV / d.kitaiW)       : null;
-    const avgUn    = d.unW      ? Math.round(d.unV    / d.unW)          : null;
+    const avgUn    = calcAggregateUnPercent(d.unStat);
 
     const baseItems = [
       {label:'総収支',       val: fmtYen(d.total),   cls: signCls(d.total)},
@@ -1285,20 +1324,32 @@ function renderOverall() {
   renderKitaiList('rank-kitai-shop',  toKitaiEntries(byShop));
 
   // 運%分布（加重平均）※小数値（例:1.05）は正規化して使用
-  const unRecs = ALL_RECORDS.filter(r => !isTrialRecord(r) && normalizeUn(r.un) != null);
-  if (!unRecs.length) return;
-  let unW = 0, unV = 0;
-  unRecs.forEach(r => { const un=normalizeUn(r.un); const min = jikanToMin(r.jikan); unW += min; unV += un * min; });
-  const avg = unW ? unV / unW : 0;
-  const over100 = unRecs.filter(r=>normalizeUn(r.un)>=100).length;
-  const under70 = unRecs.filter(r=>normalizeUn(r.un)<70).length;
+  const total1RMap = buildMachineTotal1RMap(MASTERS.kishus || []);
+  const unValues = [];
+  const unStat = createAggregateUnStat();
+  ALL_RECORDS.forEach(r => {
+    if (isTrialRecord(r)) return;
+    const parts = getRecordAggregateUnParts(r, total1RMap);
+    if (!parts) {
+      unStat.excludedCount += 1;
+      return;
+    }
+    unStat.sumSoRounds += parts.soRounds;
+    unStat.sumRironR += parts.rironR;
+    unStat.validCount += 1;
+    unValues.push(parts.soRounds / parts.rironR * 100);
+  });
+  if (!unValues.length) return;
+  const avg = calcAggregateUnPercent(unStat) || 0;
+  const over100 = unValues.filter(un => un >= 100).length;
+  const under70 = unValues.filter(un => un < 70).length;
   document.getElementById('un-summary').innerHTML = [
     {label:'平均運%',   val: Math.round(avg)+'%', cls: avg>=100?'pos':avg>=70?'':'neg'},
-    {label:'100%超え',  val: over100+'件 ('+Math.round(over100/unRecs.length*100)+'%)', cls:'pos'},
-    {label:'70%未満',   val: under70+'件 ('+Math.round(under70/unRecs.length*100)+'%)', cls:'neg'},
+    {label:'100%超え',  val: over100+'件 ('+Math.round(over100/unValues.length*100)+'%)', cls:'pos'},
+    {label:'70%未満',   val: under70+'件 ('+Math.round(under70/unValues.length*100)+'%)', cls:'neg'},
   ].map(i=>`<div class="detail-item"><div class="detail-label">${i.label}</div><div class="detail-val ${i.cls}" style="font-size:12px;">${i.val}</div></div>`).join('');
   const bins = Array(10).fill(0);
-  unRecs.forEach(r => { const un=normalizeUn(r.un); bins[Math.min(9,Math.max(0,Math.floor(un/20)))]++; });
+  unValues.forEach(un => { bins[Math.min(9,Math.max(0,Math.floor(un/20)))]++; });
   const maxBin = Math.max(...bins, 1);
   const colors = ['#ff4466','#ff4466','#ff4466','#c8b400','#c8b400','#39ff6e','#00d4ff','#00d4ff','#ff6bff','#ff6bff'];
   document.getElementById('un-dist').innerHTML = bins.map((b,i) =>
