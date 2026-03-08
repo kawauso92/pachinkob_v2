@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
@@ -1027,7 +1027,7 @@ function renderMonthly() {
     const wr   = d.count ? Math.round(d.wins/d.count*100) : 0;
     const diff = d.total - d.shigoto;
     const jikanH = d.jikanMin ? (d.jikanMin/60).toFixed(1) : '—';
-    const jikyu  = d.jikanMin ? Math.round(d.total / (d.jikanMin/60)) : null;
+    const jikyu    = d.jikanMin ? Math.round(d.total / (d.jikanMin/60)) : null;
     const avgKitai = d.kitaiW ? Math.round(d.kitaiV / d.kitaiW) : null;
     const avgUn    = d.unW    ? Math.round(d.unV    / d.unW)    : null;
     const items = [
@@ -1136,6 +1136,7 @@ function renderUchi() {
     }
   });
 
+  const paidHoshuTotal = ALL_RECORDS.reduce((s,r) => s + (r.hoshu || 0), 0);
   const entries = Object.entries(map).sort((a,b) => b[1].count - a[1].count);
   const el = document.getElementById('uchi-list');
   if (!entries.length) { el.innerHTML = '<div class="empty">データなし</div>'; return; }
@@ -1150,7 +1151,8 @@ function renderUchi() {
     const shiROI = d.hoshu ? Math.round((d.shigoto - d.hoshu) / d.hoshu * 100) : null; // 仕事量ROI
     const hoshuRitsu = d.total > 0 ? Math.round(d.hoshu / d.total * 100) : null; // 報酬÷収支
     const hoshuShigoto = d.shigoto > 0 ? Math.round(d.hoshu / d.shigoto * 100) : null; // 報酬÷仕事量
-    const jikyu    = d.jikanMin ? Math.round(d.total / (d.jikanMin/60)) : null;
+    const jikyuBase = isOwner ? displayTotal : d.total;
+    const jikyu    = d.jikanMin ? Math.round(jikyuBase / (d.jikanMin/60)) : null;
     const avgKitai = d.kitaiW   ? Math.round(d.kitaiV / d.kitaiW)       : null;
     const avgUn    = d.unW      ? Math.round(d.unV    / d.unW)          : null;
 
@@ -1883,14 +1885,3 @@ function deleteHoshuResult(id) {
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
