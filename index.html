@@ -1136,29 +1136,25 @@ function renderUchi() {
     }
   });
 
-  const paidHoshuTotal = ALL_RECORDS.reduce((s,r) => s + (r.hoshu || 0), 0);
   const entries = Object.entries(map).sort((a,b) => b[1].count - a[1].count);
   const el = document.getElementById('uchi-list');
   if (!entries.length) { el.innerHTML = '<div class="empty">データなし</div>'; return; }
 
   el.innerHTML = entries.map(([name, d]) => {
     const isOwner = name === '自分';
-    const displayTotal = isOwner ? (d.total - paidHoshuTotal) : d.total;
-    const pos  = displayTotal >= 0;
+    const pos  = d.total >= 0;
     const wr   = d.count ? Math.round(d.wins/d.count*100) : 0;
     const torikomi = d.total - d.hoshu; // 取り分
     const daROI  = d.hoshu ? Math.round((d.total - d.hoshu) / d.hoshu * 100) : null; // 代打ちROI
     const shiROI = d.hoshu ? Math.round((d.shigoto - d.hoshu) / d.hoshu * 100) : null; // 仕事量ROI
     const hoshuRitsu = d.total > 0 ? Math.round(d.hoshu / d.total * 100) : null; // 報酬÷収支
     const hoshuShigoto = d.shigoto > 0 ? Math.round(d.hoshu / d.shigoto * 100) : null; // 報酬÷仕事量
-    const jikyuBase = isOwner ? displayTotal : d.total;
-    const jikyu    = d.jikanMin ? Math.round(jikyuBase / (d.jikanMin/60)) : null;
+    const jikyu    = d.jikanMin ? Math.round(d.total / (d.jikanMin/60)) : null;
     const avgKitai = d.kitaiW   ? Math.round(d.kitaiV / d.kitaiW)       : null;
     const avgUn    = d.unW      ? Math.round(d.unV    / d.unW)          : null;
 
     const baseItems = [
-      {label:isOwner ? '実取り分' : '総収支', val: fmtYen(displayTotal), cls: signCls(displayTotal)},
-      ...(isOwner ? [{label:'支払報酬合計', val: paidHoshuTotal ? '¥'+Math.round(paidHoshuTotal).toLocaleString('ja-JP') : '¥0', cls: paidHoshuTotal > 0 ? 'neg' : ''}] : []),
+      {label:'総収支',       val: fmtYen(d.total),   cls: signCls(d.total)},
       {label:'仕事量合計',   val: fmtYen(d.shigoto), cls: signCls(d.shigoto)},
       {label:'稼働回数',     val: d.count+'戦',      cls:''},
       {label:'勝率',         val: wr+'%',            cls: wr>=50?'pos':'neg'},
