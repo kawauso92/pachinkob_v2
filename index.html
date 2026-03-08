@@ -466,10 +466,45 @@ canvas{display:block;width:100%;border-radius:var(--radius-sm);}
 const GAS_URL  = 'https://script.google.com/macros/s/AKfycbzFtMJ354oeVAeNVTGLckNVXX9I1URLJTrlMTafDNO6UPOf7yo3bnaac_yPKYV8hVv8/exec';
 const PAGE_SIZE = 30;
 let ALL_RECORDS = [], filterUchi = 'all', filterMonth = currentMonth(), showCount = PAGE_SIZE, currentRecord = null;
+const TRIAL_KISHU_NAME = '試し打ち';
+const TRIAL_KISHU_ALIASES = [TRIAL_KISHU_NAME, '試しうち'];
+const TRIAL_KISHU_MASTER = {
+  name: TRIAL_KISHU_NAME,
+  maker: '',
+  heikin: 0,
+  total: 0,
+  total1R: 0,
+  jikan: 0,
+  hatsua: 0,
+  heiren: 0,
+  rounds: [],
+};
 
 function currentMonth() {
   const t = new Date();
   return t.getFullYear() + '-' + String(t.getMonth()+1).padStart(2,'0');
+}
+function isTrialKishuName(name) {
+  return TRIAL_KISHU_ALIASES.includes(String(name || '').trim());
+}
+function isTrialRecord(r) {
+  return !!(r && isTrialKishuName(r.kishu));
+}
+function ensureTrialKishuMasters(kishus) {
+  const list = Array.isArray(kishus) ? kishus : [];
+  const normalized = [];
+  let hasTrial = false;
+  list.forEach(k => {
+    if (!k || !k.name) return;
+    if (isTrialKishuName(k.name)) {
+      if (!hasTrial) normalized.push({ ...TRIAL_KISHU_MASTER, ...k, name: TRIAL_KISHU_NAME, rounds: Array.isArray(k.rounds) ? k.rounds : [] });
+      hasTrial = true;
+      return;
+    }
+    normalized.push(k);
+  });
+  if (!hasTrial) normalized.unshift({ ...TRIAL_KISHU_MASTER });
+  return normalized;
 }
 
 async function loadRecords() {
@@ -512,7 +547,7 @@ const tabDirty = { home: true, analysis: true, records: true, master: true };
 
 // データ適用：グローバル変数を更新し、現在のタブのみ再描画
 function applyData(data) {
-  MASTERS     = {shops: data.shops, kishus: data.kishus, uchis: data.uchis};
+  MASTERS     = {shops: data.shops, kishus: ensureTrialKishuMasters(data.kishus), uchis: data.uchis};
   ALL_RECORDS = data.records;
   showCount   = PAGE_SIZE;
   // 全タブをダーティにする（次に開いた時に再描画）
@@ -873,13 +908,18 @@ function renderHomeSummary() {
   const total    = recs.reduce((s,r) => s+(r.kosshi||0), 0);
   const wins     = recs.filter(r => (r.kosshi||0) > 0).length;
   const wr       = Math.round(wins/recs.length*100);
-  const jikanMin = recs.reduce((s,r) => s+jikanToMin(r.jikan), 0);
+  const jikanMin = recs.reduce((s,r) => s + (isTrialRecord(r) ? 0 : jikanToMin(r.jikan)), 0);
   const jikyu    = jikanMin ? Math.round(total/(jikanMin/60)) : null;
-  const shigoto  = recs.reduce((s,r) => s+(r.shigoto||0), 0);
+  const shigoto  = recs.reduce((s,r) => s + (isTrialRecord(r) ? 0 : (r.shigoto||0)), 0);
   const days     = new Set(recs.map(r=>r.date)).size;
   let unW=0, unV=0;
-  recs.forEach(r => { const un=normalizeUn(r.un); if(un!=null){const m=jikanToMin(r.jikan);unW+=m;unV+=un*m;} });
+  recs.forEach(r => { if (isTrialRecord(r)) return; const un=normalizeUn(r.un); if(un!=null){const m=jikanToMin(r.jikan);unW+=m;unV+=un*m;} });
   const avgUn = unW ? Math.round(unV/unW) : null;
+  const paidHoshuTotal = recs.reduce((s,r) => s + (r.hoshu || 0), 0);
+  const ownerRecs = recs.filter(r => (r.uchi || '自分') === '自分');
+  const ownerJikanMin = ownerRecs.reduce((s,r) => s + (isTrialRecord(r) ? 0 : jikanToMin(r.jikan)), 0);
+  const netIncome = total - paidHoshuTotal;
+  const ownerNetJikyu = ownerJikanMin ? Math.round(netIncome / (ownerJikanMin / 60)) : null;
 
   el.innerHTML = `
     <div class="an-card-title">${calYear}年 サマリー</div>
@@ -894,6 +934,11 @@ function renderHomeSummary() {
       <div class="detail-item"><div class="detail-label">稼働時間</div><div class="detail-val" style="font-size:14px;">${jikanMin?(jikanMin/60).toFixed(1)+'h':'—'}</div></div>
       <div class="detail-item"><div class="detail-label">仕事量</div><div class="detail-val ${signCls(shigoto)}" style="font-size:14px;">${fmtYen(shigoto)}</div></div>
       <div class="detail-item"><div class="detail-label">平均運%</div><div class="detail-val ${avgUn!=null?(avgUn>=100?'pos':avgUn>=70?'':'neg'):''}" style="font-size:14px;">${avgUn!=null?avgUn+'%':'—'}</div></div>
+    </div>
+    <div class="home-summary-3">
+      <div class="detail-item"><div class="detail-label">支払報酬合計</div><div class="detail-val ${paidHoshuTotal > 0 ? 'neg' : ''}" style="font-size:14px;">¥${Math.round(paidHoshuTotal).toLocaleString('ja-JP')}</div></div>
+      <div class="detail-item"><div class="detail-label">実取り分</div><div class="detail-val ${signCls(netIncome)}" style="font-size:14px;">${fmtYen(netIncome)}</div></div>
+      <div class="detail-item"><div class="detail-label">自分実時給</div><div class="detail-val ${signCls(ownerNetJikyu)}" style="font-size:14px;">${ownerNetJikyu!=null?fmtYen(ownerNetJikyu):'—'}</div></div>
     </div>`;
 }
 
@@ -960,9 +1005,10 @@ function renderMonthly() {
     const m = r.date ? r.date.slice(0,7) : '不明';
     if (!byMonth[m]) byMonth[m] = {total:0,shigoto:0,jikanMin:0,count:0,wins:0,kitaiW:0,kitaiV:0,unW:0,unV:0};
     const d = byMonth[m];
-    const min = jikanToMin(r.jikan);
+    const isTrial = isTrialRecord(r);
+    const min = isTrial ? 0 : jikanToMin(r.jikan);
     d.total    += (r.kosshi||0);
-    d.shigoto  += (r.shigoto||0);
+    d.shigoto  += isTrial ? 0 : (r.shigoto||0);
     d.jikanMin += min;
     d.count++;
     if ((r.kosshi||0) > 0) d.wins++;
@@ -1014,9 +1060,10 @@ function renderKishu() {
     const k = r.kishu || '不明';
     if (!map[k]) map[k] = {total:0,shigoto:0,jikanMin:0,count:0,wins:0,kitaiW:0,kitaiV:0,unW:0,unV:0,kaitenW:0,kaitenV:0};
     const d = map[k];
-    const min = jikanToMin(r.jikan);
+    const isTrial = isTrialRecord(r);
+    const min = isTrial ? 0 : jikanToMin(r.jikan);
     d.total    += (r.kosshi||0);
-    d.shigoto  += (r.shigoto||0);
+    d.shigoto  += isTrial ? 0 : (r.shigoto||0);
     d.jikanMin += min;
     d.count++;
     if ((r.kosshi||0) > 0) d.wins++;
@@ -1069,9 +1116,10 @@ function renderUchi() {
     const k = r.uchi || '自分';
     if (!map[k]) map[k] = {total:0,shigoto:0,hoshu:0,jikanMin:0,count:0,wins:0,kitaiW:0,kitaiV:0,unW:0,unV:0,genkinInvest:0,koujo:0,mochiRatioW:0,mochiRatioV:0};
     const d = map[k];
-    const min = jikanToMin(r.jikan);
+    const isTrial = isTrialRecord(r);
+    const min = isTrial ? 0 : jikanToMin(r.jikan);
     d.total    += (r.kosshi||0);
-    d.shigoto  += (r.shigoto||0);
+    d.shigoto  += isTrial ? 0 : (r.shigoto||0);
     d.hoshu    += (r.hoshu||0);
     d.jikanMin += min;
     d.count++;
@@ -1094,7 +1142,8 @@ function renderUchi() {
 
   el.innerHTML = entries.map(([name, d]) => {
     const isOwner = name === '自分';
-    const pos  = d.total >= 0;
+    const displayTotal = isOwner ? (d.total - paidHoshuTotal) : d.total;
+    const pos  = displayTotal >= 0;
     const wr   = d.count ? Math.round(d.wins/d.count*100) : 0;
     const torikomi = d.total - d.hoshu; // 取り分
     const daROI  = d.hoshu ? Math.round((d.total - d.hoshu) / d.hoshu * 100) : null; // 代打ちROI
@@ -1106,7 +1155,8 @@ function renderUchi() {
     const avgUn    = d.unW      ? Math.round(d.unV    / d.unW)          : null;
 
     const baseItems = [
-      {label:'総収支',       val: fmtYen(d.total),   cls: signCls(d.total)},
+      {label:isOwner ? '実取り分' : '総収支', val: fmtYen(displayTotal), cls: signCls(displayTotal)},
+      ...(isOwner ? [{label:'支払報酬合計', val: paidHoshuTotal ? '¥'+Math.round(paidHoshuTotal).toLocaleString('ja-JP') : '¥0', cls: paidHoshuTotal > 0 ? 'neg' : ''}] : []),
       {label:'仕事量合計',   val: fmtYen(d.shigoto), cls: signCls(d.shigoto)},
       {label:'稼働回数',     val: d.count+'戦',      cls:''},
       {label:'勝率',         val: wr+'%',            cls: wr>=50?'pos':'neg'},
@@ -1170,7 +1220,7 @@ function groupBy(recs, key) {
     map[k].total += (r.kosshi||0);
     map[k].count++;
     if ((r.kosshi||0) > 0) map[k].wins++;
-    if (r.kitaiJikyu != null && r.kitaiJikyu !== '') map[k].kitais.push(r.kitaiJikyu);
+    if (!isTrialRecord(r) && r.kitaiJikyu != null && r.kitaiJikyu !== '') map[k].kitais.push(r.kitaiJikyu);
   });
   return Object.entries(map).sort((a,b) => b[1].total - a[1].total);
 }
@@ -1221,7 +1271,7 @@ function renderOverall() {
 
   // 期待時給（加重平均）
   const byKishu = {}, byShop = {};
-  recs.filter(r => r.kitaiJikyu != null && r.kitaiJikyu !== '').forEach(r => {
+  recs.filter(r => !isTrialRecord(r) && r.kitaiJikyu != null && r.kitaiJikyu !== '').forEach(r => {
     const min = jikanToMin(r.jikan);
     [byKishu, byShop].forEach((map, i) => {
       const k = i===0 ? r.kishu : r.shop;
@@ -1237,7 +1287,7 @@ function renderOverall() {
   renderKitaiList('rank-kitai-shop',  toKitaiEntries(byShop));
 
   // 運%分布（加重平均）※小数値（例:1.05）は正規化して使用
-  const unRecs = ALL_RECORDS.filter(r => normalizeUn(r.un) != null);
+  const unRecs = ALL_RECORDS.filter(r => !isTrialRecord(r) && normalizeUn(r.un) != null);
   if (!unRecs.length) return;
   let unW = 0, unV = 0;
   unRecs.forEach(r => { const un=normalizeUn(r.un); const min = jikanToMin(r.jikan); unW += min; unV += un * min; });
@@ -1271,7 +1321,7 @@ async function loadMasters() {
   try {
     const res  = await fetch(GAS_URL + '?action=masters', {redirect:'follow'});
     const data = await res.json();
-    if (data.success) MASTERS = data;
+    if (data.success) MASTERS = { shops: data.shops || [], kishus: ensureTrialKishuMasters(data.kishus || []), uchis: data.uchis || [] }; 
   } catch(e) {}
 }
 
@@ -1466,7 +1516,8 @@ function deleteKishu(i) {
 }
 
 async function saveKishu() {
-  const name = document.getElementById('kishu-name').value.trim();
+  const rawName = document.getElementById('kishu-name').value.trim();
+  const name = isTrialKishuName(rawName) ? TRIAL_KISHU_NAME : rawName;
   if (!name) { alert('機種名を入力してください'); return; }
   const rounds = [];
   for(let i=0;i<10;i++) {
@@ -1475,7 +1526,7 @@ async function saveKishu() {
     if (balls > 0 && cnt > 0) rounds.push({balls, name: cnt+'R'});
   }
   const makerEl = document.getElementById('kishu-maker');
-  const obj = {
+  const obj = isTrialKishuName(name) ? { ...TRIAL_KISHU_MASTER } : {
     name,
     maker:   makerEl ? makerEl.value || '' : '',
     heikin:  parseFloat(document.getElementById('kishu-heikin').value)||0,
@@ -1630,6 +1681,21 @@ function calcFinalReward(sagitama, kitaiJikyu100, genkinInvestYen, uchi) {
 function calcHoshuConfirm(sagitamaTotal, avgKitaiJikyu, genkinInvestTotal, uchi) {
   return calcFinalReward(sagitamaTotal, avgKitaiJikyu, genkinInvestTotal, uchi).final;
 }
+function buildMachineHourlyRateMap(kishus) {
+  const map = {};
+  (kishus || []).forEach(k => {
+    if (!k || !k.name) return;
+    const rate = Number(k.jikan);
+    map[k.name] = Number.isFinite(rate) && rate > 0 ? rate : 0;
+  });
+  return map;
+}
+function calcEffectiveKitaiWeight(soKaiten, machineHourlyRate) {
+  const rot = Number(soKaiten);
+  const rate = Number(machineHourlyRate);
+  if (!Number.isFinite(rot) || !Number.isFinite(rate) || rot <= 0 || rate <= 0) return 0;
+  return rot / rate;
+}
 
 // =============================================
 // 報酬確定（報酬タブ）
@@ -1675,15 +1741,16 @@ async function doHoshuConfirm() {
     }
 
     // 打ち手別に差玉・期待時給（加重平均）・現金投資を集計 ＆ 最後のセッション行番号を記録
-    // 期待時給の加重平均：仕事量（shigoto）ベース
+    // 期待時給の加重平均：effectiveWeight = soKaiten / machineHourlyRate
+    const machineRateMap = buildMachineHourlyRateMap(data.kishus || MASTERS.kishus || []);
     const byUchi = {};
     todayRecs.forEach(r => {
       const uchi = r.uchi || '自分';
       if (uchi === '自分') return; // 自分は報酬対象外
       if (!byUchi[uchi]) byUchi[uchi] = {
         sagitamaTotal: 0,
-        kitaiJikyuWeightedSum: 0,  // 期待時給×仕事量の合計
-        kitaiJikyuWeightTotal: 0,  // 仕事量の合計（加重平均用）
+        kitaiJikyuWeightedSum: 0,  // 期待時給×effectiveWeight の合計
+        kitaiJikyuWeightTotal: 0,  // effectiveWeight の合計（加重平均用）
         mochiRatioWeightedSum: 0,  // 持ち玉比率×仕事量の合計
         mochiRatioWeightTotal: 0,  // 仕事量の合計（持ち玉比率加重平均用）
         genkinInvestTotal: 0,
@@ -1692,16 +1759,13 @@ async function doHoshuConfirm() {
       };
       byUchi[uchi].sagitamaTotal += (r.sagitama || 0);
       byUchi[uchi].genkinInvestTotal += (r.genkinInvest || 0);
-      // 仕事量（shigoto）ベースの加重平均（期待時給の判定に使用）
+      // 報酬用の累計期待時給（effectiveWeight = soKaiten / machineHourlyRate）
       if (r.kitaiJikyu != null && r.kitaiJikyu !== '') {
-        const w = Math.abs(r.shigoto || 0); // 仕事量の絶対値を重みとして使用
+        const machineHourlyRate = machineRateMap[r.kishu] || Number(r.machineHourlyRate) || 0;
+        const w = calcEffectiveKitaiWeight(r.soKaiten, machineHourlyRate);
         if (w > 0) {
           byUchi[uchi].kitaiJikyuWeightedSum += r.kitaiJikyu * w;
           byUchi[uchi].kitaiJikyuWeightTotal += w;
-        } else {
-          // shigotoが0または未定義の場合は重み1でフォールバック
-          byUchi[uchi].kitaiJikyuWeightedSum += r.kitaiJikyu;
-          byUchi[uchi].kitaiJikyuWeightTotal += 1;
         }
       }
       // 持ち玉比率の仕事量加重平均（複数台合成用）
@@ -1724,7 +1788,7 @@ async function doHoshuConfirm() {
     }
 
     // 確定報酬を計算（期待時給1800円以上→5千スタート、未満→1万スタート + 持ち玉控除）
-    // 期待時給の判定はAppA v7修正後のH列（持ち玉100%ベース）の仕事量加重平均を使用
+    // 期待時給の判定は持ち玉100%ベースの effectiveWeight 加重平均を使用
     const newRows = entries.map(([uchi, d]) => {
       const avgKitaiJikyu = d.kitaiJikyuWeightTotal > 0
         ? d.kitaiJikyuWeightedSum / d.kitaiJikyuWeightTotal
@@ -1819,4 +1883,14 @@ function deleteHoshuResult(id) {
 </script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
 
