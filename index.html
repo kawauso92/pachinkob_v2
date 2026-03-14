@@ -1698,6 +1698,17 @@ document.getElementById('confirm-ok').onclick = () => { document.getElementById(
 document.getElementById('confirm-cancel').onclick = () => { document.getElementById('confirmModal').classList.remove('show'); _cb=null; };
 
 // =============================================
+// 控除率カーブ（AppAと同一）
+// 期待時給に応じて0.374→0.15→0へ線形補間
+// =============================================
+function getKoujoRate(kitaiJikyu) {
+  if (kitaiJikyu <= 1500) return 0.374;
+  else if (kitaiJikyu <= 1800) return 0.374 - (0.374 - 0.15) * (kitaiJikyu - 1500) / 300;
+  else if (kitaiJikyu <= 2300) return 0.15 - 0.15 * (kitaiJikyu - 1800) / 500;
+  else return 0;
+}
+
+// =============================================
 // 報酬計算（2段階制：期待時給で単価判定）
 // 差玉合計と平均期待時給から確定報酬を計算
 // =============================================
