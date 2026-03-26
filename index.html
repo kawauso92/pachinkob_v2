@@ -212,6 +212,46 @@ canvas{display:block;width:100%;border-radius:var(--radius-sm);}
 .cal-dot{width:4px;height:4px;border-radius:50%;background:var(--text3);margin-top:1px;}
 .home-summary{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;}
 .home-summary-3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px;}
+.event-toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px;}
+.event-toolbar-actions{display:flex;align-items:center;gap:8px;}
+.event-add-btn{background:rgba(255,204,0,0.12);border:1px solid rgba(255,204,0,0.35);border-radius:999px;padding:6px 12px;color:#f3d94c;font-size:11px;font-family:'JetBrains Mono',monospace;cursor:pointer;}
+.event-add-btn:active{background:rgba(255,204,0,0.2);}
+.event-filter-row{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;margin-bottom:12px;}
+.event-filter-row::-webkit-scrollbar{display:none;}
+.event-chip{background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:5px 12px;font-size:10px;color:var(--text2);white-space:nowrap;cursor:pointer;font-family:'JetBrains Mono',monospace;letter-spacing:1px;}
+.event-chip.active{background:rgba(0,212,255,0.1);border-color:var(--accent);color:var(--accent);}
+.event-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+.event-cal-cell{min-height:58px;background:var(--surface2);border:1px solid transparent;border-radius:8px;padding:5px 4px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:4px;cursor:pointer;position:relative;}
+.event-cal-cell.empty{background:none;border-color:transparent;cursor:default;}
+.event-cal-cell.today{border-color:var(--accent);}
+.event-cal-cell.selected{border-color:#f3d94c;background:rgba(255,204,0,0.06);}
+.event-cal-day{font-size:10px;color:var(--text2);font-family:'JetBrains Mono',monospace;line-height:1;}
+.event-count-badge{min-width:20px;padding:2px 6px;border-radius:999px;background:rgba(0,212,255,0.15);color:var(--accent);font-size:10px;font-family:'JetBrains Mono',monospace;text-align:center;font-weight:700;}
+.event-count-badge.manual-only{background:rgba(255,204,0,0.16);color:#f3d94c;}
+.event-day-header,.event-list-header{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;}
+.event-day-title,.event-list-title{font-family:'Rajdhani',sans-serif;font-size:14px;letter-spacing:2px;color:var(--text);}
+.event-day-sub,.event-list-sub{font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace;}
+.event-items{display:flex;flex-direction:column;gap:8px;}
+.event-item{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;}
+.event-item-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:6px;}
+.event-store{font-size:13px;font-weight:600;}
+.event-area{font-size:10px;color:var(--text3);margin-top:2px;}
+.event-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.event-tag{display:inline-flex;align-items:center;border-radius:999px;padding:3px 8px;font-size:10px;font-family:'JetBrains Mono',monospace;font-weight:700;border:1px solid transparent;}
+.event-tag.blue{background:rgba(0,212,255,0.12);border-color:rgba(0,212,255,0.28);color:var(--accent);}
+.event-tag.green{background:rgba(57,255,110,0.12);border-color:rgba(57,255,110,0.28);color:var(--green);}
+.event-tag.orange{background:rgba(255,164,68,0.14);border-color:rgba(255,164,68,0.28);color:#ffb15e;}
+.event-tag.purple{background:rgba(255,107,255,0.12);border-color:rgba(255,107,255,0.28);color:var(--magenta);}
+.event-tag.yellow{background:rgba(255,204,0,0.14);border-color:rgba(255,204,0,0.3);color:#f3d94c;}
+.event-tag.gray{background:rgba(136,153,170,0.12);border-color:rgba(136,153,170,0.2);color:var(--text2);}
+.event-source{font-size:10px;color:var(--text2);font-family:'JetBrains Mono',monospace;}
+.event-date{font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace;white-space:nowrap;}
+.event-delete{background:none;border:1px solid rgba(255,68,102,0.28);border-radius:999px;color:var(--red);font-size:10px;font-family:'JetBrains Mono',monospace;padding:4px 8px;cursor:pointer;}
+.event-delete:active{background:rgba(255,68,102,0.15);}
+.event-empty{padding:18px 12px;text-align:center;color:var(--text3);font-size:12px;}
+.event-modal-field{margin-bottom:12px;}
+.event-modal-label{display:block;font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace;letter-spacing:1px;margin-bottom:6px;}
+.event-modal-actions{display:flex;gap:8px;}
 </style>
 </head>
 <body>
@@ -334,6 +374,34 @@ canvas{display:block;width:100%;border-radius:var(--radius-sm);}
   </div>
 
   <!-- マスタタブ -->
+  <div class="tab-content" id="tab-events">
+    <div class="an-card">
+      <div class="event-toolbar">
+        <div class="cal-header" style="margin-bottom:0;flex:1;">
+          <button class="cal-nav-btn" onclick="eventCalPrev()">◀</button>
+          <div class="cal-title" id="event-cal-title">EVENTS</div>
+          <button class="cal-nav-btn" onclick="eventCalNext()">▶</button>
+        </div>
+        <div class="event-toolbar-actions">
+          <button class="event-add-btn" onclick="openEventModal()">＋追加</button>
+        </div>
+      </div>
+      <div class="event-filter-row" id="event-period-filter"></div>
+      <div class="event-cal-grid">
+        <div class="cal-dow sun">SUN</div>
+        <div class="cal-dow">MON</div>
+        <div class="cal-dow">TUE</div>
+        <div class="cal-dow">WED</div>
+        <div class="cal-dow">THU</div>
+        <div class="cal-dow">FRI</div>
+        <div class="cal-dow sat">SAT</div>
+      </div>
+      <div class="event-cal-grid" id="event-cal-body"></div>
+    </div>
+    <div class="an-card" id="event-day-panel"></div>
+    <div class="an-card" id="event-list-panel"></div>
+  </div>
+
   <div class="tab-content" id="tab-master">
     <div class="an-tabs">
       <div class="an-tab active" onclick="switchSetTab('shop')">店</div>
@@ -441,6 +509,7 @@ canvas{display:block;width:100%;border-radius:var(--radius-sm);}
   <button class="nav-btn" id="nav-analysis" onclick="switchTab('analysis')"><div class="icon">📊</div><div>分析</div></button>
   <button class="nav-btn" id="nav-records"  onclick="switchTab('records')"><div class="icon">📋</div><div>記録</div></button>
   <button class="nav-btn" id="nav-hoshu"    onclick="switchTab('hoshu')"><div class="icon">💰</div><div>報酬</div></button>
+  <button class="nav-btn" id="nav-events"   onclick="switchTab('events')"><div class="icon">📅</div><div>イベント</div></button>
   <button class="nav-btn" id="nav-master"   onclick="switchTab('master')"><div class="icon">⚙️</div><div>マスタ</div></button>
 </div>
 <div class="detail-overlay" id="detailOverlay" onclick="closeDetail(event)">
@@ -462,6 +531,28 @@ canvas{display:block;width:100%;border-radius:var(--radius-sm);}
     </div>
   </div>
 </div>
+<div class="modal-overlay" id="eventModal">
+  <div class="modal">
+    <div class="modal-title">イベント追加</div>
+    <div class="modal-msg" style="margin-bottom:14px;">手動イベントを登録します</div>
+    <div class="event-modal-field">
+      <label class="event-modal-label" for="event-modal-date">DATE</label>
+      <input class="set-input" id="event-modal-date" type="date">
+    </div>
+    <div class="event-modal-field">
+      <label class="event-modal-label" for="event-modal-store">STORE</label>
+      <input class="set-input" id="event-modal-store" type="text" placeholder="店名">
+    </div>
+    <div class="event-modal-field">
+      <label class="event-modal-label" for="event-modal-name">EVENT</label>
+      <input class="set-input" id="event-modal-name" type="text" placeholder="イベント名">
+    </div>
+    <div class="event-modal-actions">
+      <button class="set-btn-cancel" onclick="closeEventModal()">キャンセル</button>
+      <button class="set-btn-save" onclick="saveManualEvent()">保存</button>
+    </div>
+  </div>
+</div>
 <script>
 const GAS_URL  = 'https://script.google.com/macros/s/AKfycbzFtMJ354oeVAeNVTGLckNVXX9I1URLJTrlMTafDNO6UPOf7yo3bnaac_yPKYV8hVv8/exec';
 const PAGE_SIZE = 30;
@@ -479,6 +570,146 @@ const TRIAL_KISHU_MASTER = {
   heiren: 0,
   rounds: [],
 };
+const AUTO_EVENTS_URL = 'https://kawauso92.github.io/pachinko-events/events.json';
+const EVENT_PERIODS = [
+  { key: 'all', label: 'すべて' },
+  { key: 'thisWeek', label: '今週' },
+  { key: 'nextWeek', label: '来週' },
+  { key: 'thisMonth', label: '今月' },
+];
+let AUTO_EVENTS = [];
+let MANUAL_EVENTS = [];
+let EVENTS_ALL = [];
+let eventPeriod = 'all';
+let eventYear = new Date().getFullYear();
+let eventMonth = new Date().getMonth();
+let selectedEventDate = todayStr();
+
+function todayStr() {
+  const t = new Date();
+  return t.getFullYear() + '-' + String(t.getMonth() + 1).padStart(2, '0') + '-' + String(t.getDate()).padStart(2, '0');
+}
+function formatDateLabel(dateStr) {
+  if (!dateStr) return '—';
+  const d = new Date(dateStr + 'T00:00:00');
+  if (Number.isNaN(d.getTime())) return dateStr;
+  return d.getFullYear() + '/' + String(d.getMonth() + 1).padStart(2, '0') + '/' + String(d.getDate()).padStart(2, '0');
+}
+function eventDateValue(value) {
+  return value ? new Date(value + 'T00:00:00').getTime() : 0;
+}
+function normalizeEventRecord(item, sourceType) {
+  if (!item || !item.date || !item.store || !item.event) return null;
+  return {
+    date: String(item.date).slice(0, 10),
+    store: String(item.store).trim(),
+    event: String(item.event).trim(),
+    area: String(item.area || '').trim(),
+    source: sourceType,
+    sourceLabel: sourceType === 'manual' ? 'Manual' : 'Auto',
+    source_url: item.source_url || '',
+    created_at: item.created_at || item.updated_at || '',
+    updated_at: item.updated_at || '',
+  };
+}
+function dedupeEvents(list) {
+  const map = new Map();
+  list.forEach(item => {
+    if (!item) return;
+    const key = [item.date, item.store, item.event, item.source].join('||');
+    if (!map.has(key)) map.set(key, item);
+  });
+  return Array.from(map.values()).sort((a, b) => {
+    const dateDiff = eventDateValue(a.date) - eventDateValue(b.date);
+    if (dateDiff !== 0) return dateDiff;
+    const storeDiff = a.store.localeCompare(b.store, 'ja');
+    if (storeDiff !== 0) return storeDiff;
+    return a.event.localeCompare(b.event, 'ja');
+  });
+}
+function classifyEvent(eventName, sourceType) {
+  if (sourceType === 'manual') return 'yellow';
+  if (eventName.includes('じゃんじゃん') || eventName.includes('れんじろう')) return 'blue';
+  if (eventName.includes('エイムスター玉') || eventName.includes('エイムスター超玉')) return 'green';
+  if (eventName.includes('じゃんばり')) return 'orange';
+  if (eventName.includes('スロパチ') && (eventName.includes('(黒)') || eventName.includes('(オレンジ)') || eventName.includes('スロパチステーション来店取材'))) return 'purple';
+  return 'gray';
+}
+function rangeForPeriod(periodKey) {
+  const today = new Date();
+  const dayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const day = dayStart.getDay();
+  const mondayOffset = day === 0 ? -6 : 1 - day;
+  const weekStart = new Date(dayStart);
+  weekStart.setDate(dayStart.getDate() + mondayOffset);
+  const nextWeekStart = new Date(weekStart);
+  nextWeekStart.setDate(weekStart.getDate() + 7);
+  const thisMonthStart = new Date(dayStart.getFullYear(), dayStart.getMonth(), 1);
+  const nextMonthStart = new Date(dayStart.getFullYear(), dayStart.getMonth() + 1, 1);
+  if (periodKey === 'thisWeek') return { start: weekStart, end: nextWeekStart };
+  if (periodKey === 'nextWeek') {
+    const end = new Date(nextWeekStart);
+    end.setDate(nextWeekStart.getDate() + 7);
+    return { start: nextWeekStart, end };
+  }
+  if (periodKey === 'thisMonth') return { start: thisMonthStart, end: nextMonthStart };
+  return null;
+}
+function eventMatchesPeriod(item) {
+  const range = rangeForPeriod(eventPeriod);
+  if (!range) return true;
+  const value = new Date(item.date + 'T00:00:00');
+  return value >= range.start && value < range.end;
+}
+function getDayEvents(dateStr) {
+  return EVENTS_ALL.filter(item => item.date === dateStr);
+}
+function getFilteredListEvents() {
+  return EVENTS_ALL.filter(eventMatchesPeriod);
+}
+function getEventCountMap() {
+  const map = {};
+  EVENTS_ALL.forEach(item => {
+    if (!item.date) return;
+    if (!map[item.date]) map[item.date] = { count: 0, manualOnly: true };
+    map[item.date].count += 1;
+    if (item.source !== 'manual') map[item.date].manualOnly = false;
+  });
+  return map;
+}
+async function fetchAutoEvents() {
+  try {
+    const res = await fetch(AUTO_EVENTS_URL, { redirect: 'follow' });
+    const data = await res.json();
+    return Array.isArray(data) ? data.map(item => normalizeEventRecord(item, 'auto')).filter(Boolean) : [];
+  } catch (e) {
+    return [];
+  }
+}
+async function fetchManualEvents() {
+  try {
+    const res = await fetch(GAS_URL + '?action=getManualEvents', { redirect: 'follow' });
+    const data = await res.json();
+    const items = Array.isArray(data) ? data : (data.events || data.records || data.manualEvents || []);
+    return Array.isArray(items) ? items.map(item => normalizeEventRecord(item, 'manual')).filter(Boolean) : [];
+  } catch (e) {
+    return [];
+  }
+}
+async function loadEventData() {
+  const [autoEvents, manualEvents] = await Promise.all([fetchAutoEvents(), fetchManualEvents()]);
+  AUTO_EVENTS = autoEvents;
+  MANUAL_EVENTS = manualEvents;
+  EVENTS_ALL = dedupeEvents([...AUTO_EVENTS, ...MANUAL_EVENTS]);
+  if (!getDayEvents(selectedEventDate).length && EVENTS_ALL.length) {
+    selectedEventDate = EVENTS_ALL[0].date;
+  }
+  tabDirty.events = true;
+  if (currentTab === 'events') {
+    renderEventsTab();
+    tabDirty.events = false;
+  }
+}
 
 function currentMonth() {
   const t = new Date();
@@ -543,7 +774,7 @@ function loadCache() {
 let currentTab = 'home';
 
 // タブごとに「要再描画」フラグを管理（データ更新時にセット）
-const tabDirty = { home: true, analysis: true, records: true, master: true };
+const tabDirty = { home: true, analysis: true, records: true, events: true, master: true };
 
 // データ適用：グローバル変数を更新し、現在のタブのみ再描画
 function applyData(data) {
@@ -563,6 +794,7 @@ function renderCurrentTab() {
   if (currentTab === 'home')     { renderHome();     tabDirty.home     = false; }
   if (currentTab === 'records')  { render();         tabDirty.records  = false; }
   if (currentTab === 'analysis') { renderAnalysis(); tabDirty.analysis = false; }
+  if (currentTab === 'events')   { renderEventsTab(); tabDirty.events  = false; }
   if (currentTab === 'master')   { renderSetting();  tabDirty.master   = false; }
 }
 
@@ -832,7 +1064,7 @@ let rankPeriod = 'all';
 // =============================================
 function switchTab(tab) {
   currentTab = tab;
-  ['home','analysis','records','hoshu','master'].forEach(t => {
+  ['home','analysis','records','hoshu','events','master'].forEach(t => {
     document.getElementById('tab-'+t).classList.toggle('active', t === tab);
     document.getElementById('nav-'+t).classList.toggle('active', t === tab);
   });
@@ -840,6 +1072,7 @@ function switchTab(tab) {
   if (tab === 'home'     && tabDirty.home)     { renderHome();     tabDirty.home     = false; }
   if (tab === 'analysis' && tabDirty.analysis) { renderAnalysis(); tabDirty.analysis = false; }
   if (tab === 'records'  && tabDirty.records)  { render();         tabDirty.records  = false; }
+  if (tab === 'events'   && tabDirty.events)   { renderEventsTab(); tabDirty.events  = false; }
   if (tab === 'master'   && tabDirty.master)   { renderSetting();  tabDirty.master   = false; }
 }
 
@@ -979,6 +1212,185 @@ function renderHomeSummary() {
       <div class="detail-item"><div class="detail-label">実取り分</div><div class="detail-val ${signCls(netIncome)}" style="font-size:14px;">${fmtYen(netIncome)}</div></div>
       <div class="detail-item"><div class="detail-label">自分実時給</div><div class="detail-val ${signCls(ownerNetJikyu)}" style="font-size:14px;">${ownerNetJikyu!=null?fmtYen(ownerNetJikyu):'—'}</div></div>
     </div>`;
+}
+
+function renderEventPeriodFilter() {
+  const wrap = document.getElementById('event-period-filter');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  EVENT_PERIODS.forEach(item => {
+    const chip = document.createElement('button');
+    chip.className = 'event-chip' + (item.key === eventPeriod ? ' active' : '');
+    chip.textContent = item.label;
+    chip.onclick = () => {
+      eventPeriod = item.key;
+      renderEventsTab();
+    };
+    wrap.appendChild(chip);
+  });
+}
+function renderEventsTab() {
+  renderEventPeriodFilter();
+  renderEventCalendar();
+  renderEventDayPanel();
+  renderEventListPanel();
+}
+function renderEventCalendar() {
+  const title = document.getElementById('event-cal-title');
+  if (title) title.textContent = eventYear + '/' + String(eventMonth + 1).padStart(2, '0');
+  const body = document.getElementById('event-cal-body');
+  if (!body) return;
+  const today = new Date();
+  const firstDay = new Date(eventYear, eventMonth, 1).getDay();
+  const daysInMonth = new Date(eventYear, eventMonth + 1, 0).getDate();
+  const countMap = getEventCountMap();
+  const cells = [];
+  for (let i = 0; i < firstDay; i++) cells.push('<div class="event-cal-cell empty"></div>');
+  for (let day = 1; day <= daysInMonth; day++) {
+    const dateStr = eventYear + '-' + String(eventMonth + 1).padStart(2, '0') + '-' + String(day).padStart(2, '0');
+    const info = countMap[dateStr];
+    const isToday = today.getFullYear() === eventYear && today.getMonth() === eventMonth && today.getDate() === day;
+    const isSelected = selectedEventDate === dateStr;
+    const classes = ['event-cal-cell'];
+    if (isToday) classes.push('today');
+    if (isSelected) classes.push('selected');
+    const badge = info ? `<div class="event-count-badge ${info.manualOnly ? 'manual-only' : ''}">${info.count}</div>` : '';
+    cells.push(`<div class="${classes.join(' ')}" onclick="selectEventDate('${dateStr}')">
+      <div class="event-cal-day">${day}</div>
+      ${badge}
+    </div>`);
+  }
+  body.innerHTML = cells.join('');
+}
+function renderEventDayPanel() {
+  const el = document.getElementById('event-day-panel');
+  if (!el) return;
+  const dayEvents = getDayEvents(selectedEventDate);
+  el.innerHTML = `
+    <div class="event-day-header">
+      <div>
+        <div class="event-day-title">${formatDateLabel(selectedEventDate)}</div>
+        <div class="event-day-sub">${dayEvents.length}件</div>
+      </div>
+    </div>
+    <div class="event-items">${dayEvents.length ? dayEvents.map(renderEventItem).join('') : '<div class="event-empty">この日のイベントはありません</div>'}</div>
+  `;
+}
+function renderEventListPanel() {
+  const el = document.getElementById('event-list-panel');
+  if (!el) return;
+  const listEvents = getFilteredListEvents();
+  const label = (EVENT_PERIODS.find(item => item.key === eventPeriod) || EVENT_PERIODS[0]).label;
+  el.innerHTML = `
+    <div class="event-list-header">
+      <div>
+        <div class="event-list-title">イベント一覧</div>
+        <div class="event-list-sub">${label} / ${listEvents.length}件</div>
+      </div>
+    </div>
+    <div class="event-items">${listEvents.length ? listEvents.map(renderEventItem).join('') : '<div class="event-empty">表示できるイベントがありません</div>'}</div>
+  `;
+}
+function renderEventItem(item) {
+  const tone = classifyEvent(item.event, item.source);
+  const deleteButton = item.source === 'manual'
+    ? `<button class="event-delete" onclick="deleteManualEvent('${encodeURIComponent(item.date)}','${encodeURIComponent(item.store)}','${encodeURIComponent(item.event)}')">× 削除</button>`
+    : '';
+  return `
+    <div class="event-item">
+      <div class="event-item-top">
+        <div>
+          <div class="event-store">${escapeHtml(item.store)}</div>
+          <div class="event-area">${escapeHtml(item.area || 'Osaka')}</div>
+        </div>
+        <div style="text-align:right;">
+          <div class="event-date">${escapeHtml(item.date)}</div>
+          ${deleteButton}
+        </div>
+      </div>
+      <div class="event-meta">
+        <span class="event-tag ${tone}">${escapeHtml(item.event)}</span>
+        <span class="event-source">${item.source === 'manual' ? '出典: 手動' : '出典: 自動'}</span>
+      </div>
+    </div>
+  `;
+}
+function escapeHtml(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+function selectEventDate(dateStr) {
+  selectedEventDate = dateStr;
+  renderEventsTab();
+}
+function eventCalPrev() {
+  eventMonth -= 1;
+  if (eventMonth < 0) {
+    eventMonth = 11;
+    eventYear -= 1;
+  }
+  renderEventsTab();
+}
+function eventCalNext() {
+  eventMonth += 1;
+  if (eventMonth > 11) {
+    eventMonth = 0;
+    eventYear += 1;
+  }
+  renderEventsTab();
+}
+function openEventModal() {
+  document.getElementById('event-modal-date').value = selectedEventDate || todayStr();
+  document.getElementById('event-modal-store').value = '';
+  document.getElementById('event-modal-name').value = '';
+  document.getElementById('eventModal').classList.add('show');
+}
+function closeEventModal() {
+  document.getElementById('eventModal').classList.remove('show');
+}
+async function saveManualEvent() {
+  const date = document.getElementById('event-modal-date').value;
+  const store = document.getElementById('event-modal-store').value.trim();
+  const eventName = document.getElementById('event-modal-name').value.trim();
+  if (!date || !store || !eventName) {
+    alert('日付・店名・イベント名を入力してください');
+    return;
+  }
+  try {
+    await fetch(GAS_URL, {
+      method: 'POST',
+      redirect: 'follow',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ action: 'addManualEvent', date, store, event: eventName, source: 'manual' }),
+    });
+    selectedEventDate = date;
+    closeEventModal();
+    await loadEventData();
+  } catch (e) {
+    alert('手動イベントの保存に失敗しました');
+  }
+}
+async function deleteManualEvent(date, store, eventName) {
+  const decodedDate = decodeURIComponent(date);
+  const decodedStore = decodeURIComponent(store);
+  const decodedEvent = decodeURIComponent(eventName);
+  showConfirm(`${decodedDate}\n${decodedStore}\n${decodedEvent}\n\n削除しますか？`, async () => {
+    try {
+      await fetch(GAS_URL, {
+        method: 'POST',
+        redirect: 'follow',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({ action: 'deleteManualEvent', date: decodedDate, store: decodedStore, event: decodedEvent }),
+      });
+      await loadEventData();
+    } catch (e) {
+      alert('手動イベントの削除に失敗しました');
+    }
+  });
 }
 
 function switchAnTab(tab) {
@@ -1687,6 +2099,13 @@ async function saveMaster(key, data) {
 // 初期ロード時にマスタ取得
 window.addEventListener('DOMContentLoaded', async () => {
   await loadInit();
+  loadEventData();
+  const eventModal = document.getElementById('eventModal');
+  if (eventModal) {
+    eventModal.addEventListener('click', e => {
+      if (e.target === eventModal) closeEventModal();
+    });
+  }
 });
 
 function showConfirm(msg, cb) {
