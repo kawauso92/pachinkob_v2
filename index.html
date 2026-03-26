@@ -194,10 +194,16 @@ canvas{display:block;width:100%;border-radius:var(--radius-sm);}
 .an-period-btn.active{border-color:var(--accent);color:var(--accent);}
 
 /* ホームタブ */
-.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
-.cal-title{font-family:'Rajdhani',sans-serif;font-size:18px;font-weight:700;letter-spacing:2px;color:var(--text);}
+.cal-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;}
+.cal-title{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px;font-family:'Rajdhani',sans-serif;font-size:18px;font-weight:700;letter-spacing:2px;color:var(--text);line-height:1.1;}
 .cal-nav-btn{background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;color:var(--text2);font-size:14px;cursor:pointer;}
 .cal-nav-btn:active{border-color:var(--accent);color:var(--accent);}
+.cal-title-main{display:block;font-size:22px;letter-spacing:2.4px;}
+.cal-month-stats{display:flex;align-items:center;gap:10px 18px;flex-wrap:wrap;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;letter-spacing:0;color:var(--text2);}
+.cal-month-stat{display:flex;align-items:baseline;gap:4px;white-space:nowrap;}
+.cal-month-stat .label{color:var(--text3);font-weight:400;}
+.cal-month-stat .value.pos{color:var(--green);}
+.cal-month-stat .value.neg{color:var(--red);}
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
 .cal-dow{text-align:center;font-size:9px;color:var(--text3);font-family:'JetBrains Mono',monospace;padding:4px 0;letter-spacing:1px;}
 .cal-dow.sun{color:#ff6b8a;}.cal-dow.sat{color:var(--accent);}
@@ -1226,13 +1232,13 @@ function renderCalendar() {
     return d.getFullYear() === calYear && d.getMonth() === calMonth;
   });
   const hasMonthData = monthRecs.length > 0;
-  const monthShigoto = monthRecs.reduce((s, r) => s + (isTrialRecord(r) ? 0 : (r.shigoto || 0)), 0);
+  const monthShigoto = monthRecs.reduce((s, r) => s + (r.shigoto || 0), 0);
   const monthNet = monthRecs.reduce((s, r) => s + ((r.kosshi || 0) - (r.hoshu || 0)), 0);
   document.getElementById('cal-title').innerHTML =
     `<span class="cal-title-main">${calYear}年${calMonth+1}月</span>` +
     `<span class="cal-month-stats">` +
+      `<span class="cal-month-stat"><span class="label">実収支:</span><span class="value ${hasMonthData ? signCls(monthNet) : ''}">${hasMonthData ? fmtYen(monthNet) : '—'}</span></span>` +
       `<span class="cal-month-stat"><span class="label">仕事量:</span><span class="value ${hasMonthData ? signCls(monthShigoto) : ''}">${hasMonthData ? fmtYen(monthShigoto) : '—'}</span></span>` +
-      `<span class="cal-month-stat"><span class="label">純収支:</span><span class="value ${hasMonthData ? signCls(monthNet) : ''}">${hasMonthData ? fmtYen(monthNet) : '—'}</span></span>` +
     `</span>`;
 
   const byDate = {};
