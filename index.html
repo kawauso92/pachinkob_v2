@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
@@ -212,6 +212,8 @@ canvas{display:block;width:100%;border-radius:var(--radius-sm);}
 .cal-dot{width:4px;height:4px;border-radius:50%;background:var(--text3);margin-top:1px;}
 .home-summary{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;}
 .home-summary-3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px;}
+.summary-grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;}
+.summary-grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
 .event-toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px;}
 .event-toolbar-actions{display:flex;align-items:center;gap:8px;}
 .event-add-btn{background:rgba(255,204,0,0.12);border:1px solid rgba(255,204,0,0.35);border-radius:999px;padding:6px 12px;color:#f3d94c;font-size:11px;font-family:'JetBrains Mono',monospace;cursor:pointer;}
@@ -1214,6 +1216,101 @@ function renderHomeSummary() {
     </div>`;
 }
 
+function renderCalendar() {
+  const today = new Date();
+  const firstDay = new Date(calYear, calMonth, 1).getDay(); // 0=Sun
+  const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
+  const monthRecs = ALL_RECORDS.filter(r => {
+    if (!r.date) return false;
+    const d = new Date(r.date);
+    return d.getFullYear() === calYear && d.getMonth() === calMonth;
+  });
+  const hasMonthData = monthRecs.length > 0;
+  const monthShigoto = monthRecs.reduce((s, r) => s + (isTrialRecord(r) ? 0 : (r.shigoto || 0)), 0);
+  const monthNet = monthRecs.reduce((s, r) => s + ((r.kosshi || 0) - (r.hoshu || 0)), 0);
+  document.getElementById('cal-title').innerHTML =
+    `<span class="cal-title-main">${calYear}年${calMonth+1}月</span>` +
+    `<span class="cal-month-stats">` +
+      `<span class="cal-month-stat"><span class="label">仕事量:</span><span class="value ${hasMonthData ? signCls(monthShigoto) : ''}">${hasMonthData ? fmtYen(monthShigoto) : '—'}</span></span>` +
+      `<span class="cal-month-stat"><span class="label">純収支:</span><span class="value ${hasMonthData ? signCls(monthNet) : ''}">${hasMonthData ? fmtYen(monthNet) : '—'}</span></span>` +
+    `</span>`;
+
+  const byDate = {};
+  monthRecs.forEach(r => {
+    const d = new Date(r.date);
+    const key = d.getDate();
+    if (!byDate[key]) byDate[key] = {total:0, count:0};
+    byDate[key].total += (r.kosshi||0);
+    byDate[key].count++;
+  });
+
+  const cells = [];
+  for (let i=0; i<firstDay; i++) cells.push('<div class="cal-cell empty"></div>');
+
+  for (let d=1; d<=daysInMonth; d++) {
+    const dow = (firstDay + d - 1) % 7;
+    const isToday = today.getFullYear()===calYear && today.getMonth()===calMonth && today.getDate()===d;
+    const rec = byDate[d];
+    const dayClass = dow===0?'sun':dow===6?'sat':'';
+    const dateStr = calYear+'-'+String(calMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    const clickAttr = rec ? `onclick="openCalDay('${dateStr}')"` : '';
+    cells.push(`<div class="cal-cell${isToday?' today':''}${rec?' has-rec':''}" ${clickAttr}>
+      <div class="cal-day ${dayClass}">${d}</div>
+      ${rec ? `<div class="cal-val ${rec.total>=0?'pos':'neg'}">${fmtCalVal(rec.total)}</div>
+               <div class="cal-dot" style="background:${rec.total>=0?'var(--green)':'var(--red)'}"></div>` : ''}
+    </div>`);
+  }
+
+  document.getElementById('cal-body').innerHTML = cells.join('');
+}
+
+function renderHomeSummary() {
+  const el = document.getElementById('home-summary');
+  const recs = ALL_RECORDS.filter(r => {
+    if (!r.date) return false;
+    return new Date(r.date).getFullYear() === calYear;
+  });
+
+  if (!recs.length) {
+    el.innerHTML = '<div class="empty" style="padding:16px">' + calYear + '年の記録なし</div>';
+    return;
+  }
+
+  const total = recs.reduce((s,r) => s + (r.kosshi || 0), 0);
+  const wins = recs.filter(r => (r.kosshi || 0) > 0).length;
+  const wr = Math.round(wins / recs.length * 100);
+  const jikanMin = recs.reduce((s,r) => s + (isTrialRecord(r) ? 0 : jikanToMin(r.jikan)), 0);
+  const shigoto = recs.reduce((s,r) => s + (isTrialRecord(r) ? 0 : (r.shigoto || 0)), 0);
+  const days = new Set(recs.map(r => r.date)).size;
+  const total1RMap = buildMachineTotal1RMap(MASTERS.kishus || []);
+  const unStat = recs.reduce((stat, r) => accumulateAggregateUnStat(stat, r, total1RMap), createAggregateUnStat());
+  const avgUn = calcAggregateUnPercent(unStat);
+  const paidHoshuTotal = recs.reduce((s,r) => s + (r.hoshu || 0), 0);
+  const ownerRecs = recs.filter(r => (r.uchi || '自分') === '自分');
+  const ownerJikanMin = ownerRecs.reduce((s,r) => s + (isTrialRecord(r) ? 0 : jikanToMin(r.jikan)), 0);
+  const netIncome = total - paidHoshuTotal;
+  const ownerNetJikyu = ownerJikanMin ? Math.round(netIncome / (ownerJikanMin / 60)) : null;
+
+  el.innerHTML = `
+    <div class="an-card-title">${calYear}年 サマリー</div>
+    <div class="home-summary">
+      <div class="detail-item"><div class="detail-label">実収支</div><div class="detail-val ${signCls(netIncome)}" style="font-size:20px;">${fmtYen(netIncome)}</div></div>
+      <div class="detail-item"><div class="detail-label">実時給</div><div class="detail-val ${signCls(ownerNetJikyu)}" style="font-size:20px;">${ownerNetJikyu!=null?fmtYen(ownerNetJikyu):'—'}</div></div>
+    </div>
+    <div class="home-summary-3">
+      <div class="detail-item"><div class="detail-label">稼働回数</div><div class="detail-val" style="font-size:14px;">${recs.length}回</div></div>
+      <div class="detail-item"><div class="detail-label">稼働日数</div><div class="detail-val" style="font-size:14px;">${days}日</div></div>
+      <div class="detail-item"><div class="detail-label">勝率</div><div class="detail-val ${wr>=50?'pos':'neg'}" style="font-size:14px;">${wr}%</div></div>
+      <div class="detail-item"><div class="detail-label">稼働時間</div><div class="detail-val" style="font-size:14px;">${jikanMin?(jikanMin/60).toFixed(1)+'h':'—'}</div></div>
+      <div class="detail-item"><div class="detail-label">仕事量</div><div class="detail-val ${signCls(shigoto)}" style="font-size:14px;">${fmtYen(shigoto)}</div></div>
+      <div class="detail-item"><div class="detail-label">平均運%</div><div class="detail-val ${avgUn!=null?(avgUn>=100?'pos':avgUn>=70?'':'neg'):''}" style="font-size:14px;">${avgUn!=null?avgUn+'%':'—'}</div></div>
+    </div>
+    <div class="home-summary">
+      <div class="detail-item"><div class="detail-label">支払報酬合計</div><div class="detail-val ${paidHoshuTotal > 0 ? 'neg' : ''}" style="font-size:14px;">¥${Math.round(paidHoshuTotal).toLocaleString('ja-JP')}</div></div>
+      <div class="detail-item"><div class="detail-label">総収支</div><div class="detail-val ${signCls(total)}" style="font-size:14px;">${fmtYen(total)}</div></div>
+    </div>`;
+}
+
 function renderEventPeriodFilter() {
   const wrap = document.getElementById('event-period-filter');
   if (!wrap) return;
@@ -1434,17 +1531,29 @@ function minToStr(m) {
   return Math.floor(m/60) + ':' + String(m%60).padStart(2,'0');
 }
 
+function renderDetailGrid(items, gridClass) {
+  return `<div class="${gridClass}">${
+    items.map(i => `<div class="detail-item">
+      <div class="detail-label">${i.label}</div>
+      <div class="detail-val ${i.cls||''}" style="font-size:${i.size || 12}px;">${i.val}</div>
+      ${i.sub ? `<div style="font-size:9px;color:var(--text3);margin-top:2px;font-family:'JetBrains Mono',monospace;">${i.sub}</div>` : ''}
+    </div>`).join('')
+  }</div>`;
+}
+
 // =============================================
 // 共通：集計ブロック生成
 // =============================================
 function makeStatGrid(items) {
-  return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">${
-    items.map(i => `<div class="detail-item">
-      <div class="detail-label">${i.label}</div>
-      <div class="detail-val ${i.cls||''}" style="font-size:12px;">${i.val}</div>
-      ${i.sub ? `<div style="font-size:9px;color:var(--text3);margin-top:2px;font-family:'JetBrains Mono',monospace;">${i.sub}</div>` : ''}
-    </div>`).join('')
-  }</div>`;
+  return renderDetailGrid(items, 'summary-grid-2');
+}
+
+function accumulateMochiRatioStat(target, r) {
+  if (r.mochiRatio == null || r.mochiRatio === '') return;
+  const weight = Math.abs(r.shigoto || 0);
+  if (weight <= 0) return;
+  target.mochiRatioW += weight;
+  target.mochiRatioV += r.mochiRatio * weight;
 }
 
 // =============================================
@@ -1455,7 +1564,7 @@ function renderMonthly() {
   const total1RMap = buildMachineTotal1RMap(MASTERS.kishus || []);
   ALL_RECORDS.forEach(r => {
     const m = r.date ? r.date.slice(0,7) : '不明';
-    if (!byMonth[m]) byMonth[m] = {total:0,shigoto:0,jikanMin:0,count:0,wins:0,kitaiW:0,kitaiV:0,unStat:createAggregateUnStat()};
+    if (!byMonth[m]) byMonth[m] = {total:0,shigoto:0,jikanMin:0,count:0,wins:0,kitaiW:0,kitaiV:0,unStat:createAggregateUnStat(),mochiRatioW:0,mochiRatioV:0};
     const d = byMonth[m];
     const isTrial = isTrialRecord(r);
     const min = isTrial ? 0 : jikanToMin(r.jikan);
@@ -1466,11 +1575,15 @@ function renderMonthly() {
     if ((r.kosshi||0) > 0) d.wins++;
     if (r.kitaiJikyu != null && r.kitaiJikyu !== '') { d.kitaiW += min; d.kitaiV += r.kitaiJikyu * min; }
     accumulateAggregateUnStat(d.unStat, r, total1RMap);
+    accumulateMochiRatioStat(d, r);
   });
 
   const months = Object.keys(byMonth).sort().reverse();
   const el = document.getElementById('monthly-list');
-  if (!months.length) { el.innerHTML = '<div class="empty">データなし</div>'; return; }
+  if (!months.length) {
+    el.innerHTML = '<div class="empty">データなし</div>';
+    return;
+  }
 
   el.innerHTML = months.map(m => {
     const d    = byMonth[m];
@@ -1481,6 +1594,7 @@ function renderMonthly() {
     const jikyu    = d.jikanMin ? Math.round(d.total / (d.jikanMin/60)) : null;
     const avgKitai = d.kitaiW ? Math.round(d.kitaiV / d.kitaiW) : null;
     const avgUn    = calcAggregateUnPercent(d.unStat);
+    const avgMochi = d.mochiRatioW > 0 ? Math.round(d.mochiRatioV / d.mochiRatioW * 100) : null;
     const items = [
       {label:'総収支',       val: fmtYen(d.total),    cls: signCls(d.total)},
       {label:'仕事量合計',   val: fmtYen(d.shigoto),  cls: signCls(d.shigoto)},
@@ -1491,11 +1605,18 @@ function renderMonthly() {
       {label:'勝率',         val: wr+'%', cls: wr>=50?'pos':'neg'},
       {label:'平均期待時給', val: avgKitai != null ? fmtYen(avgKitai) : '—', cls: kitaiCls(avgKitai)},
       {label:'平均運%',      val: avgUn != null ? avgUn+'%' : '—', cls: avgUn!=null?(avgUn>=100?'pos':avgUn>=70?'':'neg'):''},
+      {label:'平均持玉比率', val: avgMochi != null ? avgMochi + '%' : '—', cls:''},
     ];
     return `<div class="an-card">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-        <div class="an-card-title" style="margin-bottom:0;">${m.replace('-','年')}月</div>
-        <div style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;" class="${pos?'pos':'neg'}">${(d.total>=0?'+':'')}${Math.round(d.total).toLocaleString('ja-JP')}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:10px;">
+        <div>
+          <div class="an-card-title" style="margin-bottom:0;">${m.replace('-','年')}月</div>
+          <div style="font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace;">${d.count}件 / ${jikanH !== '—' ? jikanH+'h' : '—'}</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;" class="${pos?'pos':'neg'}">${(d.total>=0?'+':'')}${Math.round(d.total).toLocaleString('ja-JP')}</div>
+          <div style="font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace;">Avg mochi ${avgMochi != null ? avgMochi+'%' : '—'}</div>
+        </div>
       </div>
       ${makeStatGrid(items)}
     </div>`;
