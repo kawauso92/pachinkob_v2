@@ -254,12 +254,19 @@ canvas{display:block;width:100%;border-radius:var(--radius-sm);}
 .event-tag.gray{background:rgba(136,153,170,0.12);border-color:rgba(136,153,170,0.2);color:var(--text2);}
 .event-source{font-size:10px;color:var(--text2);font-family:'JetBrains Mono',monospace;}
 .event-date{font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace;white-space:nowrap;}
+.event-note{margin-top:7px;font-size:11px;color:var(--text3);line-height:1.5;padding-left:2px;}
 .event-delete{background:none;border:1px solid rgba(255,68,102,0.28);border-radius:999px;color:var(--red);font-size:10px;font-family:'JetBrains Mono',monospace;padding:4px 8px;cursor:pointer;}
 .event-delete:active{background:rgba(255,68,102,0.15);}
 .event-empty{padding:18px 12px;text-align:center;color:var(--text3);font-size:12px;}
 .event-modal-field{margin-bottom:12px;}
 .event-modal-label{display:block;font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace;letter-spacing:1px;margin-bottom:6px;}
 .event-modal-actions{display:flex;gap:8px;}
+.event-note-row{display:grid;grid-template-columns:1fr;gap:8px;padding:10px 0;border-bottom:1px solid var(--border);}
+.event-note-row:last-child{border-bottom:none;}
+.event-note-name{font-size:13px;font-weight:600;line-height:1.5;}
+.event-note-controls{display:flex;gap:8px;align-items:center;}
+.event-note-input{flex:1;}
+.event-note-save{flex-shrink:0;min-width:72px;}
 </style>
 </head>
 <body>
@@ -415,6 +422,7 @@ canvas{display:block;width:100%;border-radius:var(--radius-sm);}
       <div class="an-tab active" onclick="switchSetTab('shop')">店</div>
       <div class="an-tab" onclick="switchSetTab('kishu')">機種</div>
       <div class="an-tab" onclick="switchSetTab('uchi')">打ち手</div>
+      <div class="an-tab" onclick="switchSetTab('event-note')">イベント</div>
     </div>
 
     <!-- 店マスタ -->
@@ -510,6 +518,14 @@ canvas{display:block;width:100%;border-radius:var(--radius-sm);}
       </div>
       <div class="an-card" id="set-uchi-list"></div>
     </div>
+
+    <div class="an-section" id="set-event-note">
+      <div class="an-card">
+        <div class="an-card-title">イベントメモ</div>
+        <div class="detail-sub" style="margin-bottom:12px;">events.json のイベント名一覧に対して説明テキストを保存します</div>
+        <div id="set-event-note-list"></div>
+      </div>
+    </div>
   </div>
 </div>
 <div class="bottom-nav">
@@ -588,6 +604,7 @@ const EVENT_PERIODS = [
 let AUTO_EVENTS = [];
 let MANUAL_EVENTS = [];
 let EVENTS_ALL = [];
+let EVENT_NOTES = {};
 let eventPeriod = 'all';
 let eventYear = new Date().getFullYear();
 let eventMonth = new Date().getMonth();
@@ -619,6 +636,21 @@ function normalizeEventRecord(item, sourceType) {
     created_at: item.created_at || item.updated_at || '',
     updated_at: item.updated_at || '',
   };
+}
+function normalizeEventNoteMap(items) {
+  const map = {};
+  (Array.isArray(items) ? items : []).forEach(item => {
+    const eventName = String(item?.event_name || item?.event || '').trim();
+    if (!eventName) return;
+    map[eventName] = String(item?.note || '').trim();
+  });
+  return map;
+}
+function getUniqueAutoEventNames() {
+  return Array.from(new Set(AUTO_EVENTS.map(item => item.event).filter(Boolean))).sort((a, b) => a.localeCompare(b, 'ja'));
+}
+function getEventNote(eventName) {
+  return String(EVENT_NOTES[eventName] || '').trim();
 }
 function dedupeEvents(list) {
   const map = new Map();
@@ -704,18 +736,34 @@ async function fetchManualEvents() {
     return [];
   }
 }
+async function fetchEventNotes() {
+  try {
+    const res = await fetch(GAS_URL + '?action=getEventNotes', { redirect: 'follow' });
+    const data = await res.json();
+    const items = Array.isArray(data) ? data : (data.notes || data.eventNotes || []);
+    return normalizeEventNoteMap(items);
+  } catch (e) {
+    return {};
+  }
+}
 async function loadEventData() {
-  const [autoEvents, manualEvents] = await Promise.all([fetchAutoEvents(), fetchManualEvents()]);
+  const [autoEvents, manualEvents, eventNotes] = await Promise.all([fetchAutoEvents(), fetchManualEvents(), fetchEventNotes()]);
   AUTO_EVENTS = autoEvents;
   MANUAL_EVENTS = manualEvents;
   EVENTS_ALL = dedupeEvents([...AUTO_EVENTS, ...MANUAL_EVENTS]);
+  EVENT_NOTES = eventNotes;
   if (!getDayEvents(selectedEventDate).length && EVENTS_ALL.length) {
     selectedEventDate = EVENTS_ALL[0].date;
   }
   tabDirty.events = true;
+  tabDirty.master = true;
   if (currentTab === 'events') {
     renderEventsTab();
     tabDirty.events = false;
+  }
+  if (currentTab === 'master') {
+    renderSetting();
+    tabDirty.master = false;
   }
 }
 
@@ -1396,6 +1444,7 @@ function renderEventListPanel() {
 }
 function renderEventItem(item) {
   const tone = classifyEvent(item.event, item.source);
+  const note = getEventNote(item.event);
   const deleteButton = item.source === 'manual'
     ? `<button class="event-delete" onclick="deleteManualEvent('${encodeURIComponent(item.date)}','${encodeURIComponent(item.store)}','${encodeURIComponent(item.event)}')">× 削除</button>`
     : '';
@@ -1415,6 +1464,7 @@ function renderEventItem(item) {
         <span class="event-tag ${tone}">${escapeHtml(item.event)}</span>
         <span class="event-source">${item.source === 'manual' ? '出典: 手動' : '出典: 自動'}</span>
       </div>
+      ${note ? `<div class="event-note">└ ${escapeHtml(note)}</div>` : ''}
     </div>
   `;
 }
@@ -1915,7 +1965,7 @@ async function loadMasters() {
 
 function switchSetTab(tab) {
   currentSetTab = tab;
-  const tabs = ['shop','kishu','uchi'];
+  const tabs = ['shop','kishu','uchi','event-note'];
   document.querySelectorAll('#tab-master .an-tab').forEach((el,i) => el.classList.toggle('active', tabs[i] === tab));
   document.querySelectorAll('#tab-master .an-section').forEach(el => el.classList.remove('active'));
   document.getElementById('set-'+tab).classList.add('active');
@@ -1926,6 +1976,7 @@ function renderSetting() {
   renderShopList();
   renderKishuList();
   renderUchiList();
+  renderEventNoteList();
   buildRoundsGrid();
 }
 
@@ -2209,6 +2260,53 @@ async function saveUchi() {
 }
 
 // ---------- GAS保存 ----------
+function renderEventNoteList() {
+  const el = document.getElementById('set-event-note-list');
+  if (!el) return;
+
+  const eventNames = getUniqueAutoEventNames();
+  if (!eventNames.length) {
+    el.innerHTML = '<div class="empty" style="padding:16px">イベントデータがありません</div>';
+    return;
+  }
+
+  el.innerHTML = eventNames.map((eventName, index) => `
+    <div class="event-note-row">
+      <div class="event-note-name">${escapeHtml(eventName)}</div>
+      <div class="event-note-controls">
+        <input class="set-input event-note-input" id="event-note-input-${index}" type="text" value="${escapeHtml(getEventNote(eventName))}" placeholder="説明テキスト">
+        <button class="set-btn-save event-note-save" onclick="saveEventNoteByIndex(${index})">保存</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function saveEventNoteByIndex(index) {
+  const eventNames = getUniqueAutoEventNames();
+  const eventName = eventNames[index];
+  const input = document.getElementById('event-note-input-' + index);
+  if (!eventName || !input) return;
+
+  const note = input.value.trim();
+  try {
+    await fetch(GAS_URL, {
+      method:'POST',
+      redirect:'follow',
+      headers:{'Content-Type':'text/plain'},
+      body: JSON.stringify({action:'saveEventNote', event_name: eventName, note})
+    });
+    EVENT_NOTES[eventName] = note;
+    tabDirty.events = true;
+    if (currentTab === 'events') {
+      renderEventsTab();
+      tabDirty.events = false;
+    }
+    renderEventNoteList();
+  } catch(e) {
+    alert('イベントメモの保存に失敗しました');
+  }
+}
+
 async function saveMaster(key, data) {
   try {
     await fetch(GAS_URL, {
