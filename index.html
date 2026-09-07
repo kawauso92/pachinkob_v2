@@ -380,8 +380,7 @@ canvas{display:block;width:100%;border-radius:var(--radius-sm);}
   </div>
   <!-- 報酬タブ -->
   <div class="tab-content" id="tab-hoshu">
-    <button class="hoshu-confirm-btn" id="hoshu-confirm-btn" onclick="doHoshuConfirm()">💰 報酬確定</button>
-    <div style="font-size:10px;color:var(--text3);text-align:center;margin-bottom:10px;font-family:'JetBrains Mono',monospace;letter-spacing:1px;">※ 全データ送信完了後に押してください</div>
+    <div id="auto-hoshu-status" style="font-size:12px;padding:12px;">自動確定の状態を確認中…</div>
     <div class="hoshu-result-panel" id="hoshu-result-panel">
       <div class="hoshu-result-title">REWARD SUMMARY</div>
       <div id="hoshu-result-body"></div>
@@ -418,6 +417,10 @@ canvas{display:block;width:100%;border-radius:var(--radius-sm);}
   </div>
 
   <div class="tab-content" id="tab-master">
+    <div class="an-card">
+      <button class="hoshu-confirm-btn" id="hoshu-confirm-btn" onclick="doHoshuConfirm()">再計算・再確定</button>
+      <div style="font-size:11px;">導入日以降の過去日が対象です。送信後の訂正がある場合に使用します。</div>
+    </div>
     <div class="an-tabs">
       <div class="an-tab active" onclick="switchSetTab('shop')">店</div>
       <div class="an-tab" onclick="switchSetTab('kishu')">機種</div>
@@ -882,6 +885,7 @@ function showSkeleton() {
 }
 
 async function loadInit() {
+  refreshHoshuStatus();
   // キャッシュがあれば即座に表示
   const cache = loadCache();
   if (cache) {
@@ -2412,41 +2416,11 @@ function calcEffectiveKitaiWeight(soKaiten, machineHourlyRate) {
 // 報酬結果の履歴をメモリで管理
 let hoshuResults = [];
 
-async function doHoshuConfirm() {
-  // 今日の日付をデフォルトに
-  const today = new Date();
-  const defaultDate = today.getFullYear() + '-' +
-    String(today.getMonth()+1).padStart(2,'0') + '-' +
-    String(today.getDate()).padStart(2,'0');
-
-  const dateInput = prompt('報酬確定する日付を入力してください（YYYY-MM-DD）', defaultDate);
-  if (!dateInput) return;
-  const targetDate = dateInput.trim();
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(targetDate)) {
-    alert('日付の形式が正しくありません（例: 2025-01-15）');
-    return;
-  }
-
-  const btn = document.getElementById('hoshu-confirm-btn');
-  btn.textContent = '⏳ 取得中...';
-  btn.disabled = true;
-
-  try {
-    // GASから最新データを取得
-    const res  = await fetch(GAS_URL + '?action=init&limit=200', { redirect: 'follow' });
-    const data = await res.json();
-    if (!data.success) throw new Error('データ取得失敗');
-
-    // 対象日のレコードを絞り込み
-    const todayRecs = (data.records || []).filter(r => r.date === targetDate);
-    if (!todayRecs.length) {
-      alert(targetDate + ' の記録が見つかりませんでした');
-      return;
-    }
-
+function buildHoshuConfirmRows(targetDate, records, kishus) {
+    const todayRecs = records.filter(r => r.date === targetDate);
     // 打ち手別に差玉・期待時給（加重平均）・現金投資を集計 ＆ 最後のセッション行番号を記録
     // 期待時給の加重平均：effectiveWeight = soKaiten / machineHourlyRate
-    const machineRateMap = buildMachineHourlyRateMap(data.kishus || MASTERS.kishus || []);
+    const machineRateMap = buildMachineHourlyRateMap(kishus || []);
     const byUchi = {};
     todayRecs.forEach(r => {
       const uchi = r.uchi || '自分';
@@ -2486,11 +2460,6 @@ async function doHoshuConfirm() {
     });
 
     const entries = Object.entries(byUchi);
-    if (!entries.length) {
-      alert(targetDate + ' に代打ちの記録がありません');
-      return;
-    }
-
     // 確定報酬を計算（期待時給1800円以上→5千スタート、未満→1万スタート + 持ち玉控除）
     // 期待時給の判定は持ち玉100%ベースの effectiveWeight 加重平均を使用
     const newRows = entries.map(([uchi, d]) => {
@@ -2521,33 +2490,47 @@ async function doHoshuConfirm() {
       };
     });
 
-    // 全打ち手分を自動でP列に書き込み
-    btn.textContent = '⏳ 書込中...';
-    await Promise.all(newRows.map(async r => {
-      try {
-        await fetch(GAS_URL, {
-          method: 'POST', redirect: 'follow',
-          headers: { 'Content-Type': 'text/plain' },
-          body: JSON.stringify({ action: 'writeHoshu', row: r.lastRow, hoshu: r.hoshu }),
-        });
-        r.written = true;
-      } catch(e) {
-        r.written = true; // CORSエラーでも書き込み成功とみなす
-      }
-    }));
+    return newRows;
+}
 
-    // キャッシュ無効化（次回ロード時に最新データを取得）
-    try { localStorage.removeItem('pachinkob_cache_v1'); } catch(e) {}
-
-    // 結果を履歴の先頭に追加して表示更新
-    hoshuResults = newRows.concat(hoshuResults);
-    renderHoshuResults();
-
-  } catch(e) {
-    alert('データ取得に失敗しました。通信状態を確認してください。');
+async function refreshHoshuStatus() {
+  const el = document.getElementById('auto-hoshu-status');
+  try {
+    const response = await fetch(GAS_URL + '?action=hoshuStatus', {redirect:'follow'});
+    const data = await response.json();
+    if (!response.ok || !data.success || !data.startDate) throw new Error('not ready');
+    const changed = data.groups.filter(g => g.status === 'changed');
+    const pending = data.groups.filter(g => g.status === 'pending');
+    el.textContent = '自動確定: ' + data.startDate + '以降／翌日0:30頃。' +
+      (changed.length ? ' 再確定が必要: ' + changed.map(g => g.date + ' ' + g.uchi).join('、') : '') +
+      ' 未確定 ' + pending.length + '件。';
+  } catch (_) {
+    el.textContent = '自動確定の稼働状態を確認できません。GASの導入・通信状態を確認してください。';
+  }
+}
+async function doHoshuConfirm() {
+  const targetDate = prompt('再確定する過去日（YYYY-MM-DD）');
+  if (!targetDate) return;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(targetDate)) { alert('日付の形式を確認してください'); return; }
+  if (!confirm(targetDate + ' の報酬を最新の記録で再計算・再確定しますか？')) return;
+  const btn = document.getElementById('hoshu-confirm-btn');
+  btn.disabled = true;
+  btn.textContent = '再確定中…';
+  try {
+    const response = await fetch(GAS_URL, {method:'POST',redirect:'follow',
+      headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify({action:'reconfirmHoshu',date:targetDate})});
+    const data = await response.json();
+    if (!response.ok || !data.success) throw new Error(data.error || '書き込みを確認できません');
+    localStorage.removeItem('pachinkob_cache_v1');
+    await loadInit();
+    alert('再確定しました: ' + data.processed.length + '件');
+  } catch (e) {
+    alert('再確定の完了を確認できません。報酬タブの状態を確認してから再試行してください。\n' + e.message);
   } finally {
-    btn.textContent = '💰 報酬確定';
     btn.disabled = false;
+    btn.textContent = '再計算・再確定';
+    refreshHoshuStatus();
   }
 }
 
