@@ -1,7 +1,8 @@
 // 全文置き換え用：追加のAutoHoshu.gsは不要です。
 // 保存 → setupAutoHoshuを1回実行 → 既存デプロイを新バージョンへ更新。
 
-const SPREADSHEET_ID = '1TwWuiMgih5ZKst27bP8TePoacnr85gEORPxF8GDLFfg';
+// 公開リポジトリのためIDは載せない。GASに貼り付けた後、実際のスプレッドシートIDに置き換える。
+const SPREADSHEET_ID = 'YOUR_SPREADSHEET_ID';
 
 // ウォームアップ用（毎朝9時トリガーで実行）
 function warmup() {
