@@ -1166,6 +1166,9 @@ var EVENT_SOURCE_PACHISURO100 = 'パチスロ100';
 var EVENT_SOURCE_AIMS = 'エイムスター';
 var EVENT_SOURCE_JANBARI = 'ジャンバリ';
 var EVENT_SOURCE_TAMADOJO = 'たま道場';
+var EVENT_SOURCE_SLOPACHI = 'スロパチ公式';
+// パチスロ100に載らない（別名で載る）スロパチ公式の演者ページ
+var SLOPACHI_RENJIRO_URL = 'https://777.slopachi-station.com/renjiro_schedule/';
 var PACHISURO100_URL = 'https://pachisuro100.com/osaka-schedule/';
 var JANBARI_URL = 'https://jb-portal.com/schedule/?report_id=5';
 var TAMADOJO_URL = 'https://tama-dojo.com/';
@@ -1270,6 +1273,9 @@ function autoTarget(eventName, media, note) {
   var name = evCleanText(eventName);
   var medium = evCleanText(media);
   var memo = evCleanText(note);
+
+  // 0. パチンコ実践の演者（利用者の知識）→ P
+  if (name.indexOf('じゃんじゃん') >= 0 || name.indexOf('れんじろう') >= 0) return 'P';
 
   // 1. 取材名に「玉」「(P)」「PS」→ P（「PS」は PS）
   if (name.indexOf('PS') >= 0) return 'PS';
@@ -1597,6 +1603,36 @@ function parseTamaDojo(html, referenceDate) {
   return out;
 }
 
+// =============================================
+// スロパチ公式（ページ内の schema.org Event を読む）
+// =============================================
+function parseSlopachiJsonLd(html, url) {
+  var out = [];
+  var source = String(html === null || html === undefined ? '' : html);
+  var re = /<script[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/g;
+  var m;
+  while ((m = re.exec(source)) !== null) {
+    var data;
+    try { data = JSON.parse(m[1]); } catch (e) { continue; }
+    var items = Array.isArray(data) ? data : (data && Array.isArray(data['@graph']) ? data['@graph'] : [data]);
+    for (var i = 0; i < items.length; i++) {
+      var x = items[i];
+      if (!x || x['@type'] !== 'Event') continue;
+      var place = x.location || {};
+      var address = place.address || {};
+      if (address.addressRegion !== '大阪府') continue;
+      var date = String(x.startDate || '').slice(0, 10);
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) continue;
+      var store = evCleanText(place.name);
+      var event = evCleanText(x.name);
+      if (!store || !event) continue;
+      out.push(evMakeRecord(date, store, evCleanText(address.addressLocality) || OSAKA_TEXT, '来店', event,
+        'スロパチステーション', '', EVENT_SOURCE_SLOPACHI, url));
+    }
+  }
+  return out;
+}
+
 // 大阪イベントの収集。外部取得・解析はロック外、シート更新だけをロック内で実行する。
 const EVENT_HEADERS = ['キー','日付','店','市区','種別','取材名','媒体','補足','収集元','出典URL','初回取得','最終確認','状態'];
 const EVENT_JUDGEMENT_HEADERS = ['取材名','媒体','対象(P|S|PS)','採用(採用|除外|未判定)','推測される公約','根拠','メモ'];
@@ -1659,7 +1695,8 @@ function eventSources(referenceDate) {
     {name:EVENT_SOURCE_AIMS, requests:EVENT_AIMS_URLS.map(item =>
       ({url:item[0], parse:html => parseAims(html, item[0], item[1], referenceDate)}))},
     {name:EVENT_SOURCE_JANBARI, requests:[{url:JANBARI_URL, parse:html => parseJanbari(html, referenceDate)}]},
-    {name:EVENT_SOURCE_TAMADOJO, requests:[{url:TAMADOJO_URL, parse:html => parseTamaDojo(html, referenceDate)}]}
+    {name:EVENT_SOURCE_TAMADOJO, requests:[{url:TAMADOJO_URL, parse:html => parseTamaDojo(html, referenceDate)}]},
+    {name:EVENT_SOURCE_SLOPACHI, requests:[{url:SLOPACHI_RENJIRO_URL, parse:html => parseSlopachiJsonLd(html, SLOPACHI_RENJIRO_URL)}]}
   ];
 }
 

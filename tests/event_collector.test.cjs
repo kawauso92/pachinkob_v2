@@ -98,10 +98,10 @@ context.UrlFetchApp = {fetch: (url, options) => {
 context.AutoHoshu = {withLock: fn => { assert.equal(locked, false); locked = true; try { return fn(); } finally { locked = false; } }};
 const result = run('collectAutoEvents()');
 assert.equal(result.success, true);
-assert.equal(result.sources.length, 4);
+assert.equal(result.sources.length, 5);
 assert.equal(result.sources.find(item => item.source === 'ジャンバリ').result, '失敗');
-assert.equal(calls.filter(item => item[0] === 'fetch').length, 5);
-assert.equal(calls.filter(item => item[0] === 'sleep').length, 4);
+assert.equal(calls.filter(item => item[0] === 'fetch').length, 6);
+assert.equal(calls.filter(item => item[0] === 'sleep').length, 5);
 assert.equal(sheet('自動イベント').rows.length, 3);
 assert.equal(sheet('取材判定').rows.length, 3);
 const api = run('getAutoEventsForApp()');

@@ -60,7 +60,8 @@ function eventSources(referenceDate) {
     {name:EVENT_SOURCE_AIMS, requests:EVENT_AIMS_URLS.map(item =>
       ({url:item[0], parse:html => parseAims(html, item[0], item[1], referenceDate)}))},
     {name:EVENT_SOURCE_JANBARI, requests:[{url:JANBARI_URL, parse:html => parseJanbari(html, referenceDate)}]},
-    {name:EVENT_SOURCE_TAMADOJO, requests:[{url:TAMADOJO_URL, parse:html => parseTamaDojo(html, referenceDate)}]}
+    {name:EVENT_SOURCE_TAMADOJO, requests:[{url:TAMADOJO_URL, parse:html => parseTamaDojo(html, referenceDate)}]},
+    {name:EVENT_SOURCE_SLOPACHI, requests:[{url:SLOPACHI_RENJIRO_URL, parse:html => parseSlopachiJsonLd(html, SLOPACHI_RENJIRO_URL)}]}
   ];
 }
 

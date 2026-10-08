@@ -470,6 +470,7 @@ canvas{display:block;width:100%;border-radius:var(--radius-sm);}
           <button class="cal-nav-btn" onclick="eventCalNext()">▶</button>
         </div>
         <div class="event-toolbar-actions">
+          <button class="event-add-btn" id="event-reload-btn" onclick="reloadEventData()">↻</button>
           <button class="event-add-btn" onclick="openEventModal()">＋追加</button>
         </div>
       </div>
@@ -840,6 +841,8 @@ function guessEventTarget(event, media, note) {
   const name = String(event || '');
   const medium = String(media || '');
   const memo = String(note || '');
+  // パチンコ実践の演者（利用者の知識）
+  if (name.indexOf('じゃんじゃん') >= 0 || name.indexOf('れんじろう') >= 0) return 'P';
   if (name.indexOf('PS') >= 0) return 'PS';
   if (name.indexOf('玉') >= 0 || name.indexOf('(P)') >= 0 || name.indexOf('（P）') >= 0) return 'P';
   if (medium.indexOf('スロパチステーション') >= 0) {
@@ -1032,7 +1035,7 @@ function getEventCountMap() {
 async function fetchAutoEvents() {
   // 本番: GASのgetAutoEvents（自動イベント＋取材判定＋収集状態）
   try {
-    const res = await gasFetch(GAS_URL + '?action=getAutoEvents', { redirect: 'follow' });
+    const res = await gasFetch(GAS_URL + '?action=getAutoEvents', { redirect: 'follow', cache: 'no-store' });
     const data = await res.json();
     if (data && Array.isArray(data.events) && data.events.length) {
       AUTO_EVENT_JUDGEMENTS = Array.isArray(data.judgements) ? data.judgements : [];
@@ -1075,6 +1078,13 @@ async function fetchEventNotes() {
   } catch (e) {
     return {};
   }
+}
+// イベント画面の再読み込み（取材判定シートの変更をすぐ反映する）
+async function reloadEventData() {
+  const btn = document.getElementById('event-reload-btn');
+  if (btn) { btn.disabled = true; btn.textContent = '…'; }
+  try { await loadEventData(); }
+  finally { if (btn) { btn.disabled = false; btn.textContent = '↻'; } }
 }
 async function loadEventData() {
   const [autoEvents, manualEvents, eventNotes] = await Promise.all([fetchAutoEvents(), fetchManualEvents(), fetchEventNotes()]);

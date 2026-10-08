@@ -220,3 +220,22 @@ if (failures.length) {
   process.exit(1);
 }
 console.log(`event_parsers: ${passed} passed, 0 failed`);
+
+// --- スロパチ公式（schema.org Event）と演者の自動判定 ---
+{
+  const vm2 = require('node:vm');
+  const fs2 = require('node:fs');
+  const path2 = require('node:path');
+  const ctx2 = vm2.createContext({});
+  vm2.runInContext(fs2.readFileSync(path2.join(__dirname, '../gas/EventParsers.gs'), 'utf8'), ctx2);
+  ctx2.ld = '<script type="application/ld+json">' + JSON.stringify({'@context':'https://schema.org','@graph':[
+    {'@type':'Event', name:'れんじろう実践来店', startDate:'2026-10-24', location:{name:'テスト店', address:{addressRegion:'大阪府', addressLocality:'堺市西区'}}},
+    {'@type':'Event', name:'れんじろう実践来店', startDate:'2026-10-25', location:{name:'他県店', address:{addressRegion:'兵庫県'}}},
+    {'@type':'Organization', name:'x'}]}) + '</script><script type="application/ld+json">{壊れたJSON</script>';
+  const r = JSON.parse(JSON.stringify(vm2.runInContext('parseSlopachiJsonLd(ld, "u")', ctx2)));
+  require('node:assert/strict').deepEqual(r, [{date:'2026-10-24', store:'テスト店', area:'堺市西区', kind:'来店',
+    event:'れんじろう実践来店', media:'スロパチステーション', note:'', source:'スロパチ公式', source_url:'u'}]);
+  require('node:assert/strict').equal(vm2.runInContext('autoTarget("れんじろう実践来店","スロパチステーション","")', ctx2), 'P');
+  require('node:assert/strict').equal(vm2.runInContext('autoTarget("じゃんじゃん実践来店","スロパチステーション","")', ctx2), 'P');
+  console.log('event_parsers: スロパチ公式・演者判定 OK');
+}

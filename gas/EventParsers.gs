@@ -14,6 +14,9 @@ var EVENT_SOURCE_PACHISURO100 = 'パチスロ100';
 var EVENT_SOURCE_AIMS = 'エイムスター';
 var EVENT_SOURCE_JANBARI = 'ジャンバリ';
 var EVENT_SOURCE_TAMADOJO = 'たま道場';
+var EVENT_SOURCE_SLOPACHI = 'スロパチ公式';
+// パチスロ100に載らない（別名で載る）スロパチ公式の演者ページ
+var SLOPACHI_RENJIRO_URL = 'https://777.slopachi-station.com/renjiro_schedule/';
 var PACHISURO100_URL = 'https://pachisuro100.com/osaka-schedule/';
 var JANBARI_URL = 'https://jb-portal.com/schedule/?report_id=5';
 var TAMADOJO_URL = 'https://tama-dojo.com/';
@@ -118,6 +121,9 @@ function autoTarget(eventName, media, note) {
   var name = evCleanText(eventName);
   var medium = evCleanText(media);
   var memo = evCleanText(note);
+
+  // 0. パチンコ実践の演者（利用者の知識）→ P
+  if (name.indexOf('じゃんじゃん') >= 0 || name.indexOf('れんじろう') >= 0) return 'P';
 
   // 1. 取材名に「玉」「(P)」「PS」→ P（「PS」は PS）
   if (name.indexOf('PS') >= 0) return 'PS';
@@ -441,6 +447,36 @@ function parseTamaDojo(html, referenceDate) {
     }
   } catch (e) {
     return out;
+  }
+  return out;
+}
+
+// =============================================
+// スロパチ公式（ページ内の schema.org Event を読む）
+// =============================================
+function parseSlopachiJsonLd(html, url) {
+  var out = [];
+  var source = String(html === null || html === undefined ? '' : html);
+  var re = /<script[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/g;
+  var m;
+  while ((m = re.exec(source)) !== null) {
+    var data;
+    try { data = JSON.parse(m[1]); } catch (e) { continue; }
+    var items = Array.isArray(data) ? data : (data && Array.isArray(data['@graph']) ? data['@graph'] : [data]);
+    for (var i = 0; i < items.length; i++) {
+      var x = items[i];
+      if (!x || x['@type'] !== 'Event') continue;
+      var place = x.location || {};
+      var address = place.address || {};
+      if (address.addressRegion !== '大阪府') continue;
+      var date = String(x.startDate || '').slice(0, 10);
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) continue;
+      var store = evCleanText(place.name);
+      var event = evCleanText(x.name);
+      if (!store || !event) continue;
+      out.push(evMakeRecord(date, store, evCleanText(address.addressLocality) || OSAKA_TEXT, '来店', event,
+        'スロパチステーション', '', EVENT_SOURCE_SLOPACHI, url));
+    }
   }
   return out;
 }
