@@ -267,6 +267,21 @@ canvas{display:block;width:100%;border-radius:var(--radius-sm);}
 .event-note-controls{display:flex;gap:8px;align-items:center;}
 .event-note-input{flex:1;}
 .event-note-save{flex-shrink:0;min-width:72px;}
+/* イベント画面: パチンコ/スロット切り替え */
+.event-mode-row{display:flex;gap:6px;margin-bottom:10px;}
+.event-mode-btn{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:8px 10px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--text2);cursor:pointer;}
+.event-mode-btn.active{background:rgba(0,212,255,0.1);border-color:var(--accent);color:var(--accent);}
+/* 収集状態の警告 */
+.event-warning{margin-bottom:10px;padding:8px 10px;border-radius:8px;background:rgba(255,68,102,0.1);border:1px solid rgba(255,68,102,0.3);color:#ff8899;font-size:11px;font-family:'JetBrains Mono',monospace;line-height:1.5;}
+/* 推測される公約（1行→タップで全文） */
+.event-pledge{margin-top:7px;font-size:11px;color:var(--text2);line-height:1.5;cursor:pointer;}
+.event-pledge-label{color:var(--text3);font-family:'JetBrains Mono',monospace;font-size:10px;margin-right:4px;}
+.event-pledge-text{display:inline;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.event-pledge.expanded .event-pledge-text{white-space:normal;overflow:visible;}
+/* 店の情報（旧イベント日・周年日など。件数には数えない） */
+.event-store-info{margin-top:5px;font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace;line-height:1.5;padding-left:2px;}
+.event-store-info b{color:var(--text2);font-weight:600;}
+.event-tag.unjudged{background:rgba(136,153,170,0.12);border-color:rgba(136,153,170,0.25);color:var(--text2);}
 /* 貯玉台帳 */
 .stock-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px;margin-bottom:10px;}
 .stock-title{font-size:13px;color:var(--accent);font-weight:700;margin-bottom:10px;}
@@ -440,6 +455,13 @@ canvas{display:block;width:100%;border-radius:var(--radius-sm);}
 
   <!-- マスタタブ -->
   <div class="tab-content" id="tab-events">
+    <!-- パチンコ/スロット切り替え（判定情報があるときだけ表示。旧events.jsonのみのときは隠す） -->
+    <div class="event-mode-row" id="event-mode-row" style="display:none;">
+      <button class="event-mode-btn active" id="event-mode-pachinko" onclick="setEventMode('pachinko')">パチンコ</button>
+      <button class="event-mode-btn" id="event-mode-slot" onclick="setEventMode('slot')">スロット</button>
+    </div>
+    <!-- 収集状態の警告（warningがあるときだけ表示） -->
+    <div class="event-warning" id="event-warning" style="display:none;">イベント情報の更新が止まっている可能性があります</div>
     <div class="an-card">
       <div class="event-toolbar">
         <div class="cal-header" style="margin-bottom:0;flex:1;">
@@ -722,6 +744,14 @@ let AUTO_EVENTS = [];
 let MANUAL_EVENTS = [];
 let EVENTS_ALL = [];
 let EVENT_NOTES = {};
+// GASのgetAutoEventsが返す判定・収集状態（旧events.jsonのみのときは空）
+let AUTO_EVENT_JUDGEMENTS = [];
+let AUTO_EVENT_STATUS = [];
+let HAS_EVENT_JUDGEMENTS = false;
+let AUTO_EVENT_UPDATED_AT = '';
+// パチンコ/スロットの表示切り替え（既定はパチンコ。localStorageに保存）
+const EVENT_MODE_KEY = 'eventMode';
+let eventMode = readEventMode();
 let eventPeriod = 'all';
 let eventYear = new Date().getFullYear();
 let eventMonth = new Date().getMonth();
@@ -747,6 +777,10 @@ function normalizeEventRecord(item, sourceType) {
     store: String(item.store).trim(),
     event: String(item.event).trim(),
     area: String(item.area || '').trim(),
+    // 種別・媒体・補足（GASのgetAutoEventsで追加。旧events.jsonには無い）
+    kind: String(item.kind || '').trim(),
+    media: String(item.media || '').trim(),
+    note: String(item.note || '').trim(),
     source: sourceType,
     sourceLabel: sourceType === 'manual' ? 'Manual' : 'Auto',
     source_url: item.source_url || '',
@@ -768,6 +802,166 @@ function getUniqueAutoEventNames() {
 }
 function getEventNote(eventName) {
   return String(EVENT_NOTES[eventName] || '').trim();
+}
+
+// ==== イベント表示の判定（純関数）ここから ====
+// 取材ではなく「店の情報」として扱う種別（カレンダーの件数には数えない）
+const EVENT_INFO_KINDS = ['旧イベント日', '周年日', '創業日', 'キャラ誕'];
+function isEventInfoKind(kind) {
+  return EVENT_INFO_KINDS.indexOf(String(kind || '').trim()) >= 0;
+}
+// 判定表との突き合わせキー（取材名＋媒体）
+function eventJudgementKey(event, media) {
+  return String(event || '').trim() + '\u0001' + String(media || '').trim();
+}
+function buildEventJudgementIndex(judgements) {
+  const byKey = {};
+  const byEvent = {};
+  (Array.isArray(judgements) ? judgements : []).forEach(j => {
+    if (!j || !j.event) return;
+    const ev = String(j.event).trim();
+    byKey[eventJudgementKey(ev, j.media)] = j;
+    if (!byEvent[ev]) byEvent[ev] = [];
+    byEvent[ev].push(j);
+  });
+  return { byKey, byEvent };
+}
+// 取材名＋媒体で一致する判定を返す。媒体が空でも同名が1件だけならそれを採用
+function findEventJudgement(index, event, media) {
+  if (!index) return null;
+  const exact = index.byKey[eventJudgementKey(event, media)];
+  if (exact) return exact;
+  const list = index.byEvent[String(event || '').trim()];
+  if (list && list.length === 1) return list[0];
+  return null;
+}
+// 未登録の取材名の対象を推定する（gas/EventParsers.gs の autoTarget と同じ規則）
+function guessEventTarget(event, media, note) {
+  const name = String(event || '');
+  const medium = String(media || '');
+  const memo = String(note || '');
+  if (name.indexOf('PS') >= 0) return 'PS';
+  if (name.indexOf('玉') >= 0 || name.indexOf('(P)') >= 0 || name.indexOf('（P）') >= 0) return 'P';
+  if (medium.indexOf('スロパチステーション') >= 0) {
+    if (name.indexOf('(黒)') >= 0 || name.indexOf('（黒）') >= 0) return 'P';
+    if (name.indexOf('(青)') >= 0 || name.indexOf('（青）') >= 0) return 'PS';
+  }
+  if (memo.indexOf('パチンコ') >= 0) return memo.indexOf('パチスロ') >= 0 ? 'PS' : 'P';
+  return 'S';
+}
+// 取材イベントを対象(P/S/PS)・採用・表示モードで絞り込み、未判定を末尾へ回す（純関数）
+function selectVisibleAutoEvents(events, judgements, mode) {
+  const index = buildEventJudgementIndex(judgements);
+  const judged = [];
+  const unjudged = [];
+  (Array.isArray(events) ? events : []).forEach(item => {
+    if (!item) return;
+    if (isEventInfoKind(item.kind)) return; // 店の情報は別扱い
+    const j = findEventJudgement(index, item.event, item.media);
+    const adopt = j ? String(j.adopt || '').trim() : '';
+    if (adopt === '除外') return;
+    const target = (j && String(j.target || '').trim()) || guessEventTarget(item.event, item.media, item.note);
+    if (mode === 'pachinko') { if (target !== 'P' && target !== 'PS') return; }
+    if (mode === 'slot') { if (target !== 'S' && target !== 'PS') return; }
+    const isUnjudged = !j || adopt === '' || adopt === '未判定';
+    const enriched = Object.assign({}, item, {
+      judgement: j || null,
+      adopt: adopt || '未判定',
+      target: target,
+      pledge: j ? String(j.pledge || '').trim() : '',
+      unjudged: isUnjudged,
+    });
+    (isUnjudged ? unjudged : judged).push(enriched);
+  });
+  return judged.concat(unjudged);
+}
+function shortenEventPledge(text, maxLength) {
+  const value = String(text || '').trim();
+  if (!value) return '';
+  const limit = maxLength || 48;
+  if (value.length <= limit) return value;
+  return value.slice(0, limit) + '…';
+}
+function hasEventStatusWarning(status) {
+  if (!status) return false;
+  if (Array.isArray(status)) return status.some(item => item && item.warning === true);
+  return status.warning === true;
+}
+// ==== イベント表示の判定（純関数）ここまで ====
+
+// パチンコ/スロット切り替え
+function readEventMode() {
+  try {
+    const value = localStorage.getItem(EVENT_MODE_KEY);
+    return value === 'slot' ? 'slot' : 'pachinko';
+  } catch (e) {
+    return 'pachinko';
+  }
+}
+function saveEventMode(mode) {
+  try { localStorage.setItem(EVENT_MODE_KEY, mode); } catch (e) {}
+}
+function setEventMode(mode) {
+  eventMode = mode === 'slot' ? 'slot' : 'pachinko';
+  saveEventMode(eventMode);
+  renderEventsTab();
+}
+function toggleEventPledge(el) {
+  if (!el) return;
+  const text = el.querySelector('.event-pledge-text');
+  if (!text) return;
+  const expanded = el.classList.toggle('expanded');
+  text.textContent = expanded ? (el.getAttribute('data-full') || '') : (el.getAttribute('data-short') || '');
+}
+// 重複を除きつつ順序を保つ
+function dedupeEventListKeepOrder(list) {
+  const seen = new Set();
+  const out = [];
+  (Array.isArray(list) ? list : []).forEach(item => {
+    if (!item) return;
+    const key = [item.date, item.store, item.event, item.source].join('||');
+    if (seen.has(key)) return;
+    seen.add(key);
+    out.push(item);
+  });
+  return out;
+}
+function asPlainEvent(item) {
+  return Object.assign({}, item, { unjudged: false, pledge: '', judgement: null });
+}
+// 表示対象のイベント一覧を組み立てる（純関数）。
+// 判定が無いとき（旧events.jsonのみ）は全件を従来どおり表示し、P/Sのふるい分けをしない。
+function computeVisibleEvents(autoEvents, manualEvents, judgements, mode, hasJudgements) {
+  const manual = (Array.isArray(manualEvents) ? manualEvents : []).map(asPlainEvent);
+  if (!hasJudgements) {
+    return dedupeEvents((Array.isArray(autoEvents) ? autoEvents : []).map(asPlainEvent).concat(manual));
+  }
+  const auto = dedupeEventListKeepOrder(selectVisibleAutoEvents(autoEvents, judgements, mode));
+  return auto.concat(manual);
+}
+function getEventVisibleList() {
+  return computeVisibleEvents(AUTO_EVENTS, MANUAL_EVENTS, AUTO_EVENT_JUDGEMENTS, eventMode, HAS_EVENT_JUDGEMENTS);
+}
+// 判定済みを先、未判定を後に並べる（各群は日付・店・取材名順）
+function orderEventList(list) {
+  const cmp = (a, b) => {
+    const dateDiff = eventDateValue(a.date) - eventDateValue(b.date);
+    if (dateDiff !== 0) return dateDiff;
+    const storeDiff = String(a.store).localeCompare(String(b.store), 'ja');
+    if (storeDiff !== 0) return storeDiff;
+    return String(a.event).localeCompare(String(b.event), 'ja');
+  };
+  const judged = list.filter(item => !item.unjudged).sort(cmp);
+  const unjudged = list.filter(item => item.unjudged).sort(cmp);
+  return judged.concat(unjudged);
+}
+// 指定の日付・店に紐づく「店の情報」（旧イベント日など）
+function getStoreInfoFor(dateStr, store) {
+  return AUTO_EVENTS.filter(item => isEventInfoKind(item.kind) && item.date === dateStr && item.store === store);
+}
+function renderStoreInfoLine(item) {
+  const note = item.note ? ('：' + escapeHtml(item.note)) : '';
+  return `<div class="event-store-info"><b>${escapeHtml(item.kind)}</b>${note}</div>`;
 }
 function dedupeEvents(list) {
   const map = new Map();
@@ -819,14 +1013,15 @@ function eventMatchesPeriod(item) {
   return value >= range.start && value < range.end;
 }
 function getDayEvents(dateStr) {
-  return EVENTS_ALL.filter(item => item.date === dateStr);
+  return orderEventList(getEventVisibleList().filter(item => item.date === dateStr));
 }
 function getFilteredListEvents() {
-  return EVENTS_ALL.filter(eventMatchesPeriod);
+  return orderEventList(getEventVisibleList().filter(eventMatchesPeriod));
 }
 function getEventCountMap() {
   const map = {};
-  EVENTS_ALL.forEach(item => {
+  // 店の情報（旧イベント日など）は含めない＝カレンダーの件数に数えない
+  getEventVisibleList().forEach(item => {
     if (!item.date) return;
     if (!map[item.date]) map[item.date] = { count: 0, manualOnly: true };
     map[item.date].count += 1;
@@ -835,9 +1030,27 @@ function getEventCountMap() {
   return map;
 }
 async function fetchAutoEvents() {
+  // 本番: GASのgetAutoEvents（自動イベント＋取材判定＋収集状態）
+  try {
+    const res = await gasFetch(GAS_URL + '?action=getAutoEvents', { redirect: 'follow' });
+    const data = await res.json();
+    if (data && Array.isArray(data.events) && data.events.length) {
+      AUTO_EVENT_JUDGEMENTS = Array.isArray(data.judgements) ? data.judgements : [];
+      AUTO_EVENT_STATUS = (data.status && typeof data.status === 'object') ? data.status : [];
+      HAS_EVENT_JUDGEMENTS = AUTO_EVENT_JUDGEMENTS.length > 0;
+      AUTO_EVENT_UPDATED_AT = data.updatedAt || '';
+      return data.events.map(item => normalizeEventRecord(item, 'auto')).filter(Boolean);
+    }
+  } catch (e) {}
+  // 移行期間のフォールバック: GAS未デプロイ（getAutoEventsが失敗・空）のときだけ
+  // 従来のGitHub Pagesのevents.jsonを読む。判定情報が無いため全件表示・切り替え非表示になる。
   try {
     const res = await fetch(AUTO_EVENTS_URL, { redirect: 'follow' });
     const data = await res.json();
+    AUTO_EVENT_JUDGEMENTS = [];
+    AUTO_EVENT_STATUS = [];
+    HAS_EVENT_JUDGEMENTS = false;
+    AUTO_EVENT_UPDATED_AT = '';
     return Array.isArray(data) ? data.map(item => normalizeEventRecord(item, 'auto')).filter(Boolean) : [];
   } catch (e) {
     return [];
@@ -869,8 +1082,10 @@ async function loadEventData() {
   MANUAL_EVENTS = manualEvents;
   EVENTS_ALL = dedupeEvents([...AUTO_EVENTS, ...MANUAL_EVENTS]);
   EVENT_NOTES = eventNotes;
-  if (!getDayEvents(selectedEventDate).length && EVENTS_ALL.length) {
-    selectedEventDate = EVENTS_ALL[0].date;
+  // 選択日が表示対象に無ければ、表示中で最も早い日付を選ぶ
+  if (!getDayEvents(selectedEventDate).length) {
+    const dates = getEventVisibleList().map(item => item.date).filter(Boolean).sort();
+    if (dates.length) selectedEventDate = dates[0];
   }
   tabDirty.events = true;
   tabDirty.master = true;
@@ -1504,6 +1719,16 @@ function renderEventPeriodFilter() {
   });
 }
 function renderEventsTab() {
+  // パチンコ/スロット切り替え（判定情報があるときだけ表示）
+  const modeRow = document.getElementById('event-mode-row');
+  if (modeRow) modeRow.style.display = HAS_EVENT_JUDGEMENTS ? 'flex' : 'none';
+  const pachinkoBtn = document.getElementById('event-mode-pachinko');
+  const slotBtn = document.getElementById('event-mode-slot');
+  if (pachinkoBtn) pachinkoBtn.classList.toggle('active', eventMode === 'pachinko');
+  if (slotBtn) slotBtn.classList.toggle('active', eventMode === 'slot');
+  // 収集状態の警告
+  const warning = document.getElementById('event-warning');
+  if (warning) warning.style.display = hasEventStatusWarning(AUTO_EVENT_STATUS) ? 'block' : 'none';
   renderEventPeriodFilter();
   renderEventCalendar();
   renderEventDayPanel();
@@ -1540,6 +1765,7 @@ function renderEventDayPanel() {
   const el = document.getElementById('event-day-panel');
   if (!el) return;
   const dayEvents = getDayEvents(selectedEventDate);
+  const itemsHtml = dayEvents.map(renderEventItem).join('');
   el.innerHTML = `
     <div class="event-day-header">
       <div>
@@ -1547,7 +1773,7 @@ function renderEventDayPanel() {
         <div class="event-day-sub">${dayEvents.length}件</div>
       </div>
     </div>
-    <div class="event-items">${dayEvents.length ? dayEvents.map(renderEventItem).join('') : '<div class="event-empty">この日のイベントはありません</div>'}</div>
+    <div class="event-items">${itemsHtml || '<div class="event-empty">この日のイベントはありません</div>'}</div>
   `;
 }
 function renderEventListPanel() {
@@ -1555,6 +1781,7 @@ function renderEventListPanel() {
   if (!el) return;
   const listEvents = getFilteredListEvents();
   const label = (EVENT_PERIODS.find(item => item.key === eventPeriod) || EVENT_PERIODS[0]).label;
+  const itemsHtml = listEvents.map(renderEventItem).join('');
   el.innerHTML = `
     <div class="event-list-header">
       <div>
@@ -1562,7 +1789,7 @@ function renderEventListPanel() {
         <div class="event-list-sub">${label} / ${listEvents.length}件</div>
       </div>
     </div>
-    <div class="event-items">${listEvents.length ? listEvents.map(renderEventItem).join('') : '<div class="event-empty">表示できるイベントがありません</div>'}</div>
+    <div class="event-items">${itemsHtml || '<div class="event-empty">表示できるイベントがありません</div>'}</div>
   `;
 }
 function renderEventItem(item) {
@@ -1571,12 +1798,22 @@ function renderEventItem(item) {
   const deleteButton = item.source === 'manual'
     ? `<button class="event-delete" onclick="deleteManualEvent('${encodeURIComponent(item.date)}','${encodeURIComponent(item.store)}','${encodeURIComponent(item.event)}')">× 削除</button>`
     : '';
+  // 取材とは別の「店の情報」（旧イベント日・周年日など）を店名の下へ小さく出す
+  const infoHtml = getStoreInfoFor(item.date, item.store).map(renderStoreInfoLine).join('');
+  const unjudgedTag = item.unjudged ? '<span class="event-tag unjudged">未判定</span>' : '';
+  // 推測される公約（空なら出さない。長い場合は省略し、タップで全文）
+  const pledge = String(item.pledge || '').trim();
+  const shortPledge = shortenEventPledge(pledge, 60);
+  const pledgeHtml = pledge
+    ? `<div class="event-pledge" data-full="${escapeHtml(pledge)}" data-short="${escapeHtml(shortPledge)}" onclick="toggleEventPledge(this)"><span class="event-pledge-label">推測される公約</span><span class="event-pledge-text">${escapeHtml(shortPledge)}</span></div>`
+    : '';
   return `
     <div class="event-item">
       <div class="event-item-top">
         <div>
           <div class="event-store">${escapeHtml(item.store)}</div>
           <div class="event-area">${escapeHtml(item.area || 'Osaka')}</div>
+          ${infoHtml}
         </div>
         <div style="text-align:right;">
           <div class="event-date">${escapeHtml(item.date)}</div>
@@ -1586,7 +1823,9 @@ function renderEventItem(item) {
       <div class="event-meta">
         <span class="event-tag ${tone}">${escapeHtml(item.event)}</span>
         <span class="event-source">${item.source === 'manual' ? '出典: 手動' : '出典: 自動'}</span>
+        ${unjudgedTag}
       </div>
+      ${pledgeHtml}
       ${note ? `<div class="event-note">└ ${escapeHtml(note)}</div>` : ''}
     </div>
   `;
