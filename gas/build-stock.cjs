@@ -31,5 +31,14 @@ replaceOnce(
   /if \(e\.parameter\.action==='hoshuStatus'\) \{/g,
   "if (e.parameter.action==='stockLedger') return res(AutoHoshu.withLock(stockGetLedger));\n  if (e.parameter.action==='stockBalances') return res(AutoHoshu.withLock(stockGetBalances));\n  if (e.parameter.action==='hoshuStatus') {"
 );
-fs.writeFileSync(output, source + '\n' + ledger, {encoding:'utf8', flag:sanitize || process.argv.includes('--replace') ? 'w' : 'wx'});
+replaceOnce(
+  /  sheet\.appendRow\(row\);/g,
+  "  // 台帳の入力を稼働記録より先に検証する。\n  const stockEntry = stockWorkEntry(data);\n  sheet.appendRow(row);"
+);
+replaceOnce(
+  /  sheet\.getRange\(newRow, 22\)\.setNumberFormat\('0\.0%'\);\r?\n/g,
+  "  sheet.getRange(newRow, 22).setNumberFormat('0.0%');\n  // 同一リクエスト・ロック内で台帳に追記し、失敗時は稼働記録を戻す。\n  if (stockEntry) {\n    try { stockAppendEntries(stockSheet(), [stockEntry]); }\n    catch (error) { sheet.deleteRow(newRow); throw error; }\n  }\n"
+);
+fs.writeFileSync(output, source + '\n' + ledger,
+  {encoding:'utf8', flag:sanitize || process.argv.includes('--replace') ? 'w' : 'wx'});
 console.log('貯玉台帳を接続したGASファイルを作成しました');

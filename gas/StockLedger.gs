@@ -70,7 +70,7 @@ function stockValidateEntry(input, shops) {
     amount = stockInteger(input.amount, '換金額', false);
     balls = -stockRedemptionBalls(amount, master.kokan);
   } else if (type === '手動' || type === '稼働') {
-    balls = stockInteger(input.balls, '玉数', false);
+    balls = stockInteger(input.balls, '玉数', type === '稼働');
   } else {
     if (stockInteger(input.actualBalance, '実残高', true) < 0) throw new Error('実残高は0以上にしてください');
   }
@@ -130,6 +130,25 @@ function stockNewEntries(data, shops, rows, allowWork) {
     entry.balls = stockInteger(data.actualBalance, '実残高', true) - (current ? current.balance : 0);
   }
   return [entry];
+}
+
+function stockWorkEntry(data) {
+  if (data.stockStart === '' || data.stockStart === null || data.stockStart === undefined || !data.stockCard) return null;
+  if (typeof data.stockCard === 'string' && !data.stockCard.trim()) return null;
+  const start = stockInteger(data.stockStart, '開始時貯玉', true);
+  const endBlank = data.stockEnd === '' || data.stockEnd === null || data.stockEnd === undefined;
+  const invest = endBlank && data.choTamaInvest !== '' && data.choTamaInvest !== null && data.choTamaInvest !== undefined
+    ? stockInteger(data.choTamaInvest, '投資玉数', true) : 0;
+  const end = endBlank ? start - invest : stockInteger(data.stockEnd, '投資終了時貯玉', true);
+  const recover = data.stockRecoverRaw === '' || data.stockRecoverRaw === null || data.stockRecoverRaw === undefined
+    ? 0 : stockInteger(data.stockRecoverRaw, '回収玉数', true);
+  if (start < 0 || (!endBlank && end < 0) || invest < 0 || recover < 0) throw new Error('貯玉・回収玉数は0以上にしてください');
+  const balls = end + recover - start;
+  if (!Number.isSafeInteger(balls)) throw new Error('貯玉の増減が大きすぎます');
+  // 稼働側の自由メモが長くても既存の送信を妨げない。
+  const memo = typeof data.memo === 'string' ? data.memo.slice(0, 500) : '';
+  return stockValidateEntry({date:data.date, shop:data.shop, card:data.stockCard, type:'稼働',
+    balls, memo, allowWork:true}, getMasters().shops);
 }
 
 function stockGroup(rows, id) {

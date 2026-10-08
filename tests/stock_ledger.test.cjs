@@ -70,6 +70,17 @@ context.SPREADSHEET_ID = 'test';
 context.SpreadsheetApp = {openById: () => ({getSheetByName: () => sheet})};
 context.Utilities = {formatDate: () => '2026-10-08 12:00:00', getUuid: () => `id-${++sequence}`};
 context.getMasters = () => ({shops:[{name:'A', kokan:28}]});
+context.work = {date:'2026-10-08', shop:'A', stockCard:'代1', stockStart:'1000', stockEnd:'800',
+  stockRecoverRaw:'300', watashita:200, moratta:100};
+assert.equal(call('stockWorkEntry(work).balls'), 100);
+assert.equal(call('stockWorkEntry({...work, stockEnd:"", choTamaInvest:400}).balls'), -100);
+assert.equal(call('stockWorkEntry({...work, stockStart:"100", stockEnd:"", stockRecoverRaw:"", choTamaInvest:200}).balls'), -200);
+assert.equal(call('stockWorkEntry({...work, stockEnd:"", choTamaInvest:""}).balls'), 300);
+assert.equal(call('stockWorkEntry({...work, stockEnd:"800", choTamaInvest:400}).balls'), 100);
+assert.equal(call('stockWorkEntry({...work, stockStart:""})'), null);
+assert.equal(call('stockWorkEntry({...work, stockStart:"0", stockEnd:"0", stockRecoverRaw:"0"}).balls'), 0);
+context.longMemo = '長'.repeat(501);
+assert.equal(call('stockWorkEntry({...work, memo:longMemo}).memo.length'), 500);
 context.request = {action:'addStockEntry', date:'2026-10-08', shop:'A', card:'自分', type:'手動', balls:1000};
 assert.equal(call('stockHandlePost(request).success'), true);
 context.request = {action:'transferStock', date:'2026-10-08', shop:'A', fromCard:'自分', toCard:'友達', balls:250};
