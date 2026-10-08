@@ -598,6 +598,68 @@ const TRIAL_KISHU_MASTER = {
   rounds: [],
 };
 const AUTO_EVENTS_URL = 'https://kawauso92.github.io/pachinko-events/events.json';
+
+// =============================================
+// GAS通信の合言葉（token）管理
+// 合言葉は端末のlocalStorageにのみ保存し、値はソース・ログ・画面に出さない
+// =============================================
+const APP_TOKEN_KEY = 'appToken';
+
+// 保存済みの合言葉を取得（localStorageが使えない場合はnullを返す）
+function readStoredToken() {
+  try { return localStorage.getItem(APP_TOKEN_KEY); } catch (e) { return null; }
+}
+// 保存済みの合言葉を削除
+function clearStoredToken() {
+  try { localStorage.removeItem(APP_TOKEN_KEY); } catch (e) {}
+}
+// 合言葉を取得。未保存なら入力ダイアログを出して保存する
+function ensureAppToken() {
+  const stored = readStoredToken();
+  if (stored) return stored;
+  const input = window.prompt('合言葉を入力してください');
+  if (!input) return '';
+  const token = input.trim();
+  try { localStorage.setItem(APP_TOKEN_KEY, token); } catch (e) {}
+  return token;
+}
+// レスポンスが合言葉不一致（unauthorized）か判定する（本文は消費しない）
+async function isUnauthorizedResponse(res) {
+  try {
+    const data = await res.clone().json();
+    return data && data.success === false && data.error === 'unauthorized';
+  } catch (e) {
+    return false;
+  }
+}
+// GASへのfetch。GETはクエリ、POSTは本文JSONに合言葉を付与する
+async function gasFetch(url, options = {}) {
+  const build = (token) => {
+    const opt = Object.assign({}, options);
+    const method = (opt.method || 'GET').toUpperCase();
+    let target = url;
+    if (method === 'GET') {
+      target += (target.includes('?') ? '&' : '?') + 'token=' + encodeURIComponent(token);
+    } else if (opt.body) {
+      try {
+        const body = JSON.parse(opt.body);
+        body.token = token;
+        opt.body = JSON.stringify(body);
+      } catch (e) {}
+    }
+    return { target, opt };
+  };
+  let { target, opt } = build(ensureAppToken());
+  let res = await fetch(target, opt);
+  // 合言葉不一致なら保存を消して再入力し、1回だけ再試行する
+  if (await isUnauthorizedResponse(res)) {
+    clearStoredToken();
+    ({ target, opt } = build(ensureAppToken()));
+    res = await fetch(target, opt);
+  }
+  return res;
+}
+
 const EVENT_PERIODS = [
   { key: 'all', label: 'すべて' },
   { key: 'thisWeek', label: '今週' },
@@ -731,7 +793,7 @@ async function fetchAutoEvents() {
 }
 async function fetchManualEvents() {
   try {
-    const res = await fetch(GAS_URL + '?action=getManualEvents', { redirect: 'follow' });
+    const res = await gasFetch(GAS_URL + '?action=getManualEvents', { redirect: 'follow' });
     const data = await res.json();
     const items = Array.isArray(data) ? data : (data.events || data.records || data.manualEvents || []);
     return Array.isArray(items) ? items.map(item => normalizeEventRecord(item, 'manual')).filter(Boolean) : [];
@@ -741,7 +803,7 @@ async function fetchManualEvents() {
 }
 async function fetchEventNotes() {
   try {
-    const res = await fetch(GAS_URL + '?action=getEventNotes', { redirect: 'follow' });
+    const res = await gasFetch(GAS_URL + '?action=getEventNotes', { redirect: 'follow' });
     const data = await res.json();
     const items = Array.isArray(data) ? data : (data.notes || data.eventNotes || []);
     return normalizeEventNoteMap(items);
@@ -801,7 +863,7 @@ async function loadRecords() {
   document.getElementById('records-list').innerHTML = '<div class="loading">LOADING...</div>';
   document.getElementById('header-sub').textContent = '読み込み中...';
   try {
-    const res  = await fetch(GAS_URL + '?action=records&limit=200', {redirect:'follow'});
+    const res  = await gasFetch(GAS_URL + '?action=records&limit=200', {redirect:'follow'});
     const data = await res.json();
     if (data.success) {
       ALL_RECORDS = data.records;
@@ -898,7 +960,7 @@ async function loadInit() {
   }
   // バックグラウンドでGASから最新取得
   try {
-    const res  = await fetch(GAS_URL + '?action=init&limit=200', {redirect:'follow'});
+    const res  = await gasFetch(GAS_URL + '?action=init&limit=200', {redirect:'follow'});
     const data = await res.json();
     if (data.success) {
       saveCache(data);
@@ -1047,7 +1109,7 @@ document.getElementById('delete-btn').onclick = () => {
   if (!currentRecord) return;
   showConfirm(`${currentRecord.date}　${currentRecord.kishu}\n収支：${fmtYen(currentRecord.kosshi)}\n\nこの記録を削除しますか？`, async () => {
     try {
-      await fetch(GAS_URL, {method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain'},body:JSON.stringify({action:'delete',row:currentRecord.row})});
+      await gasFetch(GAS_URL, {method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain'},body:JSON.stringify({action:'delete',row:currentRecord.row})});
     } catch(e) {}
     document.getElementById('detailOverlay').classList.remove('show');
     ALL_RECORDS = ALL_RECORDS.filter(r => r.row !== currentRecord.row);
@@ -1518,7 +1580,7 @@ async function saveManualEvent() {
     return;
   }
   try {
-    await fetch(GAS_URL, {
+    await gasFetch(GAS_URL, {
       method: 'POST',
       redirect: 'follow',
       headers: { 'Content-Type': 'text/plain' },
@@ -1537,7 +1599,7 @@ async function deleteManualEvent(date, store, eventName) {
   const decodedEvent = decodeURIComponent(eventName);
   showConfirm(`${decodedDate}\n${decodedStore}\n${decodedEvent}\n\n削除しますか？`, async () => {
     try {
-      await fetch(GAS_URL, {
+      await gasFetch(GAS_URL, {
         method: 'POST',
         redirect: 'follow',
         headers: { 'Content-Type': 'text/plain' },
@@ -1961,7 +2023,7 @@ let currentMakerFilter = 'all'; // 機種マスタ メーカーフィルタ
 
 async function loadMasters() {
   try {
-    const res  = await fetch(GAS_URL + '?action=masters', {redirect:'follow'});
+    const res  = await gasFetch(GAS_URL + '?action=masters', {redirect:'follow'});
     const data = await res.json();
     if (data.success) MASTERS = { shops: data.shops || [], kishus: ensureTrialKishuMasters(data.kishus || []), uchis: data.uchis || [] }; 
   } catch(e) {}
@@ -2246,7 +2308,7 @@ async function saveUchi() {
       // ALL_RECORDSのメモリ更新
       ALL_RECORDS.forEach(r => { if (r.uchi === oldName) r.uchi = name; });
       // GASの稼働記録も更新
-      await fetch(GAS_URL, {
+      await gasFetch(GAS_URL, {
         method:'POST', redirect:'follow',
         headers:{'Content-Type':'text/plain'},
         body: JSON.stringify({action:'renameUchi', oldName, newName: name})
@@ -2293,7 +2355,7 @@ async function saveEventNoteByIndex(index) {
 
   const note = input.value.trim();
   try {
-    await fetch(GAS_URL, {
+    await gasFetch(GAS_URL, {
       method:'POST',
       redirect:'follow',
       headers:{'Content-Type':'text/plain'},
@@ -2313,7 +2375,7 @@ async function saveEventNoteByIndex(index) {
 
 async function saveMaster(key, data) {
   try {
-    await fetch(GAS_URL, {
+    await gasFetch(GAS_URL, {
       method:'POST', redirect:'follow',
       headers:{'Content-Type':'text/plain'},
       body: JSON.stringify({action:'saveMaster', key, data})
@@ -2496,7 +2558,7 @@ function buildHoshuConfirmRows(targetDate, records, kishus) {
 async function refreshHoshuStatus() {
   const el = document.getElementById('auto-hoshu-status');
   try {
-    const response = await fetch(GAS_URL + '?action=hoshuStatus', {redirect:'follow'});
+    const response = await gasFetch(GAS_URL + '?action=hoshuStatus', {redirect:'follow'});
     const data = await response.json();
     if (!response.ok || !data.success || !data.startDate) throw new Error('not ready');
     const changed = data.groups.filter(g => g.status === 'changed');
@@ -2517,7 +2579,7 @@ async function doHoshuConfirm() {
   btn.disabled = true;
   btn.textContent = '再確定中…';
   try {
-    const response = await fetch(GAS_URL, {method:'POST',redirect:'follow',
+    const response = await gasFetch(GAS_URL, {method:'POST',redirect:'follow',
       headers:{'Content-Type':'text/plain'},
       body:JSON.stringify({action:'reconfirmHoshu',date:targetDate})});
     const data = await response.json();
