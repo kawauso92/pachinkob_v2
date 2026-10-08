@@ -274,6 +274,8 @@ function parsePachisuro100Section(section, referenceDate, out) {
       area = label;
     } else if (PACHISURO100_BADGE_KIND[cls]) {
       kinds.push(PACHISURO100_BADGE_KIND[cls]);
+    } else if (label) {
+      kinds.push(label);
     }
   }
 
@@ -428,11 +430,13 @@ function parseTamaDojo(html, referenceDate) {
       }
       if (lines[index] !== OSAKA_TEXT || !currentDate) continue;
       if (index + 2 >= lines.length) continue;
-      var eventType = lines[index + 1];
-      var store = lines[index + 2];
+      var firstVisit = lines[index + 1] === '初取材';
+      if (firstVisit && index + 3 >= lines.length) continue;
+      var eventType = lines[index + (firstVisit ? 2 : 1)];
+      var store = lines[index + (firstVisit ? 3 : 2)];
       var eventName = TAMADOJO_EVENT_NAME_BY_TYPE[eventType];
       if (!eventName || !store || TAMADOJO_EVENT_NAME_BY_TYPE[store]) continue;
-      out.push(evMakeRecord(currentDate, store, OSAKA_TEXT, '取材', eventName, '', '',
+      out.push(evMakeRecord(currentDate, store, OSAKA_TEXT, '取材', eventName, '', firstVisit ? '初取材' : '',
         EVENT_SOURCE_TAMADOJO, TAMADOJO_URL));
     }
   } catch (e) {

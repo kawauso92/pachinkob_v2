@@ -147,6 +147,8 @@ check('パチスロ100 キャラ誕の店名', [p100[4].store, p100[5].store], [
 check('パチスロ100 取材+旧イベント日の両方', [p100[6].kind, p100[6].event, p100[7].kind, p100[7].event], ['旧イベント日', '旧イベント日', '取材', '水懸かる取材']);
 check('パチスロ100 壊れたHTMLは空配列', run("parsePachisuro100('<div class=><<>>', ref)"), []);
 check('パチスロ100 空文字は空配列', run("parsePachisuro100('', ref)"), []);
+context.unknownBadge = '<div class="event-section"><div class="event-header"><strong>2026/10/08</strong><span class="badge badge-opening">創業日</span></div><div class="store-name"><strong>店H</strong></div></div>';
+check('パチスロ100 未知のバッジは表示文字を種別にする', run('parsePachisuro100(unknownBadge, ref)')[0].kind, '創業日');
 
 // =============================================
 // エイムスター
@@ -204,6 +206,10 @@ check('たま道場 大阪のみ・種別→取材名', run('parseTamaDojo(tamad
   { date: '2026-10-09', store: '店F', area: '大阪', kind: '取材', event: 'わーさん道場破り', media: '', note: '', source: 'たま道場', source_url: 'https://tama-dojo.com/' },
 ]);
 check('たま道場 壊れたHTMLは空配列', run("parseTamaDojo('<div', ref)"), []);
+context.firstVisit = '<div>10月8日</div><div>大阪</div><div>初取材</div><div>玉道場</div><div>店H</div>';
+check('たま道場 初取材を補足に記録', run('parseTamaDojo(firstVisit, ref)')[0],
+  { date:'2026-10-08', store:'店H', area:'大阪', kind:'取材', event:'わーさん玉道場',
+    media:'', note:'初取材', source:'たま道場', source_url:'https://tama-dojo.com/' });
 
 // =============================================
 // 結果
