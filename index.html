@@ -267,6 +267,27 @@ canvas{display:block;width:100%;border-radius:var(--radius-sm);}
 .event-note-controls{display:flex;gap:8px;align-items:center;}
 .event-note-input{flex:1;}
 .event-note-save{flex-shrink:0;min-width:72px;}
+/* 貯玉台帳 */
+.stock-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px;margin-bottom:10px;}
+.stock-title{font-size:13px;color:var(--accent);font-weight:700;margin-bottom:10px;}
+.stock-row{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 4px;background:none;border:0;border-top:1px solid var(--border);color:var(--text);text-align:left;font:inherit;cursor:pointer;}
+.stock-row strong{font-family:'JetBrains Mono',monospace;white-space:nowrap;}
+.stock-row.active{color:var(--accent);}
+.stock-history{padding:9px 0;border-top:1px solid var(--border);font-size:12px;}
+.stock-history.void{opacity:.45;}
+.stock-history-main{display:flex;justify-content:space-between;gap:8px;}
+.stock-history-sub{color:var(--text3);font-size:10px;margin-top:4px;overflow-wrap:anywhere;}
+.stock-actions{display:flex;gap:7px;margin-top:7px;}
+.stock-actions button{background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text2);padding:5px 9px;font-size:11px;}
+.stock-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:10px;}
+.stock-field{min-width:0;}
+.stock-field.full{grid-column:1/-1;}
+.stock-label{display:block;color:var(--text3);font-size:10px;margin-bottom:4px;}
+.stock-help{font-size:11px;color:var(--text2);line-height:1.6;margin:7px 0;}
+.stock-error{font-size:11px;color:var(--red);margin:8px 0;min-height:1em;}
+.stock-preview{font-size:12px;color:var(--accent);margin:8px 0;}
+.stock-form-actions{display:flex;gap:8px;}
+@media(max-width:350px){.nav-btn{font-size:9px;letter-spacing:0;padding-left:1px;padding-right:1px}.nav-btn .icon{font-size:17px}}
 </style>
 </head>
 <body>
@@ -384,6 +405,36 @@ canvas{display:block;width:100%;border-radius:var(--radius-sm);}
     <div class="hoshu-result-panel" id="hoshu-result-panel">
       <div class="hoshu-result-title">REWARD SUMMARY</div>
       <div id="hoshu-result-body"></div>
+    </div>
+  </div>
+
+  <!-- 貯玉タブ -->
+  <div class="tab-content" id="tab-stock">
+    <div class="stock-card">
+      <div class="stock-title">貯玉残高</div>
+      <div class="stock-help">カードを選ぶと履歴を表示します。</div>
+      <div id="stock-balances">読み込み中…</div>
+    </div>
+    <div class="stock-card" id="stock-history-card" hidden>
+      <div class="stock-title" id="stock-history-title">履歴</div>
+      <div id="stock-history"></div>
+    </div>
+    <div class="stock-card">
+      <div class="stock-title" id="stock-form-title">貯玉を記録</div>
+      <div class="stock-form-grid">
+        <div class="stock-field"><label class="stock-label" for="stock-date">日付</label><input class="set-input" id="stock-date" type="date"></div>
+        <div class="stock-field"><label class="stock-label" for="stock-type">操作</label><select class="set-input" id="stock-type" onchange="stockUpdateForm()"><option value="換金">換金</option><option value="移動">移動</option><option value="棚卸し">棚卸し</option><option value="手動">手動増減</option></select></div>
+        <div class="stock-field"><label class="stock-label" for="stock-shop">店</label><select class="set-input" id="stock-shop" onchange="stockUpdateCards()"></select></div>
+        <div class="stock-field"><label class="stock-label" for="stock-card">カード</label><input class="set-input" id="stock-card" list="stock-card-options" maxlength="80" placeholder="選択または新規入力"><datalist id="stock-card-options"></datalist></div>
+        <div class="stock-field" id="stock-to-field" hidden><label class="stock-label" for="stock-to-card">移動先カード</label><input class="set-input" id="stock-to-card" list="stock-card-options" maxlength="80" placeholder="選択または新規入力"></div>
+        <div class="stock-field" id="stock-amount-field"><label class="stock-label" for="stock-amount">換金額（円）</label><input class="set-input" id="stock-amount" type="number" min="1000" step="1000" oninput="stockUpdatePreview()"></div>
+        <div class="stock-field" id="stock-balls-field" hidden><label class="stock-label" for="stock-balls">玉数（移動は正数、手動は±）</label><input class="set-input" id="stock-balls" type="number" step="1"></div>
+        <div class="stock-field" id="stock-actual-field" hidden><label class="stock-label" for="stock-actual">実残高（玉）</label><input class="set-input" id="stock-actual" type="number" step="1"></div>
+        <div class="stock-field full"><label class="stock-label" for="stock-memo">メモ</label><input class="set-input" id="stock-memo" type="text" maxlength="500"></div>
+      </div>
+      <div class="stock-preview" id="stock-preview"></div>
+      <div class="stock-error" id="stock-error"></div>
+      <div class="stock-form-actions"><button class="set-btn-save" id="stock-save" onclick="stockSubmit()">確認して記録</button><button class="set-btn-cancel" onclick="stockResetForm()">クリア</button></div>
     </div>
   </div>
 
@@ -536,6 +587,7 @@ canvas{display:block;width:100%;border-radius:var(--radius-sm);}
   <button class="nav-btn" id="nav-analysis" onclick="switchTab('analysis')"><div class="icon">📊</div><div>分析</div></button>
   <button class="nav-btn" id="nav-records"  onclick="switchTab('records')"><div class="icon">📋</div><div>記録</div></button>
   <button class="nav-btn" id="nav-hoshu"    onclick="switchTab('hoshu')"><div class="icon">💰</div><div>報酬</div></button>
+  <button class="nav-btn" id="nav-stock"    onclick="switchTab('stock')"><div class="icon">🏦</div><div>貯玉</div></button>
   <button class="nav-btn" id="nav-events"   onclick="switchTab('events')"><div class="icon">📅</div><div>イベント</div></button>
   <button class="nav-btn" id="nav-master"   onclick="switchTab('master')"><div class="icon">⚙️</div><div>マスタ</div></button>
 </div>
@@ -1185,8 +1237,9 @@ let rankPeriod = 'all';
 // タブ切り替え
 // =============================================
 function switchTab(tab) {
+  if (currentTab === 'stock' && tab !== 'stock') stockSelected = null;
   currentTab = tab;
-  ['home','analysis','records','hoshu','events','master'].forEach(t => {
+  ['home','analysis','records','hoshu','stock','events','master'].forEach(t => {
     document.getElementById('tab-'+t).classList.toggle('active', t === tab);
     document.getElementById('nav-'+t).classList.toggle('active', t === tab);
   });
@@ -1196,6 +1249,10 @@ function switchTab(tab) {
   if (tab === 'records'  && tabDirty.records)  { render();         tabDirty.records  = false; }
   if (tab === 'events'   && tabDirty.events)   { renderEventsTab(); tabDirty.events  = false; }
   if (tab === 'master'   && tabDirty.master)   { renderSetting();  tabDirty.master   = false; }
+  if (tab === 'stock') {
+    if (!document.getElementById('stock-date').value) stockResetForm();
+    stockLoad();
+  }
 }
 
 // =============================================
@@ -2628,6 +2685,211 @@ function deleteHoshuResult(id) {
     hoshuResults = hoshuResults.filter(r => r.id !== id);
     renderHoshuResults();
   });
+}
+
+// =============================================
+// 貯玉台帳
+// =============================================
+let stockRows = [], stockBalances = [], stockSelected = null, stockEditId = null;
+
+function stockRedemptionPreview(amount, rate) {
+  const yen = Number(amount);
+  const kokan = Number(rate);
+  if (!Number.isSafeInteger(yen) || yen <= 0 || yen % 1000 !== 0) throw new Error('換金額は1000円単位で入力してください');
+  if (!Number.isFinite(kokan) || kokan <= 0) throw new Error('店の交換率を確認してください');
+  const balls = Math.round(yen * kokan / 100);
+  if (!Number.isSafeInteger(balls)) throw new Error('換金玉数が大きすぎます');
+  return balls;
+}
+
+function stockBuildRequest(input) {
+  const request = {action:input.id ? 'editStockEntry' : input.type === '移動' ? 'transferStock' : 'addStockEntry',
+    date:input.date, shop:input.shop, card:input.card.trim(), type:input.type, memo:input.memo.trim()};
+  if (input.id) request.id = input.id;
+  if (input.type === '移動') { request.fromCard = request.card; request.toCard = input.toCard.trim(); request.balls = Number(input.balls); }
+  if (input.type === '換金') request.amount = Number(input.amount);
+  if (input.type === '棚卸し') request.actualBalance = Number(input.actualBalance);
+  if (input.type === '手動' || input.type === '稼働') request.balls = Number(input.balls);
+  return request;
+}
+
+async function stockApi(url, options) {
+  const response = await gasFetch(url, options || {redirect:'follow'});
+  if (!response.ok) throw new Error('通信に失敗しました');
+  const data = await response.json();
+  if (!data || data.success !== true) throw new Error(data && data.error ? data.error : '処理結果を確認できません');
+  return data;
+}
+
+async function stockLoad() {
+  const list = document.getElementById('stock-balances');
+  list.textContent = '読み込み中…';
+  try {
+    const balances = await stockApi(GAS_URL + '?action=stockBalances');
+    const ledger = await stockApi(GAS_URL + '?action=stockLedger');
+    stockBalances = balances.balances;
+    stockRows = ledger.rows;
+    if (!Array.isArray(stockBalances) || !Array.isArray(stockRows)) throw new Error('台帳データの形式が不正です');
+    stockRender();
+    stockUpdateShops();
+  } catch (error) { list.textContent = '読込失敗: ' + error.message; }
+}
+
+function stockRender() {
+  const list = document.getElementById('stock-balances');
+  const shops = [...new Set(stockBalances.map(item => item.shop))];
+  list.innerHTML = shops.length ? shops.map(shop => `<div class="stock-title">${escapeHtml(shop)}</div>` +
+    stockBalances.filter(item => item.shop === shop).map(item => {
+      const index = stockBalances.indexOf(item);
+      const active = stockSelected && stockSelected.shop === shop && stockSelected.card === item.card;
+      return `<button class="stock-row${active ? ' active' : ''}" onclick="stockSelect(${index})"><span>${escapeHtml(item.card)}</span><strong>${Number(item.balance).toLocaleString('ja-JP')} 玉</strong></button>`;
+    }).join('')).join('') : '<div class="stock-help">まだ記録がありません。下のフォームからカードを登録できます。</div>';
+  stockRenderHistory();
+}
+
+function stockSelect(index) {
+  const item = stockBalances[index];
+  if (!item) return;
+  stockSelected = stockSelected && stockSelected.shop === item.shop && stockSelected.card === item.card ? null : {shop:item.shop, card:item.card};
+  stockRender();
+  if (stockSelected) { document.getElementById('stock-shop').value = item.shop; stockUpdateCards(); document.getElementById('stock-card').value = item.card; }
+}
+
+function stockRenderHistory() {
+  const panel = document.getElementById('stock-history-card');
+  panel.hidden = !stockSelected;
+  if (!stockSelected) return;
+  document.getElementById('stock-history-title').textContent = stockSelected.shop + ' / ' + stockSelected.card;
+  const rows = stockRows.filter(row => row.shop === stockSelected.shop && row.card === stockSelected.card)
+    .sort((a, b) => b.rowNumber - a.rowNumber);
+  document.getElementById('stock-history').innerHTML = rows.length ? rows.map(row => {
+    const index = stockRows.indexOf(row);
+    return `<div class="stock-history${row.status === '取消' ? ' void' : ''}"><div class="stock-history-main"><span>${escapeHtml(row.date)}　${escapeHtml(row.type)}</span><strong>${row.balls > 0 ? '+' : ''}${Number(row.balls).toLocaleString('ja-JP')} 玉</strong></div>
+      <div class="stock-history-sub">${row.amount ? '¥' + Number(row.amount).toLocaleString('ja-JP') + '　' : ''}${escapeHtml(row.memo)}${row.status === '取消' ? '　取消' : ''}</div>
+      ${row.status === '有効' ? `<div class="stock-actions"><button onclick="stockOpenEdit(${index})">修正</button><button onclick="stockVoid(${index})">取消</button></div>` : ''}</div>`;
+  }).join('') : '<div class="stock-help">履歴はありません。</div>';
+}
+
+function stockUpdateShops() {
+  const select = document.getElementById('stock-shop');
+  const previous = select.value || (stockSelected && stockSelected.shop) || '';
+  select.innerHTML = (MASTERS.shops || []).map(shop => `<option value="${escapeHtml(shop.name)}">${escapeHtml(shop.name)}</option>`).join('');
+  if (previous && (MASTERS.shops || []).some(shop => shop.name === previous)) select.value = previous;
+  stockUpdateCards();
+}
+
+function stockUpdateCards() {
+  const shop = document.getElementById('stock-shop').value;
+  const cards = [...new Set(stockRows.filter(row => row.shop === shop).map(row => row.card))];
+  document.getElementById('stock-card-options').innerHTML = cards.map(card => `<option value="${escapeHtml(card)}"></option>`).join('');
+  stockUpdatePreview();
+}
+
+function stockUpdateForm() {
+  const type = document.getElementById('stock-type').value;
+  document.getElementById('stock-to-field').hidden = type !== '移動';
+  document.getElementById('stock-amount-field').hidden = type !== '換金';
+  document.getElementById('stock-balls-field').hidden = type !== '移動' && type !== '手動' && type !== '稼働';
+  document.getElementById('stock-actual-field').hidden = type !== '棚卸し';
+  stockUpdatePreview();
+}
+
+function stockUpdatePreview() {
+  const preview = document.getElementById('stock-preview');
+  preview.textContent = '';
+  if (document.getElementById('stock-type').value !== '換金') return;
+  const amount = document.getElementById('stock-amount').value;
+  if (!amount) return;
+  const shop = MASTERS.shops.find(item => item.name === document.getElementById('stock-shop').value);
+  try { preview.textContent = '換金に使う玉数: ' + stockRedemptionPreview(amount, shop && shop.kokan).toLocaleString('ja-JP') + ' 玉'; }
+  catch (error) { preview.textContent = error.message; }
+}
+
+function stockResetForm() {
+  stockEditId = null;
+  const type = document.getElementById('stock-type');
+  type.querySelector('option[value="稼働"]')?.remove();
+  type.value = '換金';
+  document.getElementById('stock-date').value = todayStr();
+  for (const id of ['stock-card','stock-to-card','stock-amount','stock-balls','stock-actual','stock-memo']) document.getElementById(id).value = '';
+  document.getElementById('stock-form-title').textContent = '貯玉を記録';
+  document.getElementById('stock-save').textContent = '確認して記録';
+  document.getElementById('stock-error').textContent = '';
+  stockUpdateForm();
+}
+
+function stockOpenEdit(index) {
+  const row = stockRows[index];
+  if (!row || row.status !== '有効') return;
+  stockEditId = row.id;
+  document.getElementById('stock-date').value = row.date;
+  document.getElementById('stock-shop').value = row.shop;
+  stockUpdateCards();
+  const type = document.getElementById('stock-type');
+  if (row.type === '稼働' && !type.querySelector('option[value="稼働"]')) type.add(new Option('稼働', '稼働'));
+  type.value = row.type;
+  const pair = row.relatedId ? stockRows.filter(item => item.relatedId === row.relatedId && item.status === '有効') : [];
+  document.getElementById('stock-card').value = pair.length === 2 ? pair.find(item => item.balls < 0).card : row.card;
+  document.getElementById('stock-to-card').value = pair.length === 2 ? pair.find(item => item.balls > 0).card : '';
+  document.getElementById('stock-balls').value = pair.length === 2 ? Math.abs(row.balls) : row.balls;
+  document.getElementById('stock-amount').value = row.amount || '';
+  document.getElementById('stock-actual').value = (stockBalances.find(item => item.shop === row.shop && item.card === row.card) || {balance:0}).balance;
+  document.getElementById('stock-memo').value = row.memo;
+  document.getElementById('stock-form-title').textContent = '台帳行を修正';
+  document.getElementById('stock-save').textContent = '確認して修正';
+  stockUpdateForm();
+  document.getElementById('stock-form-title').scrollIntoView({behavior:'smooth'});
+}
+
+function stockFormInput() {
+  const value = id => document.getElementById(id).value;
+  return {id:stockEditId, date:value('stock-date'), shop:value('stock-shop'), card:value('stock-card'),
+    toCard:value('stock-to-card'), type:value('stock-type'), amount:value('stock-amount'),
+    balls:value('stock-balls'), actualBalance:value('stock-actual'), memo:value('stock-memo')};
+}
+
+async function stockSubmit() {
+  const error = document.getElementById('stock-error');
+  error.textContent = '';
+  const input = stockFormInput();
+  const request = stockBuildRequest(input);
+  if (!request.date || !request.shop || !request.card) { error.textContent = '日付・店・カードを入力してください'; return; }
+  const master = MASTERS.shops.find(item => item.name === request.shop);
+  let detail = '';
+  try {
+    if (request.type === '換金') {
+      if (input.amount === '') throw new Error('換金額を入力してください');
+      const balls = stockRedemptionPreview(request.amount, master && master.kokan);
+      const balance = (stockBalances.find(item => item.shop === request.shop && item.card === request.card) || {balance:0}).balance;
+      detail = `¥${request.amount.toLocaleString('ja-JP')} → ${balls.toLocaleString('ja-JP')}玉`;
+      if (balls > balance) detail += `\n残高 ${balance.toLocaleString('ja-JP')}玉を超えます。`;
+    } else if (request.type === '移動') {
+      if (input.balls === '') throw new Error('移動玉数を入力してください');
+      if (!request.toCard || request.toCard === request.card || !Number.isSafeInteger(request.balls) || request.balls <= 0) throw new Error('移動先と正の玉数を入力してください');
+      detail = `${request.card} → ${request.toCard}　${request.balls.toLocaleString('ja-JP')}玉`;
+    } else if (request.type === '棚卸し') {
+      if (input.actualBalance === '' || !Number.isSafeInteger(request.actualBalance) || request.actualBalance < 0) throw new Error('実残高は0以上の整数で入力してください');
+    } else if (input.balls === '' || !Number.isSafeInteger(request.balls) || request.balls === 0) throw new Error('増減玉数は0以外の整数で入力してください');
+  } catch (caught) { error.textContent = caught.message; return; }
+  if (!window.confirm(`${request.type}を記録しますか？${detail ? '\n' + detail : ''}`)) return;
+  const button = document.getElementById('stock-save');
+  button.disabled = true;
+  try {
+    await stockApi(GAS_URL, {method:'POST', redirect:'follow', headers:{'Content-Type':'text/plain'}, body:JSON.stringify(request)});
+    stockResetForm();
+    await stockLoad();
+  } catch (caught) { error.textContent = '結果を確認できません。台帳を更新してから確認してください: ' + caught.message; }
+  finally { button.disabled = false; }
+}
+
+async function stockVoid(index) {
+  const row = stockRows[index];
+  if (!row || row.status !== '有効' || !window.confirm('この行を取り消しますか？ 移動は2行とも取り消します。')) return;
+  const error = document.getElementById('stock-error');
+  try {
+    await stockApi(GAS_URL, {method:'POST', redirect:'follow', headers:{'Content-Type':'text/plain'}, body:JSON.stringify({action:'voidStockEntry', id:row.id})});
+    await stockLoad();
+  } catch (caught) { error.textContent = '結果を確認できません。台帳を更新してから確認してください: ' + caught.message; }
 }
 </script>
 </body>
