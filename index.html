@@ -2477,37 +2477,17 @@ function setMakerFilter(maker) {
   renderKishuList();
 }
 
-// ==== 実測時速の純関数（ここから）
-// 稼働記録の稼働時間（"h:mm"）を時間に直す。読めなければ null
-function parseKadoHours(text) {
-  const m = /^(\d+):(\d{1,2})$/.exec(String(text || '').trim());
-  if (!m) return null;
-  const h = Number(m[1]) + Number(m[2]) / 60;
-  return h > 0 ? h : null;
-}
-// 機種ごとの実測時速＝通常回転の合計 ÷ 稼働時間の合計（時間か回転が無い記録は除く）
-function calcMachineSpeed(records, kishuName) {
-  let rot = 0, hours = 0, count = 0;
-  (Array.isArray(records) ? records : []).forEach(r => {
-    if (!r || r.kishu !== kishuName) return;
-    const h = parseKadoHours(r.jikan);
-    const k = Number(r.soKaiten);
-    if (!(h > 0) || !(k > 0)) return;
-    rot += k; hours += h; count++;
-  });
-  return count ? { speed: rot / hours, rot, hours, count } : null;
-}
-// ==== 実測時速の純関数（ここまで）
 
 // 編集中の機種の実測時速を、時間効率の欄の下に出す
 function renderKishuSpeed(k) {
   const el = document.getElementById('kishu-jisoku-actual');
   if (!el) return;
-  const sp = k ? calcMachineSpeed(ALL_RECORDS, k.name) : null;
-  el.hidden = !sp;
-  if (sp) {
-    el.textContent = '実測の時速 ' + Math.round(sp.speed) + '回（今の設定 ' + (k.jikan || '—') + '回）　通常回転 '
-      + Math.round(sp.rot).toLocaleString('ja-JP') + '回 ÷ ' + sp.hours.toFixed(1) + '時間（' + sp.count + '回分）';
+  // 機種一覧の AC〜AF 列（GASが記録の送信・機種の保存のたびに作り直す）
+  const has = k && Number(k.jisokuActual) > 0;
+  el.hidden = !has;
+  if (has) {
+    el.textContent = '実測の時速 ' + Math.round(k.jisokuActual) + '回（今の設定 ' + (k.jikan || '—') + '回）　通常回転 '
+      + Math.round(k.jisokuRot).toLocaleString('ja-JP') + '回 ÷ ' + Number(k.jisokuHours).toFixed(1) + '時間（' + k.jisokuCount + '回分）';
   }
 }
 
