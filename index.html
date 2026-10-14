@@ -3029,7 +3029,10 @@ function stockUpdateShops() {
 
 function stockUpdateCards() {
   const shop = document.getElementById('stock-shop').value;
-  const cards = [...new Set(stockRows.filter(row => row.shop === shop).map(row => row.card))];
+  const players = (MASTERS.uchis || []).map(item => typeof item === 'string' ? item : item?.name)
+    .filter(name => name && name !== 'ノリうち');
+  const historyCards = stockRows.filter(row => row.shop === shop).map(row => row.card);
+  const cards = [...new Set([...players, ...historyCards])];
   document.getElementById('stock-card-options').innerHTML = cards.map(card => `<option value="${escapeHtml(card)}"></option>`).join('');
   stockUpdatePreview();
 }

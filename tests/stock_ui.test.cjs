@@ -30,3 +30,18 @@ context.input = {date:'2026-10-08', shop:'A', card:'自分', type:'手動', ball
 assert.equal(call('stockBuildRequest(input).balls'), -250);
 assert.equal(call('stockBuildRequest(input).action'), 'addStockEntry');
 console.log('PASS: 貯玉タブ、換金プレビュー、送信内容');
+
+// 新規カード・移動先の候補は台帳が空でも打ち手設定から取得する。
+const elements = new Map();
+context.document.getElementById = id => {
+  if (!elements.has(id)) elements.set(id, {value:'', innerHTML:''});
+  return elements.get(id);
+};
+call("MASTERS.uchis = [{name:'自分'}, {name:'代1'}, '友達', {name:'ノリうち'}, {name:'自分'}]; stockRows = []; stockUpdateCards()");
+assert.equal(elements.get('stock-card-options').innerHTML, '<option value="自分"></option><option value="代1"></option><option value="友達"></option>');
+elements.get('stock-shop').value = 'A';
+call("stockRows = [{shop:'A',card:'旧カード'}, {shop:'B',card:'別店'}]; MASTERS.uchis.push({name:'<追加>'}); stockUpdateCards()");
+assert.ok(elements.get('stock-card-options').innerHTML.includes('value="&lt;追加&gt;"'));
+assert.ok(elements.get('stock-card-options').innerHTML.includes('value="旧カード"'));
+assert.ok(!elements.get('stock-card-options').innerHTML.includes('別店'));
+console.log('PASS: 設定の打ち手を貯玉・移動先カード候補に反映');

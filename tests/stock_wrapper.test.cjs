@@ -3,7 +3,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 
-const source = fs.readFileSync(path.join(__dirname, '../gas/Code.stock.paste-ready.gs'), 'utf8');
+const source = fs.readFileSync(path.join(__dirname, '../gas', process.env.STOCK_GAS_FILE || 'Code.stock.paste-ready.gs'), 'utf8');
 assert.ok(source.includes("const APP_TOKEN_DEFAULT = '';"));
 assert.ok(source.includes("const SPREADSHEET_ID = 'YOUR_SPREADSHEET_ID';"));
 assert.ok(source.includes('公開リポジトリのためIDは載せない'));
@@ -63,20 +63,46 @@ assert.equal(records[0][14], 50);
 assert.equal(values.at(-1)[4], '代1');
 assert.equal(values.at(-1)[5], '稼働');
 assert.equal(values.at(-1)[6], 100);
-assert.equal(post('test-token', {...work, stockStart:''}).success, true);
-assert.equal(records.length, 2);
-assert.equal(values.length, 3);
-assert.equal(post('test-token', {...work, stockStart:'1.5'}).success, false);
+assert.equal(get('test-token', 'stockBalances').balances.find(item => item.card === '代1').balance, 1100);
+assert.equal(values.at(-2)[5], '手動');
+assert.equal(values.at(-2)[6], 1000);
+assert.equal(values.at(-2)[8], '');
+assert.equal(values.at(-1)[8], '');
+const unchanged = JSON.stringify({values, records});
+for (const stockStart of ['', '1.5', '1000']) {
+  assert.equal(post('test-token', {...work, stockStart}).success, false);
+  assert.equal(JSON.stringify({values, records}), unchanged);
+}
+// 台帳の項目を持たない旧クライアントの稼働送信は維持する。
+assert.equal(post('test-token', {action:'submit', date:work.date, shop:'A', uchi:'自分'}).success, true);
 assert.equal(records.length, 2);
 failStockAppend = true;
-assert.equal(post('test-token', work).success, false);
+assert.equal(post('test-token', {...work, stockStart:'1100'}).success, false);
 assert.equal(records.length, 2);
-assert.equal(values.length, 3);
+assert.equal(values.length, 4);
 assert.equal(locked, false);
-assert.equal(post('test-token', {...work, stockEnd:'', choTamaInvest:400}).success, true);
+// 新規カードの初回登録も台帳書込失敗時に稼働記録を残さない。
+failStockAppend = true;
+assert.equal(post('test-token', {...work, stockCard:'新規'}).success, false);
+assert.equal(records.length, 2);
+assert.equal(values.length, 4);
+assert.equal(post('test-token', {...work, stockStart:'1100', stockEnd:'', choTamaInvest:400}).success, true);
 assert.equal(values.at(-1)[6], -100);
-assert.equal(post('test-token', {...work, stockEnd:'', choTamaInvest:''}).success, true);
+assert.equal(post('test-token', {...work, stockStart:'1000', stockEnd:'', choTamaInvest:''}).success, true);
 assert.equal(values.at(-1)[6], 300);
-assert.equal(post('test-token', {...work, stockEnd:'800', choTamaInvest:400}).success, true);
-assert.equal(values.at(-1)[6], 100);
-console.log('PASS: GAS認証、同一ロック、GET/POST接続');
+assert.equal(post('test-token', {...work, stockStart:'1300', stockEnd:'800', choTamaInvest:400}).success, true);
+assert.equal(values.at(-1)[6], -200);
+// 負残高の補正では過去の行をそのまま残す。
+assert.equal(post('test-token', {action:'addStockEntry', date:work.date, shop:'A', card:'負残高', type:'手動', balls:-2400}).success, true);
+const history = JSON.stringify(values);
+const recordCount = records.length;
+assert.match(post('test-token', {...work, stockCard:'負残高'}).error, /棚卸し/);
+assert.equal(JSON.stringify(values), history);
+assert.equal(records.length, recordCount);
+const oldRows = values.length;
+assert.equal(post('test-token', {action:'addStockEntry', date:work.date, shop:'A', card:'負残高', type:'棚卸し', actualBalance:7350}).success, true);
+assert.equal(JSON.stringify(values.slice(0, oldRows)), history);
+assert.equal(values.at(-1)[6], 9750);
+assert.equal(get('test-token', 'stockBalances').balances.find(item => item.card === '負残高').balance, 7350);
+assert.equal(post('test-token', {...work, stockCard:'負残高', stockStart:'7350', stockEnd:'7000'}).success, true);
+console.log('PASS: GAS認証、初回残高、同一ロック、失敗時の巻き戻し、負残高の棚卸し');

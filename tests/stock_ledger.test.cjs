@@ -79,6 +79,24 @@ assert.equal(call('stockWorkEntry({...work, stockEnd:"", choTamaInvest:""}).ball
 assert.equal(call('stockWorkEntry({...work, stockEnd:"800", choTamaInvest:400}).balls'), 100);
 assert.equal(call('stockWorkEntry({...work, stockStart:""})'), null);
 assert.equal(call('stockWorkEntry({...work, stockStart:"0", stockEnd:"0", stockRecoverRaw:"0"}).balls'), 0);
+assert.deepEqual(JSON.parse(JSON.stringify(call('stockWorkEntries({...work, stockStart:"10000", stockEnd:"9000", stockRecoverRaw:"1000"}, [])').map(item => [item.type, item.balls]))),
+  [['手動', 10000], ['稼働', 0]]);
+context.existingStock = [{shop:'A', card:'代1', balls:10000, status:'有効'}];
+assert.deepEqual(JSON.parse(JSON.stringify(call('stockWorkEntries({...work, stockStart:"10000", stockEnd:"9000", stockRecoverRaw:"1000"}, existingStock)').map(item => item.balls))), [0]);
+assert.throws(() => call('stockWorkEntries({...work, stockStart:"9000"}, existingStock)'), /台帳残高/);
+context.negativeStock = [{shop:'A', card:'代1', balls:-2000, status:'有効'}];
+assert.throws(() => call('stockWorkEntries(work, negativeStock)'), /棚卸し/);
+assert.equal(call('stockWorkEntries({...work, stockStart:"0", stockEnd:"0", stockRecoverRaw:"0"}, []).length'), 1);
+// 店・カード別に判定し、取消済みの行は初回残高判定から除く。
+assert.equal(call('stockWorkEntries({...work, stockStart:"7350"}, existingStock.map(row => ({...row, shop:"B"})))[0].balls'), 7350);
+assert.equal(call('stockWorkEntries(work, existingStock.map(row => ({...row, card:"別カード"})))[0].balls'), 1000);
+assert.equal(call('stockWorkEntries(work, existingStock.map(row => ({...row, status:"取消"})))[0].balls'), 1000);
+context.zeroStock = [{shop:'A', card:'代1', balls:0, status:'有効'}];
+assert.throws(() => call('stockWorkEntries(work, zeroStock)'), /台帳残高/);
+assert.equal(call('stockWorkEntries({...work, stockStart:"0"}, zeroStock).length'), 1);
+assert.throws(() => call('stockWorkEntries({...work, stockStart:""}, [])'), /開始時貯玉/);
+assert.throws(() => call('stockWorkEntries({...work, stockCard:""}, [])'), /カード/);
+assert.equal(call('stockWorkEntries({date:work.date, shop:work.shop}, []).length'), 0);
 context.longMemo = '長'.repeat(501);
 assert.equal(call('stockWorkEntry({...work, memo:longMemo}).memo.length'), 500);
 context.request = {action:'addStockEntry', date:'2026-10-08', shop:'A', card:'自分', type:'手動', balls:1000};

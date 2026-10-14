@@ -113,7 +113,7 @@ function submitRecord(data) {
   ];
 
   // 台帳の入力を稼働記録より先に検証する。
-  const stockEntry = stockWorkEntry(data);
+  const stockEntries = stockWorkEntries(data, stockReadRows(stockSheet()));
   sheet.appendRow(row);
   const newRow = sheet.getLastRow();
 
@@ -124,8 +124,8 @@ function submitRecord(data) {
   sheet.getRange(newRow, 14).setNumberFormat('0.0%');
   sheet.getRange(newRow, 22).setNumberFormat('0.0%');
   // 同一リクエスト・ロック内で台帳に追記し、失敗時は稼働記録を戻す。
-  if (stockEntry) {
-    try { stockAppendEntries(stockSheet(), [stockEntry]); }
+  if (stockEntries.length) {
+    try { stockAppendEntries(stockSheet(), stockEntries); }
     catch (error) { sheet.deleteRow(newRow); throw error; }
   }
 
@@ -1093,6 +1093,27 @@ function stockWorkEntry(data) {
     balls, memo, allowWork:true}, getMasters().shops);
 }
 
+// 初回残高と今回の増減を、同じロック内でまとめて登録する。
+function stockWorkEntries(data, rows) {
+  const hasStockFields = ['stockStart','stockCard','stockEnd','stockRecoverRaw']
+    .some(key => data[key] !== undefined);
+  if (!hasStockFields) return [];
+  if (data.stockStart === '' || data.stockStart === null || data.stockStart === undefined) {
+    throw new Error('開始時貯玉を入力してください');
+  }
+  stockText(data.stockCard, '貯玉カード', 80);
+  const entry = stockWorkEntry(data);
+  const current = stockBalancesFromRows(rows).find(item => item.shop === entry.shop && item.card === entry.card);
+  const start = stockInteger(data.stockStart, '開始時貯玉', true);
+  if (current) {
+    if (current.balance < 0) throw new Error('台帳残高がマイナスです。AppBの棚卸しで実残高に補正してください');
+    if (start !== current.balance) throw new Error('開始時貯玉が台帳残高と異なります。入力を直すか、AppBの棚卸しで補正してください');
+    return [entry];
+  }
+  if (start === 0) return [entry];
+  return [{...entry, type:'手動', balls:start, memo:'開始時貯玉から初回残高を登録'}, entry];
+}
+
 function stockGroup(rows, id) {
   const target = rows.find(row => row.id === id);
   if (!target || target.status !== '有効') throw new Error('有効な台帳行が見つかりません');
@@ -1104,7 +1125,7 @@ function stockGroup(rows, id) {
 
 function stockAppendEntries(sheet, entries) {
   const now = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy-MM-dd HH:mm:ss');
-  const relatedId = entries.length === 2 ? Utilities.getUuid() : '';
+  const relatedId = entries.length === 2 && entries.every(item => item.type === '移動') ? Utilities.getUuid() : '';
   const ids = entries.map(() => Utilities.getUuid());
   const values = entries.map((item, index) => [ids[index], now, item.date, item.shop, stockSheetText(item.card), item.type,
     item.balls, item.amount, relatedId, stockSheetText(item.memo), '有効', '']);

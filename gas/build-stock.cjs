@@ -33,11 +33,11 @@ replaceOnce(
 );
 replaceOnce(
   /  sheet\.appendRow\(row\);/g,
-  "  // 台帳の入力を稼働記録より先に検証する。\n  const stockEntry = stockWorkEntry(data);\n  sheet.appendRow(row);"
+  "  // 台帳の入力を稼働記録より先に検証する。\n  const stockEntries = stockWorkEntries(data, stockReadRows(stockSheet()));\n  sheet.appendRow(row);"
 );
 replaceOnce(
   /  sheet\.getRange\(newRow, 22\)\.setNumberFormat\('0\.0%'\);\r?\n/g,
-  "  sheet.getRange(newRow, 22).setNumberFormat('0.0%');\n  // 同一リクエスト・ロック内で台帳に追記し、失敗時は稼働記録を戻す。\n  if (stockEntry) {\n    try { stockAppendEntries(stockSheet(), [stockEntry]); }\n    catch (error) { sheet.deleteRow(newRow); throw error; }\n  }\n"
+  "  sheet.getRange(newRow, 22).setNumberFormat('0.0%');\n  // 同一リクエスト・ロック内で台帳に追記し、失敗時は稼働記録を戻す。\n  if (stockEntries.length) {\n    try { stockAppendEntries(stockSheet(), stockEntries); }\n    catch (error) { sheet.deleteRow(newRow); throw error; }\n  }\n"
 );
 fs.writeFileSync(output, source + '\n' + ledger,
   {encoding:'utf8', flag:sanitize || process.argv.includes('--replace') ? 'w' : 'wx'});
