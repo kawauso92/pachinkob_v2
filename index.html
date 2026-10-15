@@ -74,6 +74,7 @@ button,input,select,textarea{font:inherit;color:inherit;}
 .header{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;border-bottom:1px solid var(--rule);background:var(--ink);}
 .app-title{font-size:15px;font-weight:700;color:var(--fg);}
 .header-sub{font-size:12px;color:var(--fg2);margin-top:1px;}
+.header-updated{font-size:11px;color:var(--fg3);margin-top:1px;}
 .reload-btn{background:none;border:0;border-radius:var(--r-ctl);padding:9px 4px 9px 12px;font-size:12px;color:var(--fg2);cursor:pointer;flex-shrink:0;min-height:40px;}
 .reload-btn:active{color:var(--fg);}
 
@@ -300,6 +301,17 @@ select option{background:var(--raise);color:var(--fg);}
 .rh-yen{flex-shrink:0;text-align:right;font-family:var(--font-num);font-variant-numeric:tabular-nums;font-size:var(--kv-size);font-weight:var(--num-w,600);color:var(--fg);}
 .rh-yen.zero{color:var(--fg3);font-size:13px;}
 .rh-total{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--rule);font-family:var(--font-num);font-size:13px;}
+/* 打ち手ごとの折りたたみ */
+.rh-uchi-details{border-bottom:1px solid var(--rule);}
+.rh-uchi-details:last-of-type{border-bottom:0;}
+.rh-uchi-summary{display:flex;align-items:baseline;gap:10px;cursor:pointer;list-style:none;min-height:44px;padding:10px 0;}
+.rh-uchi-summary::-webkit-details-marker{display:none;}
+.rh-uchi-summary::after{content:'開く';font-size:11px;color:var(--fg3);flex-shrink:0;}
+.rh-uchi-details[open]>summary::after{content:'閉じる';}
+.rh-uchi-main{flex:1;min-width:0;display:grid;gap:1px;}
+.rh-uchi-name{font-size:13px;font-weight:600;overflow-wrap:anywhere;}
+.rh-uchi-nums{font-family:var(--font-num);font-size:12px;color:var(--fg2);overflow-wrap:anywhere;}
+.rh-uchi-body{padding:0 0 8px 10px;border-left:1px solid var(--rule);}
 /* マスタ編集の折りたたみ */
 .set-details{padding:10px 12px;margin-bottom:10px;}
 .set-details>summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--fg);list-style:none;min-height:40px;display:flex;align-items:center;}
@@ -403,6 +415,8 @@ select option{background:var(--raise);color:var(--fg);}
 /* 貯玉台帳 */
 .stock-card{padding:12px;margin-bottom:10px;}
 .stock-title{font-size:14px;color:var(--fg);font-weight:700;margin-bottom:10px;}
+.stock-title-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;}
+.stock-title-row .stock-title{margin-bottom:0;}
 .stock-row{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 2px;background:none;border:0;border-top:1px solid var(--rule);color:var(--fg);text-align:left;font:inherit;cursor:pointer;min-height:48px;min-width:0;}
 .stock-row span{overflow-wrap:anywhere;}
 .stock-row strong{font-family:var(--font-num);font-variant-numeric:tabular-nums;font-weight:var(--num-w,600);white-space:nowrap;flex-shrink:0;}
@@ -432,8 +446,9 @@ select option{background:var(--raise);color:var(--fg);}
     <div>
       <div class="app-title">パチンコボード</div>
       <div class="header-sub" id="header-sub">読み込み中...</div>
+      <div class="header-updated" id="header-updated"></div>
     </div>
-    <button class="reload-btn" onclick="loadRecords()">更新</button>
+    <button class="reload-btn" onclick="refreshAllData()">更新</button>
   </div>
 
   <!-- ホームタブ -->
@@ -550,7 +565,10 @@ select option{background:var(--raise);color:var(--fg);}
   <!-- 貯玉タブ -->
   <div class="tab-content" id="tab-stock">
     <div class="stock-card">
-      <div class="stock-title">貯玉残高</div>
+      <div class="stock-title-row">
+        <div class="stock-title">貯玉残高</div>
+        <button class="event-add-btn" id="stock-reload-btn" onclick="stockReload()">更新</button>
+      </div>
       <div class="stock-help">カードを選ぶと履歴を表示します。</div>
       <div id="stock-balances">読み込み中…</div>
     </div>
@@ -1248,15 +1266,36 @@ async function fetchEventNotes() {
 async function reloadEventData() {
   const btn = document.getElementById('event-reload-btn');
   if (btn) { btn.disabled = true; btn.textContent = '…'; }
-  try { await loadEventData(); }
+  try { await loadEventData(true); }
   finally { if (btn) { btn.disabled = false; btn.textContent = '更新'; } }
 }
-async function loadEventData() {
-  const [autoEvents, manualEvents, eventNotes] = await Promise.all([fetchAutoEvents(), fetchManualEvents(), fetchEventNotes()]);
-  AUTO_EVENTS = autoEvents;
-  MANUAL_EVENTS = manualEvents;
+
+// イベントの3つの取得結果を端末に保存する
+function saveEventCache() {
+  writeStoredJson(EVENTS_CACHE_KEY, {
+    ts: Date.now(),
+    autoEvents: AUTO_EVENTS,
+    manualEvents: MANUAL_EVENTS,
+    judgements: AUTO_EVENT_JUDGEMENTS,
+    status: AUTO_EVENT_STATUS,
+    hasJudgements: HAS_EVENT_JUDGEMENTS,
+    updatedAt: AUTO_EVENT_UPDATED_AT,
+    notes: EVENT_NOTES,
+  });
+}
+// 保存分をグローバル変数へ戻す
+function applyEventCache(rec) {
+  AUTO_EVENTS = Array.isArray(rec.autoEvents) ? rec.autoEvents : [];
+  MANUAL_EVENTS = Array.isArray(rec.manualEvents) ? rec.manualEvents : [];
+  AUTO_EVENT_JUDGEMENTS = Array.isArray(rec.judgements) ? rec.judgements : [];
+  AUTO_EVENT_STATUS = rec.status || [];
+  HAS_EVENT_JUDGEMENTS = !!rec.hasJudgements;
+  AUTO_EVENT_UPDATED_AT = rec.updatedAt || '';
+  EVENT_NOTES = (rec.notes && typeof rec.notes === 'object') ? rec.notes : {};
   EVENTS_ALL = dedupeEvents([...AUTO_EVENTS, ...MANUAL_EVENTS]);
-  EVENT_NOTES = eventNotes;
+}
+// 読み込んだあとの後始末（選択日の調整と再描画）
+function afterEventsLoaded() {
   // 選択日が表示対象に無ければ、表示中で最も早い日付を選ぶ
   if (!getDayEvents(selectedEventDate).length) {
     const dates = getEventVisibleList().map(item => item.date).filter(Boolean).sort();
@@ -1272,6 +1311,25 @@ async function loadEventData() {
     renderHoshuTab();
     tabDirty.hoshu = false;
   }
+}
+// 起動時は保存分を表示し、その日はじめてのときだけ取り直す
+async function loadEventData(force) {
+  const cache = readStoredJson(EVENTS_CACHE_KEY, rec => Array.isArray(rec.autoEvents));
+  if (cache) applyEventCache(cache);
+  if (cache && !force && !shouldRefresh(cache.ts, Date.now())) {
+    afterEventsLoaded();
+    return;
+  }
+  const [autoEvents, manualEvents, eventNotes] = await Promise.all([fetchAutoEvents(), fetchManualEvents(), fetchEventNotes()]);
+  AUTO_EVENTS = autoEvents;
+  MANUAL_EVENTS = manualEvents;
+  EVENTS_ALL = dedupeEvents([...AUTO_EVENTS, ...MANUAL_EVENTS]);
+  EVENT_NOTES = eventNotes;
+  // 何も取れなかった（通信失敗など）ときは保存を上書きしない。
+  // 上書きすると、その日いっぱい取り直さなくなってしまう。
+  const gotSomething = autoEvents.length > 0 || manualEvents.length > 0 || Object.keys(eventNotes).length > 0;
+  if (gotSomething) saveEventCache();
+  afterEventsLoaded();
 }
 
 function currentMonth() {
@@ -1301,9 +1359,13 @@ function ensureTrialKishuMasters(kishus) {
   return normalized;
 }
 
+// ヘッダーの更新ボタン：記録・マスタ（init）とイベントをまとめて取り直す
+async function refreshAllData() {
+  await Promise.all([loadInit(true), loadEventData(true)]);
+}
 async function loadRecords() {
   document.getElementById('records-list').innerHTML = '<div class="loading">読み込み中…</div>';
-  document.getElementById('header-sub').textContent = '読み込み中...';
+  updateHeaderCount('（更新中...）');
   try {
     const res  = await gasFetch(GAS_URL + '?action=records&limit=200', {redirect:'follow'});
     const data = await res.json();
@@ -1314,24 +1376,96 @@ async function loadRecords() {
       Object.keys(tabDirty).forEach(k => { tabDirty[k] = true; });
       buildFilters();
       tabDirty.records = false; render();
+      // 取り直したので取得時刻を更新する（マスタは前回のまま）
+      saveCache({shops: MASTERS.shops, kishus: MASTERS.kishus, uchis: MASTERS.uchis, records: ALL_RECORDS}, Date.now());
+      renderUpdatedLabel();
     }
   } catch(e) {
     document.getElementById('records-list').innerHTML = '<div class="empty">データ取得失敗<br>更新ボタンを押してください</div>';
-    document.getElementById('header-sub').textContent = '取得失敗';
+    setHeaderSub('取得失敗');
   }
 }
 
-const CACHE_KEY = 'pachinkob_cache_v1';
+// =============================================
+// 端末に保存したデータを使い、取り直すのは
+// 「更新ボタン」と「その日はじめて開いたとき」だけにする
+// =============================================
+const CACHE_KEY = 'pachinkob_cache_v1';          // 記録・マスタ
+const EVENTS_CACHE_KEY = 'pachinkob_events_v1';  // イベント3種
+const HOSHU_STATUS_KEY = 'pachinkob_hoshu_status_v1'; // 報酬の確定状態
+const STOCK_CACHE_KEY = 'pachinkob_stock_v1';    // 貯玉の残高・台帳
 
-function saveCache(data) {
-  try { localStorage.setItem(CACHE_KEY, JSON.stringify({ts: Date.now(), data})); } catch(e) {}
+// 日本時間は夏時間が無いので、UTC+9時間ずらして日付を見る
+const JST_OFFSET_MS = 9 * 60 * 60 * 1000;
+
+// 時刻を日本時間の日付（YYYY-MM-DD）にする。数値にならない値は ''。
+function jstDateKey(value) {
+  const t = (value instanceof Date) ? value.getTime() : Number(value);
+  if (!Number.isFinite(t)) return '';
+  return new Date(t + JST_OFFSET_MS).toISOString().slice(0, 10);
 }
-function loadCache() {
+// 取り直すかどうか（純関数）。
+// 一度も取っていない・時刻が壊れている・日本時間で日付が変わっていれば true。
+function shouldRefresh(lastFetchedAt, now) {
+  const last = jstDateKey(lastFetchedAt);
+  if (!last) return true;
+  const current = jstDateKey(now === undefined ? Date.now() : now);
+  if (!current) return true;
+  return last !== current;
+}
+// 「最終更新 M/D HH:MM」（日本時間）。数値にならない値は ''。
+function formatUpdatedAt(value) {
+  const t = (value instanceof Date) ? value.getTime() : Number(value);
+  if (!Number.isFinite(t) || t <= 0) return '';
+  const d = new Date(t + JST_OFFSET_MS);
+  const hh = String(d.getUTCHours()).padStart(2, '0');
+  const mm = String(d.getUTCMinutes()).padStart(2, '0');
+  return (d.getUTCMonth() + 1) + '/' + d.getUTCDate() + ' ' + hh + ':' + mm;
+}
+
+// 保存の読み書き。壊れていたら null を返して取り直す（すべて try/catch）
+// isValid を渡すと、中身の形も見る
+function readStoredJson(key, isValid) {
   try {
-    const raw = localStorage.getItem(CACHE_KEY);
+    const raw = localStorage.getItem(key);
     if (!raw) return null;
-    return JSON.parse(raw).data;
-  } catch(e) { return null; }
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object') return null;
+    if (!Number.isFinite(Number(parsed.ts))) return null; // 取得時刻が無い＝壊れている
+    if (typeof isValid === 'function' && !isValid(parsed)) return null;
+    return parsed;
+  } catch (e) { return null; }
+}
+function writeStoredJson(key, value) {
+  try { localStorage.setItem(key, JSON.stringify(value)); return true; } catch (e) { return false; }
+}
+function removeStored(key) {
+  try { localStorage.removeItem(key); } catch (e) {}
+}
+// 保存済みの取得時刻（無ければ null）
+function storedFetchedAt(key) {
+  const rec = readStoredJson(key);
+  return rec ? Number(rec.ts) : null;
+}
+
+function saveCache(data, fetchedAt) {
+  // 取得時刻を渡さなかったときは、前の取得時刻を保つ（端末内の編集で「最終更新」を進めない）
+  const ts = Number.isFinite(Number(fetchedAt)) ? Number(fetchedAt) : (storedFetchedAt(CACHE_KEY) || Date.now());
+  writeStoredJson(CACHE_KEY, { ts, data });
+}
+// ヘッダーの表示（「（更新中...）」は実際に取り直しているときだけ）
+function setHeaderSub(text) {
+  const el = document.getElementById('header-sub');
+  if (el) el.textContent = text;
+}
+function updateHeaderCount(suffix) {
+  setHeaderSub('全' + ALL_RECORDS.length + '件' + (suffix || ''));
+}
+function renderUpdatedLabel() {
+  const el = document.getElementById('header-updated');
+  if (!el) return;
+  const at = formatUpdatedAt(storedFetchedAt(CACHE_KEY));
+  el.textContent = at ? '最終更新 ' + at : '';
 }
 // 現在表示中のメインタブを追跡（初期値はホーム）
 let currentTab = 'home';
@@ -1389,30 +1523,38 @@ function showSkeleton() {
   list.innerHTML = skCard() + skCard() + skCard();
 }
 
-async function loadInit() {
-  refreshHoshuStatus();
-  // キャッシュがあれば即座に表示
-  const cache = loadCache();
+async function loadInit(force) {
+  // 保存があればそれを即座に表示する
+  const cache = readStoredJson(CACHE_KEY, rec => rec.data && Array.isArray(rec.data.records));
   if (cache) {
-    applyData(cache);
-    document.getElementById('header-sub').textContent += ' （更新中...）';
+    applyData(cache.data);
   } else {
-    // キャッシュなし時はスケルトンUIを表示
+    // 保存なし時はスケルトンUIを表示
     showSkeleton();
-    document.getElementById('header-sub').textContent = '読み込み中...';
+    setHeaderSub('読み込み中...');
   }
-  // バックグラウンドでGASから最新取得
+  renderUpdatedLabel();
+
+  // その日はじめて開いたとき（または更新ボタン）だけ取り直す
+  const needFetch = !cache || !!force || shouldRefresh(cache.ts, Date.now());
+  if (!needFetch) { updateHeaderCount(); return; }
+
+  updateHeaderCount('（更新中...）');
   try {
     const res  = await gasFetch(GAS_URL + '?action=init&limit=200', {redirect:'follow'});
     const data = await res.json();
     if (data.success) {
-      saveCache(data);
+      saveCache(data, Date.now());
       applyData(data);
+      updateHeaderCount();
+      renderUpdatedLabel();
     }
   } catch(e) {
     if (!cache) {
       document.getElementById('records-list').innerHTML = '<div class="empty">データ取得失敗<br>更新ボタンを押してください</div>';
-      document.getElementById('header-sub').textContent = '取得失敗';
+      setHeaderSub('取得失敗');
+    } else {
+      updateHeaderCount();
     }
   }
 }
@@ -1676,7 +1818,11 @@ function switchTab(tab) {
   if (tab === 'analysis' && tabDirty.analysis) { renderAnalysis(); tabDirty.analysis = false; }
   if (tab === 'records'  && tabDirty.records)  { render();         tabDirty.records  = false; }
   if (tab === 'events'   && tabDirty.events)   { renderEventsTab(); tabDirty.events  = false; }
-  if (tab === 'hoshu'    && tabDirty.hoshu)    { renderHoshuTab();  tabDirty.hoshu    = false; }
+  if (tab === 'hoshu') {
+    // 報酬の確定状態は、このタブを開いたときに（その日はじめてなら）取る
+    if (tabDirty.hoshu) { renderHoshuTab(); tabDirty.hoshu = false; }
+    refreshHoshuStatus();
+  }
   if (tab === 'stock') {
     if (!document.getElementById('stock-date').value) stockResetForm();
     stockLoad();
@@ -2096,7 +2242,7 @@ async function saveManualEvent() {
     });
     selectedEventDate = date;
     closeEventModal();
-    await loadEventData();
+    await loadEventData(true);
   } catch (e) {
     alert('手動イベントの保存に失敗しました');
   }
@@ -2113,7 +2259,7 @@ async function deleteManualEvent(date, store, eventName) {
         headers: { 'Content-Type': 'text/plain' },
         body: JSON.stringify({ action: 'deleteManualEvent', date: decodedDate, store: decodedStore, event: decodedEvent }),
       });
-      await loadEventData();
+      await loadEventData(true);
     } catch (e) {
       alert('手動イベントの削除に失敗しました');
     }
@@ -3301,6 +3447,25 @@ function normalizeRewardHistoryFilter(filter, options) {
     uchi:  uchis.includes(f.uchi)   ? f.uchi  : 'all',
   };
 }
+// 打ち手ごとに分ける（表示中の期間＝絞り込み後のまとまりから作る）
+// hoshu・koujo は打ち手ごとの合計、days はその人の稼働日数
+function groupRewardHistoryByUchi(groups) {
+  const map = new Map();
+  (Array.isArray(groups) ? groups : []).forEach(g => {
+    if (!g) return;
+    if (!map.has(g.uchi)) map.set(g.uchi, {
+      uchi: g.uchi, hoshu: 0, koujo: 0, sagitama: 0, genkinInvest: 0, days: 0, groups: [],
+    });
+    const d = map.get(g.uchi);
+    d.hoshu        += g.hoshu;
+    d.koujo        += g.koujo;
+    d.sagitama     += g.sagitama;
+    d.genkinInvest += g.genkinInvest;
+    d.days         += 1;
+    d.groups.push(g);
+  });
+  return [...map.values()].sort((a, b) => String(a.uchi).localeCompare(String(b.uchi), 'ja'));
+}
 // 月ごとの小計（報酬・控除）と打ち手別合計（表示中＝絞り込み後のまとまりから作る）
 function summarizeRewardHistory(groups) {
   const list = Array.isArray(groups) ? groups : [];
@@ -3352,45 +3517,47 @@ function onRewardHistoryFilterChange() {
 function rewardHistoryYen(hoshu) {
   return hoshu > 0 ? '¥' + Math.round(hoshu).toLocaleString('ja-JP') : '0円（未達）';
 }
-function renderRewardHistory() {
-  const el = document.getElementById('reward-history-list');
-  if (!el) return;
-  const groups = filterRewardHistory(buildRewardHistory(ALL_RECORDS), rewardHistoryFilter);
-  if (!groups.length) { el.innerHTML = '<div class="empty" style="padding:20px">報酬履歴がありません</div>'; return; }
-  const summary = summarizeRewardHistory(groups);
-  const uchiRows = Object.entries(summary.byUchi).map(([uchi, d]) => `
-    <div class="rh-item">
-      <div class="rh-item-main">
-        <div class="rh-uchi">${escapeHtml(uchi)}</div>
-        <div class="rh-meta">報酬 ¥${Math.round(d.hoshu).toLocaleString('ja-JP')}　控除 ¥${Math.round(d.koujo).toLocaleString('ja-JP')}　差玉 ${(d.sagitama >= 0 ? '+' : '') + Math.round(d.sagitama).toLocaleString('ja-JP')}玉　${d.count}台</div>
-        <div class="rh-sub">現金投資 ¥${Math.round(d.genkinInvest).toLocaleString('ja-JP')}</div>
-      </div>
-    </div>`).join('');
-  // 日付の新しい順。月が変わるところへ小計を挟む
+// 1人分の日付の一覧。月が変わるところへ小計を挟む
+function rewardHistoryDayRows(groups) {
+  const byMonth = summarizeRewardHistory(groups).byMonth;
   let lastMonth = null;
-  const listRows = groups.map(g => {
+  return groups.map(g => {
     let sub = '';
     if (g.month !== lastMonth) {
       lastMonth = g.month;
-      const m = summary.byMonth[g.month] || { hoshu: 0, koujo: 0 };
+      const m = byMonth[g.month] || { hoshu: 0, koujo: 0 };
       sub = `<div class="rh-month-sub"><span>${g.month.replace('-','年')}月 小計</span><span>報酬 ¥${Math.round(m.hoshu).toLocaleString('ja-JP')}　控除 ¥${Math.round(m.koujo).toLocaleString('ja-JP')}</span></div>`;
     }
     return sub + `
     <div class="rh-item">
       <div class="rh-item-main">
-        <div class="rh-uchi">${escapeHtml(g.uchi)}</div>
-        <div class="rh-meta">${escapeHtml(g.date)}　差玉 ${(g.sagitama >= 0 ? '+' : '') + Math.round(g.sagitama).toLocaleString('ja-JP')}玉　${g.count}台</div>
+        <div class="rh-uchi">${escapeHtml(g.date)}</div>
+        <div class="rh-meta">差玉 ${(g.sagitama >= 0 ? '+' : '') + Math.round(g.sagitama).toLocaleString('ja-JP')}玉　${g.count}台</div>
         <div class="rh-sub">控除 ¥${Math.round(g.koujo).toLocaleString('ja-JP')}　現金投資 ¥${Math.round(g.genkinInvest).toLocaleString('ja-JP')}</div>
       </div>
       <div class="rh-yen ${g.hoshu > 0 ? '' : 'zero'}">${rewardHistoryYen(g.hoshu)}</div>
     </div>`;
   }).join('');
-  el.innerHTML = `
-    <div class="an-card-title" style="margin-top:12px;">打ち手別合計（表示中）</div>
-    ${uchiRows}
-    <div class="rh-total"><span>合計</span><span>報酬 ¥${Math.round(summary.total.hoshu).toLocaleString('ja-JP')}　控除 ¥${Math.round(summary.total.koujo).toLocaleString('ja-JP')}</span></div>
-    <div class="an-card-title" style="margin-top:16px;">履歴（新しい順）</div>
-    ${listRows}`;
+}
+// 報酬履歴：打ち手ごとの折りたたみ（初期は閉じる）
+function renderRewardHistory() {
+  const el = document.getElementById('reward-history-list');
+  if (!el) return;
+  const groups = filterRewardHistory(buildRewardHistory(ALL_RECORDS), rewardHistoryFilter);
+  if (!groups.length) { el.innerHTML = '<div class="empty" style="padding:20px">報酬履歴がありません</div>'; return; }
+  const total = summarizeRewardHistory(groups).total;
+  const byUchi = groupRewardHistoryByUchi(groups);
+  el.innerHTML = byUchi.map(d => `
+    <details class="rh-uchi-details">
+      <summary class="rh-uchi-summary">
+        <span class="rh-uchi-main">
+          <span class="rh-uchi-name">${escapeHtml(d.uchi)}</span>
+          <span class="rh-uchi-nums">報酬 ¥${Math.round(d.hoshu).toLocaleString('ja-JP')}　控除 ¥${Math.round(d.koujo).toLocaleString('ja-JP')}　${d.days}日</span>
+        </span>
+      </summary>
+      <div class="rh-uchi-body">${rewardHistoryDayRows(d.groups)}</div>
+    </details>`).join('') + `
+    <div class="rh-total"><span>合計（${byUchi.length}人）</span><span>報酬 ¥${Math.round(total.hoshu).toLocaleString('ja-JP')}　控除 ¥${Math.round(total.koujo).toLocaleString('ja-JP')}</span></div>`;
 }
 // 報酬・設定タブ全体（上半分＝報酬履歴、下半分＝設定・マスタ編集）
 function renderHoshuTab() {
@@ -3486,17 +3653,31 @@ function buildHoshuConfirmRows(targetDate, records, kishus) {
     return newRows;
 }
 
-async function refreshHoshuStatus() {
+// 自動確定の状態の文言（純関数）
+function hoshuStatusText(data) {
+  if (!data || !data.startDate) return '';
+  const groups = Array.isArray(data.groups) ? data.groups : [];
+  const changed = groups.filter(g => g.status === 'changed');
+  const pending = groups.filter(g => g.status === 'pending');
+  return '自動確定: ' + data.startDate + '以降／翌日0:30頃。' +
+    (changed.length ? ' 再確定が必要: ' + changed.map(g => g.date + ' ' + g.uchi).join('、') : '') +
+    ' 未確定 ' + pending.length + '件。';
+}
+// 報酬の確定状態：報酬・設定タブを開いたときに、その日のうちは保存分を使う
+async function refreshHoshuStatus(force) {
   const el = document.getElementById('auto-hoshu-status');
+  if (!el) return;
+  const cache = readStoredJson(HOSHU_STATUS_KEY, rec => rec.data && typeof rec.data === 'object');
+  if (cache && !force && !shouldRefresh(cache.ts, Date.now())) {
+    const text = hoshuStatusText(cache.data);
+    if (text) { el.textContent = text; return; }
+  }
   try {
     const response = await gasFetch(GAS_URL + '?action=hoshuStatus', {redirect:'follow'});
     const data = await response.json();
     if (!response.ok || !data.success || !data.startDate) throw new Error('not ready');
-    const changed = data.groups.filter(g => g.status === 'changed');
-    const pending = data.groups.filter(g => g.status === 'pending');
-    el.textContent = '自動確定: ' + data.startDate + '以降／翌日0:30頃。' +
-      (changed.length ? ' 再確定が必要: ' + changed.map(g => g.date + ' ' + g.uchi).join('、') : '') +
-      ' 未確定 ' + pending.length + '件。';
+    writeStoredJson(HOSHU_STATUS_KEY, { ts: Date.now(), data });
+    el.textContent = hoshuStatusText(data);
   } catch (_) {
     el.textContent = '自動確定の稼働状態を確認できません。GASの導入・通信状態を確認してください。';
   }
@@ -3515,15 +3696,16 @@ async function doHoshuConfirm() {
       body:JSON.stringify({action:'reconfirmHoshu',date:targetDate})});
     const data = await response.json();
     if (!response.ok || !data.success) throw new Error(data.error || '書き込みを確認できません');
-    localStorage.removeItem('pachinkob_cache_v1');
-    await loadInit();
+    // 記録が変わったので、保存を捨てて取り直す
+    removeStored(CACHE_KEY);
+    await loadInit(true);
     alert('再確定しました: ' + data.processed.length + '件');
   } catch (e) {
     alert('再確定の完了を確認できません。報酬タブの状態を確認してから再試行してください。\n' + e.message);
   } finally {
     btn.disabled = false;
     btn.textContent = '再計算・再確定';
-    refreshHoshuStatus();
+    refreshHoshuStatus(true);
   }
 }
 
@@ -3597,18 +3779,44 @@ async function stockApi(url, options) {
   return data;
 }
 
-async function stockLoad() {
+// 貯玉：残高と台帳は同時に取り、結果を端末に保存する
+async function stockLoad(force) {
   const list = document.getElementById('stock-balances');
-  list.textContent = '読み込み中…';
-  try {
-    const balances = await stockApi(GAS_URL + '?action=stockBalances');
-    const ledger = await stockApi(GAS_URL + '?action=stockLedger');
-    stockBalances = balances.balances;
-    stockRows = ledger.rows;
-    if (!Array.isArray(stockBalances) || !Array.isArray(stockRows)) throw new Error('台帳データの形式が不正です');
+  const cache = readStoredJson(STOCK_CACHE_KEY, rec => Array.isArray(rec.balances) && Array.isArray(rec.rows));
+  let rendered = false;
+  if (cache && Array.isArray(cache.balances) && Array.isArray(cache.rows)) {
+    stockBalances = cache.balances;
+    stockRows = cache.rows;
     stockRender();
     stockUpdateShops();
-  } catch (error) { list.textContent = '読込失敗: ' + error.message; }
+    rendered = true;
+  }
+  // 保存があり、その日のうち（更新ボタンでもない）なら取り直さない
+  if (rendered && !force && !shouldRefresh(cache.ts, Date.now())) return;
+  if (!rendered) list.textContent = '読み込み中…';
+  try {
+    const [balances, ledger] = await Promise.all([
+      stockApi(GAS_URL + '?action=stockBalances'),
+      stockApi(GAS_URL + '?action=stockLedger'),
+    ]);
+    if (!Array.isArray(balances.balances) || !Array.isArray(ledger.rows)) throw new Error('台帳データの形式が不正です');
+    stockBalances = balances.balances;
+    stockRows = ledger.rows;
+    stockRender();
+    stockUpdateShops();
+    writeStoredJson(STOCK_CACHE_KEY, { ts: Date.now(), balances: stockBalances, rows: stockRows });
+  } catch (error) {
+    // 保存分を出せているときは、取り直しを押したときだけ失敗を出す
+    if (!rendered || force) list.textContent = '読込失敗: ' + error.message;
+  }
+}
+
+// 貯玉タブの更新ボタン（押したら必ず取り直す）
+async function stockReload() {
+  const btn = document.getElementById('stock-reload-btn');
+  if (btn) { btn.disabled = true; btn.textContent = '…'; }
+  try { await stockLoad(true); }
+  finally { if (btn) { btn.disabled = false; btn.textContent = '更新'; } }
 }
 
 function stockRender() {
@@ -3756,7 +3964,7 @@ async function stockSubmit() {
   try {
     await stockApi(GAS_URL, {method:'POST', redirect:'follow', headers:{'Content-Type':'text/plain'}, body:JSON.stringify(request)});
     stockResetForm();
-    await stockLoad();
+    await stockLoad(true);
   } catch (caught) { error.textContent = '結果を確認できません。台帳を更新してから確認してください: ' + caught.message; }
   finally { button.disabled = false; }
 }
@@ -3767,7 +3975,7 @@ async function stockVoid(index) {
   const error = document.getElementById('stock-error');
   try {
     await stockApi(GAS_URL, {method:'POST', redirect:'follow', headers:{'Content-Type':'text/plain'}, body:JSON.stringify({action:'voidStockEntry', id:row.id})});
-    await stockLoad();
+    await stockLoad(true);
   } catch (caught) { error.textContent = '結果を確認できません。台帳を更新してから確認してください: ' + caught.message; }
 }
 </script>

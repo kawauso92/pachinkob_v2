@@ -103,6 +103,42 @@ assert.deepEqual(plain(call('normalizeRewardHistoryFilter({month:"2026-10",uchi:
 assert.equal(call('rewardHistoryYen(0)'), '0円（未達）');
 assert.equal(call('rewardHistoryYen(5000)'), '¥5,000');
 
+// --- groupRewardHistoryByUchi（打ち手ごとの折りたたみ用のまとめ） ---
+const folded = plain(call('groupRewardHistoryByUchi(buildRewardHistory(recs))'));
+assert.deepEqual(folded.map(d => d.uchi), ['代1', '代2'], '打ち手ごとに分ける');
+assert.deepEqual(folded[0], {
+  uchi: '代1', hoshu: 7500, koujo: 1500, sagitama: 7500, genkinInvest: 12000, days: 2,
+  groups: [
+    { date: '2026-10-10', uchi: '代1', month: '2026-10', hoshu: 5000, koujo: 1200, sagitama: 5000, genkinInvest: 10000, count: 3 },
+    { date: '2026-09-20', uchi: '代1', month: '2026-09', hoshu: 2500, koujo: 300, sagitama: 2500, genkinInvest: 2000, count: 1 },
+  ],
+}, '日数と合計、その人の日付だけを中に入れる');
+assert.equal(folded[1].days, 1);
+assert.equal(folded[1].hoshu, 0, '未達の打ち手も1人として出す');
+assert.deepEqual(plain(call('groupRewardHistoryByUchi([])')), []);
+assert.deepEqual(plain(call('groupRewardHistoryByUchi(null)')), []);
+// 絞り込むと、その打ち手だけ・その期間だけになる
+const foldedOne = plain(call('groupRewardHistoryByUchi(filterRewardHistory(buildRewardHistory(recs), {month:"2026-09"}))'));
+assert.deepEqual(foldedOne.map(d => [d.uchi, d.days, d.hoshu]), [['代1', 1, 2500]]);
+
+// --- 報酬履歴の折りたたみ（見出しに打ち手名と合計、中に日付の一覧） ---
+// 要素を覚えるdocumentに差し替えてから描く
+const elements = new Map();
+context.document.getElementById = id => {
+  if (!elements.has(id)) elements.set(id, { textContent: '', innerHTML: '' });
+  return elements.get(id);
+};
+call('ALL_RECORDS = recs; rewardHistoryFilter = { month: "all", uchi: "all" };');
+call('renderRewardHistory()');
+const htmlOut = elements.get('reward-history-list').innerHTML;
+assert.ok(htmlOut.includes('<details class="rh-uchi-details">'), '打ち手ごとのdetails');
+assert.ok(!/<details[^>]* open/.test(htmlOut), '初期は閉じている');
+assert.ok(htmlOut.includes('>代1</span>') && htmlOut.includes('>代2</span>'), '見出しに打ち手名');
+assert.ok(htmlOut.includes('報酬 ¥7,500') && htmlOut.includes('控除 ¥1,500') && htmlOut.includes('2日'), '見出しに表示中の期間の合計と日数');
+assert.ok(htmlOut.includes('2026年10月 小計'), '中に月の小計');
+assert.ok(htmlOut.includes('0円（未達）'), '未達も出す');
+assert.ok(htmlOut.includes('合計（2人）'), '表示中の合計');
+
 // --- 絞り込みの選択はlocalStorageに保存する（読み書きはtry/catch） ---
 assert.ok(/try \{ localStorage\.setItem\(REWARD_HISTORY_FILTER_KEY/.test(script), 'localStorage書き込みはtry/catch');
 assert.ok(/try \{\n?\s*const raw = localStorage\.getItem\(REWARD_HISTORY_FILTER_KEY\)/.test(script), 'localStorage読み取りはtry/catch');
