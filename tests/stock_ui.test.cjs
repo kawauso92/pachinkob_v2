@@ -11,7 +11,9 @@ const call = expression => vm.runInContext(expression, context);
 
 assert.ok(html.includes('id="nav-stock"'));
 assert.ok(html.includes('id="tab-stock"'));
-assert.ok(html.includes('<div class="icon">🏦</div><div>貯玉</div>'));
+// 下部ナビは appa と同じ線のアイコン（絵文字は使わない）
+assert.ok(/id="nav-stock"[^>]*><svg class="icon"[\s\S]*?<div>貯玉<\/div>/.test(html), '貯玉のタブは線のアイコンと日本語ラベル');
+assert.ok(!/\p{Extended_Pictographic}/u.test(html), '絵文字を使わない');
 assert.equal(call('stockRedemptionPreview(3000, 28)'), 840);
 assert.equal(call('stockRedemptionPreview(1000, 27.78)'), 278);
 assert.equal(call('stockRedemptionPreview(1000, 27.75)'), 278);
