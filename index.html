@@ -189,9 +189,31 @@ canvas{display:block;width:100%;border-radius:var(--radius-sm);}
 .un-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;}
 .un-bar{width:100%;border-radius:3px 3px 0 0;min-height:2px;}
 .un-bar-label{font-size:8px;color:var(--text3);font-family:'JetBrains Mono',monospace;}
-.an-period{display:flex;gap:6px;margin-bottom:10px;}
-.an-period-btn{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 10px;font-size:10px;color:var(--text2);cursor:pointer;font-family:'JetBrains Mono',monospace;}
-.an-period-btn.active{border-color:var(--accent);color:var(--accent);}
+/* 分析タブの絞り込み（月・機種・打ち手を同時に効かせる） */
+.an-filter-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px;margin-bottom:10px;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
+.an-filter-field{min-width:0;display:flex;flex-direction:column;gap:3px;}
+.an-filter-label{font-size:9px;color:var(--text3);letter-spacing:1px;font-family:'JetBrains Mono',monospace;}
+.an-filter-select{width:100%;min-width:0;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 6px;color:var(--text);font-size:11px;font-family:'Noto Sans JP',sans-serif;outline:none;}
+.an-filter-select:focus{border-color:var(--accent);}
+.an-filter-summary{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;margin-bottom:10px;}
+.an-filter-summary .detail-item{padding:6px 8px;}
+/* 報酬履歴 */
+.rh-month-sub{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-top:10px;padding:6px 2px;border-bottom:1px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text2);}
+.rh-item{display:flex;justify-content:space-between;gap:8px;padding:9px 0;border-bottom:1px solid var(--border);min-width:0;}
+.rh-item-main{flex:1;min-width:0;}
+.rh-uchi{font-size:13px;font-weight:600;overflow-wrap:anywhere;}
+.rh-meta{font-size:10px;color:var(--text2);font-family:'JetBrains Mono',monospace;margin-top:2px;overflow-wrap:anywhere;}
+.rh-sub{font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-top:2px;overflow-wrap:anywhere;}
+.rh-yen{flex-shrink:0;text-align:right;font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:var(--magenta);}
+.rh-yen.zero{color:var(--text3);font-size:12px;}
+.rh-total{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:11px;}
+/* マスタ編集の折りたたみ */
+.set-details{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;margin-bottom:10px;}
+.set-details>summary{cursor:pointer;font-family:'Rajdhani',sans-serif;font-size:13px;letter-spacing:2px;color:var(--text2);list-style:none;}
+.set-details>summary::-webkit-details-marker{display:none;}
+.set-details>summary::before{content:'▸ ';}
+.set-details[open]>summary::before{content:'▾ ';}
+.set-details[open]>summary{margin-bottom:10px;}
 
 /* ホームタブ */
 .cal-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;}
@@ -240,12 +262,13 @@ canvas{display:block;width:100%;border-radius:var(--radius-sm);}
 .event-day-title,.event-list-title{font-family:'Rajdhani',sans-serif;font-size:14px;letter-spacing:2px;color:var(--text);}
 .event-day-sub,.event-list-sub{font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace;}
 .event-items{display:flex;flex-direction:column;gap:8px;}
-.event-item{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;}
-.event-item-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:6px;}
-.event-store{font-size:13px;font-weight:600;}
-.event-area{font-size:10px;color:var(--text3);margin-top:2px;}
-.event-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
-.event-tag{display:inline-flex;align-items:center;border-radius:999px;padding:3px 8px;font-size:10px;font-family:'JetBrains Mono',monospace;font-weight:700;border:1px solid transparent;}
+.event-item{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;min-width:0;overflow-wrap:anywhere;}
+.event-item-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:6px;min-width:0;}
+.event-item-top>div{min-width:0;}
+.event-store{font-size:13px;font-weight:600;overflow-wrap:anywhere;}
+.event-area{font-size:10px;color:var(--text3);margin-top:2px;overflow-wrap:anywhere;}
+.event-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-width:0;}
+.event-tag{display:inline-flex;align-items:center;border-radius:999px;padding:3px 8px;font-size:10px;font-family:'JetBrains Mono',monospace;font-weight:700;border:1px solid transparent;max-width:100%;overflow-wrap:anywhere;}
 .event-tag.blue{background:rgba(0,212,255,0.12);border-color:rgba(0,212,255,0.28);color:var(--accent);}
 .event-tag.green{background:rgba(57,255,110,0.12);border-color:rgba(57,255,110,0.28);color:var(--green);}
 .event-tag.orange{background:rgba(255,164,68,0.14);border-color:rgba(255,164,68,0.28);color:#ffb15e;}
@@ -254,7 +277,7 @@ canvas{display:block;width:100%;border-radius:var(--radius-sm);}
 .event-tag.gray{background:rgba(136,153,170,0.12);border-color:rgba(136,153,170,0.2);color:var(--text2);}
 .event-source{font-size:10px;color:var(--text2);font-family:'JetBrains Mono',monospace;}
 .event-date{font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace;white-space:nowrap;}
-.event-note{margin-top:7px;font-size:11px;color:var(--text3);line-height:1.5;padding-left:2px;}
+.event-note{margin-top:7px;font-size:11px;color:var(--text3);line-height:1.5;padding-left:2px;overflow-wrap:anywhere;}
 .event-delete{background:none;border:1px solid rgba(255,68,102,0.28);border-radius:999px;color:var(--red);font-size:10px;font-family:'JetBrains Mono',monospace;padding:4px 8px;cursor:pointer;}
 .event-delete:active{background:rgba(255,68,102,0.15);}
 .event-empty{padding:18px 12px;text-align:center;color:var(--text3);font-size:12px;}
@@ -273,13 +296,13 @@ canvas{display:block;width:100%;border-radius:var(--radius-sm);}
 .event-mode-btn.active{background:rgba(0,212,255,0.1);border-color:var(--accent);color:var(--accent);}
 /* 収集状態の警告 */
 .event-warning{margin-bottom:10px;padding:8px 10px;border-radius:8px;background:rgba(255,68,102,0.1);border:1px solid rgba(255,68,102,0.3);color:#ff8899;font-size:11px;font-family:'JetBrains Mono',monospace;line-height:1.5;}
-/* 推測される公約（1行→タップで全文） */
-.event-pledge{margin-top:7px;font-size:11px;color:var(--text2);line-height:1.5;cursor:pointer;}
+/* 推測される公約（2行までで省略→タップで全文） */
+.event-pledge{margin-top:7px;font-size:11px;color:var(--text2);line-height:1.5;cursor:pointer;overflow-wrap:anywhere;}
 .event-pledge-label{color:var(--text3);font-family:'JetBrains Mono',monospace;font-size:10px;margin-right:4px;}
-.event-pledge-text{display:inline;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.event-pledge.expanded .event-pledge-text{white-space:normal;overflow:visible;}
+.event-pledge-text{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:anywhere;}
+.event-pledge.expanded .event-pledge-text{display:block;-webkit-line-clamp:unset;overflow:visible;}
 /* 店の情報（旧イベント日・周年日など。件数には数えない） */
-.event-store-info{margin-top:5px;font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace;line-height:1.5;padding-left:2px;}
+.event-store-info{margin-top:5px;font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace;line-height:1.5;padding-left:2px;overflow-wrap:anywhere;}
 .event-store-info b{color:var(--text2);font-weight:600;}
 .event-tag.unjudged{background:rgba(136,153,170,0.12);border-color:rgba(136,153,170,0.25);color:var(--text2);}
 /* 貯玉台帳 */
@@ -302,6 +325,8 @@ canvas{display:block;width:100%;border-radius:var(--radius-sm);}
 .stock-error{font-size:11px;color:var(--red);margin:8px 0;min-height:1em;}
 .stock-preview{font-size:12px;color:var(--accent);margin:8px 0;}
 .stock-form-actions{display:flex;gap:8px;}
+/* 下のタブが6つになったので、狭い幅ではラベルを縮めて1行に収める */
+@media(max-width:400px){.nav-btn{font-size:9px;letter-spacing:0;padding-left:1px;padding-right:1px}.nav-btn .icon{font-size:18px}}
 @media(max-width:350px){.nav-btn{font-size:9px;letter-spacing:0;padding-left:1px;padding-right:1px}.nav-btn .icon{font-size:17px}}
 </style>
 </head>
@@ -357,6 +382,23 @@ canvas{display:block;width:100%;border-radius:var(--radius-sm);}
   </div>
 
   <div class="tab-content" id="tab-analysis">
+    <!-- 絞り込み（月・機種・打ち手を同時に効かせる） -->
+    <div class="an-filter-section">
+      <div class="an-filter-field">
+        <label class="an-filter-label" for="an-filter-month">月</label>
+        <select class="an-filter-select" id="an-filter-month" onchange="onAnalysisFilterChange()"></select>
+      </div>
+      <div class="an-filter-field">
+        <label class="an-filter-label" for="an-filter-kishu">機種</label>
+        <select class="an-filter-select" id="an-filter-kishu" onchange="onAnalysisFilterChange()"></select>
+      </div>
+      <div class="an-filter-field">
+        <label class="an-filter-label" for="an-filter-uchi">打ち手</label>
+        <select class="an-filter-select" id="an-filter-uchi" onchange="onAnalysisFilterChange()"></select>
+      </div>
+    </div>
+    <!-- 絞り込み結果の要約 -->
+    <div class="an-filter-summary" id="an-filter-summary"></div>
     <div class="an-tabs">
       <div class="an-tab active" onclick="switchAnTab('monthly')">月別</div>
       <div class="an-tab" onclick="switchAnTab('kishu')">機種別</div>
@@ -381,11 +423,6 @@ canvas{display:block;width:100%;border-radius:var(--radius-sm);}
 
     <!-- 総合 -->
     <div class="an-section" id="an-overall">
-      <div class="an-period">
-        <button class="an-period-btn active" onclick="setRankPeriod('all',this)">全期間</button>
-        <button class="an-period-btn" onclick="setRankPeriod('3m',this)">3ヶ月</button>
-        <button class="an-period-btn" onclick="setRankPeriod('1m',this)">当月</button>
-      </div>
       <div class="an-card">
         <div class="an-card-title">機種別収支ランキング</div>
         <div id="rank-kishu"></div>
@@ -414,15 +451,6 @@ canvas{display:block;width:100%;border-radius:var(--radius-sm);}
       </div>
     </div>
   </div>
-  <!-- 報酬タブ -->
-  <div class="tab-content" id="tab-hoshu">
-    <div id="auto-hoshu-status" style="font-size:12px;padding:12px;">自動確定の状態を確認中…</div>
-    <div class="hoshu-result-panel" id="hoshu-result-panel">
-      <div class="hoshu-result-title">REWARD SUMMARY</div>
-      <div id="hoshu-result-body"></div>
-    </div>
-  </div>
-
   <!-- 貯玉タブ -->
   <div class="tab-content" id="tab-stock">
     <div class="stock-card">
@@ -453,7 +481,7 @@ canvas{display:block;width:100%;border-radius:var(--radius-sm);}
     </div>
   </div>
 
-  <!-- マスタタブ -->
+  <!-- イベントタブ -->
   <div class="tab-content" id="tab-events">
     <!-- パチンコ/スロット切り替え（判定情報があるときだけ表示。旧events.jsonのみのときは隠す） -->
     <div class="event-mode-row" id="event-mode-row" style="display:none;">
@@ -490,12 +518,37 @@ canvas{display:block;width:100%;border-radius:var(--radius-sm);}
     <div class="an-card" id="event-list-panel"></div>
   </div>
 
-  <div class="tab-content" id="tab-master">
+  <!-- 報酬・設定タブ（旧・報酬タブ＋旧・マスタタブ） -->
+  <div class="tab-content" id="tab-hoshu">
+    <!-- 上半分：報酬履歴（ALL_RECORDSから作る） -->
+    <div class="an-card">
+      <div class="an-card-title">報酬履歴</div>
+      <div class="an-filter-section">
+        <div class="an-filter-field">
+          <label class="an-filter-label" for="rh-filter-month">月</label>
+          <select class="an-filter-select" id="rh-filter-month" onchange="onRewardHistoryFilterChange()"></select>
+        </div>
+        <div class="an-filter-field">
+          <label class="an-filter-label" for="rh-filter-uchi">打ち手</label>
+          <select class="an-filter-select" id="rh-filter-uchi" onchange="onRewardHistoryFilterChange()"></select>
+        </div>
+      </div>
+      <div id="reward-history-list"></div>
+    </div>
+
+    <!-- 下半分：設定（自動確定の状態・再計算/再確定・マスタ編集） -->
+    <div class="an-card">
+      <div class="an-card-title">自動確定</div>
+      <div id="auto-hoshu-status" style="font-size:12px;">自動確定の状態を確認中…</div>
+    </div>
     <div class="an-card">
       <button class="hoshu-confirm-btn" id="hoshu-confirm-btn" onclick="doHoshuConfirm()">再計算・再確定</button>
       <div style="font-size:11px;">導入日以降の過去日が対象です。送信後の訂正がある場合に使用します。</div>
     </div>
-    <div class="an-tabs">
+    <!-- マスタ編集（初期は閉じておく） -->
+    <details class="set-details">
+      <summary>マスタ編集（店・機種・打ち手・イベント説明）</summary>
+      <div class="an-tabs">
       <div class="an-tab active" onclick="switchSetTab('shop')">店</div>
       <div class="an-tab" onclick="switchSetTab('kishu')">機種</div>
       <div class="an-tab" onclick="switchSetTab('uchi')">打ち手</div>
@@ -605,16 +658,16 @@ canvas{display:block;width:100%;border-radius:var(--radius-sm);}
         <div id="set-event-note-list"></div>
       </div>
     </div>
+    </details>
   </div>
 </div>
 <div class="bottom-nav">
   <button class="nav-btn active" id="nav-home"     onclick="switchTab('home')"><div class="icon">🏠</div><div>ホーム</div></button>
   <button class="nav-btn" id="nav-analysis" onclick="switchTab('analysis')"><div class="icon">📊</div><div>分析</div></button>
   <button class="nav-btn" id="nav-records"  onclick="switchTab('records')"><div class="icon">📋</div><div>記録</div></button>
-  <button class="nav-btn" id="nav-hoshu"    onclick="switchTab('hoshu')"><div class="icon">💰</div><div>報酬</div></button>
   <button class="nav-btn" id="nav-stock"    onclick="switchTab('stock')"><div class="icon">🏦</div><div>貯玉</div></button>
   <button class="nav-btn" id="nav-events"   onclick="switchTab('events')"><div class="icon">📅</div><div>イベント</div></button>
-  <button class="nav-btn" id="nav-master"   onclick="switchTab('master')"><div class="icon">⚙️</div><div>マスタ</div></button>
+  <button class="nav-btn" id="nav-hoshu"    onclick="switchTab('hoshu')"><div class="icon">💰</div><div>報酬・設定</div></button>
 </div>
 <div class="detail-overlay" id="detailOverlay" onclick="closeDetail(event)">
   <div class="detail-panel">
@@ -912,11 +965,9 @@ function setEventMode(mode) {
   renderEventsTab();
 }
 function toggleEventPledge(el) {
+  // 省略はCSSの -webkit-line-clamp で行い、ここでは開閉だけ切り替える
   if (!el) return;
-  const text = el.querySelector('.event-pledge-text');
-  if (!text) return;
-  const expanded = el.classList.toggle('expanded');
-  text.textContent = expanded ? (el.getAttribute('data-full') || '') : (el.getAttribute('data-short') || '');
+  el.classList.toggle('expanded');
 }
 // 重複を除きつつ順序を保つ
 function dedupeEventListKeepOrder(list) {
@@ -1100,14 +1151,14 @@ async function loadEventData() {
     if (dates.length) selectedEventDate = dates[0];
   }
   tabDirty.events = true;
-  tabDirty.master = true;
+  tabDirty.hoshu = true;
   if (currentTab === 'events') {
     renderEventsTab();
     tabDirty.events = false;
   }
-  if (currentTab === 'master') {
-    renderSetting();
-    tabDirty.master = false;
+  if (currentTab === 'hoshu') {
+    renderHoshuTab();
+    tabDirty.hoshu = false;
   }
 }
 
@@ -1174,7 +1225,8 @@ function loadCache() {
 let currentTab = 'home';
 
 // タブごとに「要再描画」フラグを管理（データ更新時にセット）
-const tabDirty = { home: true, analysis: true, records: true, events: true, master: true };
+// 旧マスタは報酬・設定タブ（hoshu）へ統合したため master は無い
+const tabDirty = { home: true, analysis: true, records: true, events: true, hoshu: true };
 
 // データ適用：グローバル変数を更新し、現在のタブのみ再描画
 function applyData(data) {
@@ -1195,7 +1247,7 @@ function renderCurrentTab() {
   if (currentTab === 'records')  { render();         tabDirty.records  = false; }
   if (currentTab === 'analysis') { renderAnalysis(); tabDirty.analysis = false; }
   if (currentTab === 'events')   { renderEventsTab(); tabDirty.events  = false; }
-  if (currentTab === 'master')   { renderSetting();  tabDirty.master   = false; }
+  if (currentTab === 'hoshu')    { renderHoshuTab(); tabDirty.hoshu    = false; }
 }
 
 // スケルトンUIを表示（キャッシュなし時の初回ロード用）
@@ -1275,6 +1327,9 @@ function buildFilters() {
     c.dataset.val = m;
     mBar.appendChild(c);
   });
+  // 分析・報酬履歴の絞り込み候補も一緒に作り直す
+  buildAnalysisFilters();
+  buildRewardHistoryFilters();
 }
 
 function makeChip(label, active, fn) {
@@ -1458,15 +1513,16 @@ function calcAggregateUnPercent(stat) {
 
 let _cb = null;
 let currentAnTab = 'monthly';
-let rankPeriod = 'all';
 
 // =============================================
 // タブ切り替え
 // =============================================
 function switchTab(tab) {
+  // 旧マスタは「報酬・設定」タブへ統合したので、呼ばれても報酬・設定を開く
+  if (tab === 'master') tab = 'hoshu';
   if (currentTab === 'stock' && tab !== 'stock') stockSelected = null;
   currentTab = tab;
-  ['home','analysis','records','hoshu','stock','events','master'].forEach(t => {
+  ['home','analysis','records','hoshu','stock','events'].forEach(t => {
     document.getElementById('tab-'+t).classList.toggle('active', t === tab);
     document.getElementById('nav-'+t).classList.toggle('active', t === tab);
   });
@@ -1475,7 +1531,7 @@ function switchTab(tab) {
   if (tab === 'analysis' && tabDirty.analysis) { renderAnalysis(); tabDirty.analysis = false; }
   if (tab === 'records'  && tabDirty.records)  { render();         tabDirty.records  = false; }
   if (tab === 'events'   && tabDirty.events)   { renderEventsTab(); tabDirty.events  = false; }
-  if (tab === 'master'   && tabDirty.master)   { renderSetting();  tabDirty.master   = false; }
+  if (tab === 'hoshu'    && tabDirty.hoshu)    { renderHoshuTab();  tabDirty.hoshu    = false; }
   if (tab === 'stock') {
     if (!document.getElementById('stock-date').value) stockResetForm();
     stockLoad();
@@ -1813,11 +1869,10 @@ function renderEventItem(item) {
   // 取材とは別の「店の情報」（旧イベント日・周年日など）を店名の下へ小さく出す
   const infoHtml = getStoreInfoFor(item.date, item.store).map(renderStoreInfoLine).join('');
   const unjudgedTag = item.unjudged ? '<span class="event-tag unjudged">未判定</span>' : '';
-  // 推測される公約（空なら出さない。長い場合は省略し、タップで全文）
+  // 推測される公約（空なら出さない。2行まではCSSで省略し、タップで全文に切り替え）
   const pledge = String(item.pledge || '').trim();
-  const shortPledge = shortenEventPledge(pledge, 60);
   const pledgeHtml = pledge
-    ? `<div class="event-pledge" data-full="${escapeHtml(pledge)}" data-short="${escapeHtml(shortPledge)}" onclick="toggleEventPledge(this)"><span class="event-pledge-label">推測される公約</span><span class="event-pledge-text">${escapeHtml(shortPledge)}</span></div>`
+    ? `<div class="event-pledge" data-full="${escapeHtml(pledge)}" onclick="toggleEventPledge(this)"><span class="event-pledge-label">推測される公約</span><span class="event-pledge-text">${escapeHtml(pledge)}</span></div>`
     : '';
   return `
     <div class="event-item">
@@ -1923,26 +1978,169 @@ async function deleteManualEvent(date, store, eventName) {
 function switchAnTab(tab) {
   currentAnTab = tab;
   const tabs = ['monthly','kishu','uchi','overall'];
-  document.querySelectorAll('.an-tab').forEach((el,i) => el.classList.toggle('active', tabs[i] === tab));
-  document.querySelectorAll('.an-section').forEach(el => el.classList.remove('active'));
+  // 分析タブの中だけを切り替える（配下のマスタ編集に影響させない）
+  document.querySelectorAll('#tab-analysis .an-tab').forEach((el,i) => el.classList.toggle('active', tabs[i] === tab));
+  document.querySelectorAll('#tab-analysis .an-section').forEach(el => el.classList.remove('active'));
   document.getElementById('an-'+tab).classList.add('active');
   // サブタブ切り替え時は常に描画（サブタブを変えたということはコンテンツを見たいから）
   tabDirty.analysis = false;
   renderAnalysis();
 }
 
-function setRankPeriod(p, btn) {
-  rankPeriod = p;
-  document.querySelectorAll('.an-period-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  renderOverall();
-}
-
 function renderAnalysis() {
+  renderAnalysisFilter();
   if (currentAnTab === 'monthly')  renderMonthly();
   if (currentAnTab === 'kishu')    renderKishu();
   if (currentAnTab === 'uchi')     renderUchi();
   if (currentAnTab === 'overall')  renderOverall();
+}
+
+// =============================================
+// 分析タブの絞り込み（月・機種・打ち手）と要約
+// 絞り込みの判定・要約の集計は純関数にしてここへまとめる
+// =============================================
+const ANALYSIS_FILTER_KEY = 'analysisFilter';
+
+// 絞り込みの初期値。保存値は読み取り失敗しても既定値で動く
+let analysisFilter = Object.assign({ month: 'all', kishu: 'all', uchi: 'all' }, readAnalysisFilter() || {});
+
+function readAnalysisFilter() {
+  try {
+    const raw = localStorage.getItem(ANALYSIS_FILTER_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) { return null; }
+}
+function saveAnalysisFilter(filter) {
+  try { localStorage.setItem(ANALYSIS_FILTER_KEY, JSON.stringify(filter)); } catch (e) {}
+}
+
+// 記録にある月（新しい順・重複なし）を返す
+function analysisMonths(records) {
+  return [...new Set((Array.isArray(records) ? records : [])
+    .map(r => (r && r.date) ? String(r.date).slice(0, 7) : '')
+    .filter(Boolean))].sort().reverse();
+}
+// 絞り込みの選択肢（記録にあるものだけ）
+function buildAnalysisFilterOptions(records) {
+  const list = Array.isArray(records) ? records : [];
+  return {
+    months: analysisMonths(list),
+    kishus: [...new Set(list.map(r => r && r.kishu).filter(Boolean))].sort((a, b) => String(a).localeCompare(String(b), 'ja')),
+    uchis:  [...new Set(list.map(r => r && r.uchi).filter(Boolean))].sort((a, b) => String(a).localeCompare(String(b), 'ja')),
+  };
+}
+// 保存値が選択肢に無ければ all に戻す
+function normalizeAnalysisFilter(filter, options) {
+  const f = filter || {};
+  const opt = options || { months: [], kishus: [], uchis: [] };
+  const months = Array.isArray(opt.months) ? opt.months : [];
+  const kishus = Array.isArray(opt.kishus) ? opt.kishus : [];
+  const uchis = Array.isArray(opt.uchis) ? opt.uchis : [];
+  const month = (f.month === 'all' || f.month === '3m' || months.includes(f.month)) ? f.month : 'all';
+  return {
+    month,
+    kishu: kishus.includes(f.kishu) ? f.kishu : 'all',
+    uchi:  uchis.includes(f.uchi)  ? f.uchi  : 'all',
+  };
+}
+// 1件の日付が月の絞り込みに合うか（'all' / '3m' / 'YYYY-MM'）。nowは確認用に差し替え可能
+function analysisMonthMatches(dateStr, month, now) {
+  if (month === 'all' || !month) return true;
+  if (!dateStr) return false;
+  const m = String(dateStr).slice(0, 7);
+  if (month === '3m') {
+    const base = (now instanceof Date) ? now : new Date();
+    const parts = m.split('-');
+    const y = Number(parts[0]);
+    const mo = Number(parts[1]);
+    if (!y || !mo) return false;
+    const diff = (base.getFullYear() - y) * 12 + (base.getMonth() + 1 - mo);
+    return diff >= 0 && diff < 3;
+  }
+  return m === month;
+}
+// 3つの絞り込みを同時に効かせる
+function filterAnalysisRecords(records, filter, now) {
+  const f = filter || {};
+  return (Array.isArray(records) ? records : []).filter(r => {
+    if (!r) return false;
+    if (!analysisMonthMatches(r.date, f.month || 'all', now)) return false;
+    if (f.kishu && f.kishu !== 'all' && r.kishu !== f.kishu) return false;
+    if (f.uchi  && f.uchi  !== 'all' && r.uchi  !== f.uchi)  return false;
+    return true;
+  });
+}
+// 絞り込んだ記録の要約（試し打ちは仕事量・稼働時間・期待時給から除く＝既存ルール）
+// 平均期待時給は既存の分析表示と同じ「稼働時間での重み付け平均」で出す
+function summarizeAnalysisRecords(records) {
+  const list = Array.isArray(records) ? records : [];
+  let total = 0, shigoto = 0, jikanMin = 0, kitaiW = 0, kitaiV = 0;
+  list.forEach(r => {
+    if (!r) return;
+    const isTrial = isTrialRecord(r);
+    const min = isTrial ? 0 : jikanToMin(r.jikan);
+    total    += (r.kosshi || 0);
+    shigoto  += isTrial ? 0 : (r.shigoto || 0);
+    jikanMin += min;
+    if (!isTrial && r.kitaiJikyu != null && r.kitaiJikyu !== '') { kitaiW += min; kitaiV += r.kitaiJikyu * min; }
+  });
+  return {
+    count: list.length,
+    total,
+    shigoto,
+    jikanMin,
+    jikyu:    jikanMin ? Math.round(total / (jikanMin / 60)) : null,
+    avgKitai: kitaiW ? Math.round(kitaiV / kitaiW) : null,
+  };
+}
+// 分析タブの絞り込みselectを、記録にある選択肢で作り直す
+function buildAnalysisFilters() {
+  const options = buildAnalysisFilterOptions(ALL_RECORDS);
+  analysisFilter = normalizeAnalysisFilter(analysisFilter, options);
+  const monthSel = document.getElementById('an-filter-month');
+  const kishuSel = document.getElementById('an-filter-kishu');
+  const uchiSel  = document.getElementById('an-filter-uchi');
+  if (!monthSel || !kishuSel || !uchiSel) return;
+  monthSel.innerHTML = '<option value="all">全期間</option><option value="3m">直近3か月</option>' +
+    options.months.map(m => `<option value="${m}">${m.replace('-','年')}月</option>`).join('');
+  kishuSel.innerHTML = '<option value="all">すべて</option>' +
+    options.kishus.map(k => `<option value="${escapeHtml(k)}">${escapeHtml(k)}</option>`).join('');
+  uchiSel.innerHTML = '<option value="all">すべて</option>' +
+    options.uchis.map(u => `<option value="${escapeHtml(u)}">${escapeHtml(u)}</option>`).join('');
+  syncAnalysisFilterSelects();
+}
+function syncAnalysisFilterSelects() {
+  const set = (id, value) => { const el = document.getElementById(id); if (el) el.value = value; };
+  set('an-filter-month', analysisFilter.month);
+  set('an-filter-kishu', analysisFilter.kishu);
+  set('an-filter-uchi',  analysisFilter.uchi);
+}
+// selectが変わったとき：保存して、要約と各表示を作り直す
+function onAnalysisFilterChange() {
+  const options = buildAnalysisFilterOptions(ALL_RECORDS);
+  analysisFilter = normalizeAnalysisFilter({
+    month: document.getElementById('an-filter-month').value,
+    kishu: document.getElementById('an-filter-kishu').value,
+    uchi:  document.getElementById('an-filter-uchi').value,
+  }, options);
+  saveAnalysisFilter(analysisFilter);
+  syncAnalysisFilterSelects();
+  renderAnalysis();
+}
+// 絞り込み結果の要約（一番上に出す）
+function renderAnalysisFilter() {
+  const el = document.getElementById('an-filter-summary');
+  if (!el) return;
+  const s = summarizeAnalysisRecords(getPeriodRecords());
+  const items = [
+    {label:'件数',       val: s.count + '件', cls:''},
+    {label:'収支合計',   val: fmtYen(s.total),        cls: signCls(s.total)},
+    {label:'仕事量合計', val: fmtYen(s.shigoto),      cls: signCls(s.shigoto)},
+    {label:'稼働時間',   val: s.jikanMin ? (s.jikanMin/60).toFixed(1)+'h' : '—', cls:''},
+    {label:'時給',       val: s.jikyu != null ? fmtYen(s.jikyu) : '—', cls: signCls(s.jikyu)},
+    {label:'平均期待時給', val: s.avgKitai != null ? fmtYen(s.avgKitai) : '—', cls: kitaiCls(s.avgKitai)},
+  ];
+  el.innerHTML = makeStatGrid(items);
 }
 
 // =============================================
@@ -1992,7 +2190,7 @@ function accumulateMochiRatioStat(target, r) {
 function renderMonthly() {
   const byMonth = {};
   const total1RMap = buildMachineTotal1RMap(MASTERS.kishus || []);
-  ALL_RECORDS.forEach(r => {
+  getPeriodRecords().forEach(r => {
     const m = r.date ? r.date.slice(0,7) : '不明';
     if (!byMonth[m]) byMonth[m] = {total:0,shigoto:0,jikanMin:0,count:0,wins:0,kitaiW:0,kitaiV:0,unStat:createAggregateUnStat(),mochiRatioW:0,mochiRatioV:0};
     const d = byMonth[m];
@@ -2059,7 +2257,7 @@ function renderMonthly() {
 function renderKishu() {
   const map = {};
   const total1RMap = buildMachineTotal1RMap(MASTERS.kishus || []);
-  ALL_RECORDS.forEach(r => {
+  getPeriodRecords().forEach(r => {
     const k = r.kishu || '不明';
     if (!map[k]) map[k] = {total:0,shigoto:0,jikanMin:0,count:0,wins:0,kitaiW:0,kitaiV:0,unStat:createAggregateUnStat(),kaitenW:0,kaitenV:0};
     const d = map[k];
@@ -2115,7 +2313,7 @@ function renderKishu() {
 function renderUchi() {
   const map = {};
   const total1RMap = buildMachineTotal1RMap(MASTERS.kishus || []);
-  ALL_RECORDS.forEach(r => {
+  getPeriodRecords().forEach(r => {
     const k = r.uchi || '自分';
     if (!map[k]) map[k] = {total:0,shigoto:0,hoshu:0,jikanMin:0,count:0,wins:0,kitaiW:0,kitaiV:0,unStat:createAggregateUnStat(),genkinInvest:0,koujo:0,mochiRatioW:0,mochiRatioV:0};
     const d = map[k];
@@ -2199,17 +2397,9 @@ function renderUchi() {
 // =============================================
 // 総合
 // =============================================
+// 分析タブの3つの絞り込み（月・機種・打ち手）を適用した記録を返す
 function getPeriodRecords() {
-  const now = new Date();
-  return ALL_RECORDS.filter(r => {
-    if (rankPeriod === 'all') return true;
-    if (!r.date) return false;
-    const d = new Date(r.date);
-    const diffM = (now.getFullYear()-d.getFullYear())*12+(now.getMonth()-d.getMonth());
-    if (rankPeriod === '1m') return diffM === 0;
-    if (rankPeriod === '3m') return diffM < 3;
-    return true;
-  });
+  return filterAnalysisRecords(ALL_RECORDS, analysisFilter);
 }
 
 function groupBy(recs, key) {
@@ -2290,7 +2480,7 @@ function renderOverall() {
   const total1RMap = buildMachineTotal1RMap(MASTERS.kishus || []);
   const unValues = [];
   const unStat = createAggregateUnStat();
-  ALL_RECORDS.forEach(r => {
+  recs.forEach(r => {
     if (isTrialRecord(r)) return;
     const parts = getRecordAggregateUnParts(r, total1RMap);
     if (!parts) {
@@ -2340,8 +2530,9 @@ async function loadMasters() {
 function switchSetTab(tab) {
   currentSetTab = tab;
   const tabs = ['shop','kishu','uchi','event-note'];
-  document.querySelectorAll('#tab-master .an-tab').forEach((el,i) => el.classList.toggle('active', tabs[i] === tab));
-  document.querySelectorAll('#tab-master .an-section').forEach(el => el.classList.remove('active'));
+  // マスタ編集は報酬・設定タブの中にある
+  document.querySelectorAll('#tab-hoshu .an-tab').forEach((el,i) => el.classList.toggle('active', tabs[i] === tab));
+  document.querySelectorAll('#tab-hoshu .an-section').forEach(el => el.classList.remove('active'));
   document.getElementById('set-'+tab).classList.add('active');
   renderSetting();
 }
@@ -2706,8 +2897,8 @@ async function saveMaster(key, data) {
     });
     // キャッシュ更新
     saveCache({shops: MASTERS.shops, kishus: MASTERS.kishus, uchis: MASTERS.uchis, records: ALL_RECORDS});
-    // マスタタブを即再描画（他タブはダーティのまま）
-    tabDirty.master = false;
+    // 報酬・設定タブを即再描画（他タブはダーティのまま）
+    tabDirty.hoshu = false;
   } catch(e) {}
 }
 
@@ -2789,6 +2980,176 @@ function calcEffectiveKitaiWeight(soKaiten, machineHourlyRate) {
   const rate = Number(machineHourlyRate);
   if (!Number.isFinite(rot) || !Number.isFinite(rate) || rot <= 0 || rate <= 0) return 0;
   return rot / rate;
+}
+
+// =============================================
+// 報酬履歴（報酬・設定タブの上半分）
+// ALL_RECORDSから「日付×打ち手」でまとめる。まとめ方・合計は純関数にする
+// =============================================
+const REWARD_HISTORY_FILTER_KEY = 'rewardHistoryFilter';
+
+// 絞り込みの初期値。保存値が読めなくても既定値で動く
+let rewardHistoryFilter = Object.assign({ month: 'all', uchi: 'all' }, readRewardHistoryFilter() || {});
+
+function readRewardHistoryFilter() {
+  try {
+    const raw = localStorage.getItem(REWARD_HISTORY_FILTER_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) { return null; }
+}
+function saveRewardHistoryFilter(filter) {
+  try { localStorage.setItem(REWARD_HISTORY_FILTER_KEY, JSON.stringify(filter)); } catch (e) {}
+}
+
+// 自分以外の記録を 日付×打ち手 でまとめる
+// 報酬はまとまりの合計（最後の行にだけ金額が入り、他の行は0）
+function buildRewardHistory(records) {
+  const groups = new Map();
+  (Array.isArray(records) ? records : []).forEach(r => {
+    if (!r) return;
+    const uchi = r.uchi || '自分';
+    if (uchi === '自分') return; // 自分の稼働は報酬対象外
+    const date = r.date || '';
+    if (!date) return;
+    const key = date + '||' + uchi;
+    if (!groups.has(key)) groups.set(key, {
+      date, uchi, month: date.slice(0, 7),
+      hoshu: 0, koujo: 0, sagitama: 0, genkinInvest: 0, count: 0,
+    });
+    const g = groups.get(key);
+    g.hoshu        += (r.hoshu || 0);
+    g.koujo        += (r.koujo || 0);
+    g.sagitama     += (r.sagitama || 0);
+    g.genkinInvest += (r.genkinInvest || 0);
+    g.count        += 1; // 台数（その日の稼働行数）
+  });
+  // 新しい日付順（同じ日は打ち手名順）
+  return [...groups.values()].sort((a, b) =>
+    b.date.localeCompare(a.date) || String(a.uchi).localeCompare(String(b.uchi), 'ja'));
+}
+// 月・打ち手で絞り込む
+function filterRewardHistory(groups, filter) {
+  const f = filter || {};
+  return (Array.isArray(groups) ? groups : []).filter(g => {
+    if (!g) return false;
+    if (f.month && f.month !== 'all' && g.month !== f.month) return false;
+    if (f.uchi  && f.uchi  !== 'all' && g.uchi  !== f.uchi)  return false;
+    return true;
+  });
+}
+// 絞り込みの選択肢（報酬対象のまとまりにあるものだけ）
+function buildRewardHistoryFilterOptions(groups) {
+  const list = Array.isArray(groups) ? groups : [];
+  return {
+    months: [...new Set(list.map(g => g.month).filter(Boolean))].sort().reverse(),
+    uchis:  [...new Set(list.map(g => g.uchi).filter(Boolean))].sort((a, b) => String(a).localeCompare(String(b), 'ja')),
+  };
+}
+function normalizeRewardHistoryFilter(filter, options) {
+  const f = filter || {};
+  const opt = options || { months: [], uchis: [] };
+  const months = Array.isArray(opt.months) ? opt.months : [];
+  const uchis  = Array.isArray(opt.uchis)  ? opt.uchis  : [];
+  return {
+    month: months.includes(f.month) ? f.month : 'all',
+    uchi:  uchis.includes(f.uchi)   ? f.uchi  : 'all',
+  };
+}
+// 月ごとの小計（報酬・控除）と打ち手別合計（表示中＝絞り込み後のまとまりから作る）
+function summarizeRewardHistory(groups) {
+  const list = Array.isArray(groups) ? groups : [];
+  const byMonth = {}, byUchi = {};
+  list.forEach(g => {
+    if (!g) return;
+    if (!byMonth[g.month]) byMonth[g.month] = { hoshu: 0, koujo: 0, count: 0 };
+    byMonth[g.month].hoshu += g.hoshu;
+    byMonth[g.month].koujo += g.koujo;
+    byMonth[g.month].count += 1;
+    if (!byUchi[g.uchi]) byUchi[g.uchi] = { hoshu: 0, koujo: 0, sagitama: 0, genkinInvest: 0, count: 0 };
+    byUchi[g.uchi].hoshu        += g.hoshu;
+    byUchi[g.uchi].koujo        += g.koujo;
+    byUchi[g.uchi].sagitama     += g.sagitama;
+    byUchi[g.uchi].genkinInvest += g.genkinInvest;
+    byUchi[g.uchi].count        += g.count;
+  });
+  const total = Object.values(byMonth).reduce((t, m) => {
+    t.hoshu += m.hoshu; t.koujo += m.koujo; return t;
+  }, { hoshu: 0, koujo: 0 });
+  return { byMonth, byUchi, total };
+}
+
+// 報酬履歴の絞り込みselectを、報酬対象のまとまりで作り直す
+function buildRewardHistoryFilters() {
+  const options = buildRewardHistoryFilterOptions(buildRewardHistory(ALL_RECORDS));
+  rewardHistoryFilter = normalizeRewardHistoryFilter(rewardHistoryFilter, options);
+  const monthSel = document.getElementById('rh-filter-month');
+  const uchiSel  = document.getElementById('rh-filter-uchi');
+  if (!monthSel || !uchiSel) return;
+  monthSel.innerHTML = '<option value="all">全期間</option>' +
+    options.months.map(m => `<option value="${m}">${m.replace('-','年')}月</option>`).join('');
+  uchiSel.innerHTML = '<option value="all">すべて</option>' +
+    options.uchis.map(u => `<option value="${escapeHtml(u)}">${escapeHtml(u)}</option>`).join('');
+  monthSel.value = rewardHistoryFilter.month;
+  uchiSel.value  = rewardHistoryFilter.uchi;
+}
+function onRewardHistoryFilterChange() {
+  const options = buildRewardHistoryFilterOptions(buildRewardHistory(ALL_RECORDS));
+  rewardHistoryFilter = normalizeRewardHistoryFilter({
+    month: document.getElementById('rh-filter-month').value,
+    uchi:  document.getElementById('rh-filter-uchi').value,
+  }, options);
+  saveRewardHistoryFilter(rewardHistoryFilter);
+  buildRewardHistoryFilters();
+  renderRewardHistory();
+}
+// 報酬0のまとまりは「0円（未達）」で出す
+function rewardHistoryYen(hoshu) {
+  return hoshu > 0 ? '¥' + Math.round(hoshu).toLocaleString('ja-JP') : '0円（未達）';
+}
+function renderRewardHistory() {
+  const el = document.getElementById('reward-history-list');
+  if (!el) return;
+  const groups = filterRewardHistory(buildRewardHistory(ALL_RECORDS), rewardHistoryFilter);
+  if (!groups.length) { el.innerHTML = '<div class="empty" style="padding:20px">報酬履歴がありません</div>'; return; }
+  const summary = summarizeRewardHistory(groups);
+  const uchiRows = Object.entries(summary.byUchi).map(([uchi, d]) => `
+    <div class="rh-item">
+      <div class="rh-item-main">
+        <div class="rh-uchi">${escapeHtml(uchi)}</div>
+        <div class="rh-meta">報酬 ¥${Math.round(d.hoshu).toLocaleString('ja-JP')}　控除 ¥${Math.round(d.koujo).toLocaleString('ja-JP')}　差玉 ${(d.sagitama >= 0 ? '+' : '') + Math.round(d.sagitama).toLocaleString('ja-JP')}玉　${d.count}台</div>
+        <div class="rh-sub">現金投資 ¥${Math.round(d.genkinInvest).toLocaleString('ja-JP')}</div>
+      </div>
+    </div>`).join('');
+  // 日付の新しい順。月が変わるところへ小計を挟む
+  let lastMonth = null;
+  const listRows = groups.map(g => {
+    let sub = '';
+    if (g.month !== lastMonth) {
+      lastMonth = g.month;
+      const m = summary.byMonth[g.month] || { hoshu: 0, koujo: 0 };
+      sub = `<div class="rh-month-sub"><span>${g.month.replace('-','年')}月 小計</span><span>報酬 ¥${Math.round(m.hoshu).toLocaleString('ja-JP')}　控除 ¥${Math.round(m.koujo).toLocaleString('ja-JP')}</span></div>`;
+    }
+    return sub + `
+    <div class="rh-item">
+      <div class="rh-item-main">
+        <div class="rh-uchi">${escapeHtml(g.uchi)}</div>
+        <div class="rh-meta">${escapeHtml(g.date)}　差玉 ${(g.sagitama >= 0 ? '+' : '') + Math.round(g.sagitama).toLocaleString('ja-JP')}玉　${g.count}台</div>
+        <div class="rh-sub">控除 ¥${Math.round(g.koujo).toLocaleString('ja-JP')}　現金投資 ¥${Math.round(g.genkinInvest).toLocaleString('ja-JP')}</div>
+      </div>
+      <div class="rh-yen ${g.hoshu > 0 ? '' : 'zero'}">${rewardHistoryYen(g.hoshu)}</div>
+    </div>`;
+  }).join('');
+  el.innerHTML = `
+    <div class="an-card-title" style="margin-top:12px;">打ち手別合計（表示中）</div>
+    ${uchiRows}
+    <div class="rh-total"><span>合計</span><span>報酬 ¥${Math.round(summary.total.hoshu).toLocaleString('ja-JP')}　控除 ¥${Math.round(summary.total.koujo).toLocaleString('ja-JP')}</span></div>
+    <div class="an-card-title" style="margin-top:16px;">履歴（新しい順）</div>
+    ${listRows}`;
+}
+// 報酬・設定タブ全体（上半分＝報酬履歴、下半分＝設定・マスタ編集）
+function renderHoshuTab() {
+  renderRewardHistory();
+  renderSetting();
 }
 
 // =============================================
@@ -2926,6 +3287,8 @@ async function doHoshuConfirm() {
 function renderHoshuResults() {
   const panel = document.getElementById('hoshu-result-panel');
   const body  = document.getElementById('hoshu-result-body');
+  // 手動確定の一覧（REWARD SUMMARY）は画面から外したので、要素が無ければ何もしない
+  if (!panel || !body) return;
   if (!hoshuResults.length) {
     panel.classList.remove('show');
     return;
