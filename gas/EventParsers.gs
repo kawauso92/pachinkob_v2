@@ -550,22 +550,24 @@ function slopachiFindCard(cards, used, date, store, eventName) {
   var day = parseInt(date.slice(8, 10), 10);
   var storeKey = slopachiStoreKey(store);
   var eventKeyText = slopachiNorm(eventName);
-  var fallback = -1;
+  var sameStore = [];
   for (var i = 0; i < cards.length; i++) {
     if (used[i]) continue;
     var card = cards[i];
     if (card.month !== month || card.day !== day) continue;
     var text = slopachiKeyText(card.text);
     if (storeKey && text.indexOf(storeKey) < 0) continue;
+    sameStore.push(i);
     if (eventKeyText && text.indexOf(eventKeyText) >= 0) {
       used[i] = true;
       return card;
     }
-    if (fallback < 0) fallback = i;
   }
-  if (fallback >= 0) {
-    used[fallback] = true;
-    return cards[fallback];
+  // 取材名が一致するカードが無いときは、同じ日・同じ店のカードが1枚だけのときに限り使う。
+  // 2枚以上あるなら、別の取材の色を付けないように色なしにする。
+  if (sameStore.length === 1) {
+    used[sameStore[0]] = true;
+    return cards[sameStore[0]];
   }
   return null;
 }

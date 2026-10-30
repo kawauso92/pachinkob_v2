@@ -2,9 +2,10 @@
 // GAS の UrlFetchApp は海外のGoogle網から出るため、スロパチ側の CloudFront に
 // 403 で拒否される。この関数だけを hnd1 で動かし、GAS はここを経由する。
 //
-// GET /api/slopachi?page=kansai&token=...
+// GET /api/slopachi?page=kansai
+//   ヘッダー X-Relay-Token（ブラウザ確認用に ?token= も可）が
+//   環境変数 SLOPACHI_RELAY_TOKEN と一致すること
 //   page は許可リストのみ（任意のURLは取れない）
-//   token は環境変数 SLOPACHI_RELAY_TOKEN と一致すること
 //   戻り値: {status, page, fetchedAt, html}
 //     status は取得元のHTTPステータス。403 のときは status:403 をそのまま返す。
 
@@ -18,11 +19,20 @@ const PAGES = {
 const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36';
 const TIMEOUT_MS = 15000;
 
-function send(res, statusCode, body, cacheControl) {
+function send(res, statusCode, body) {
   res.statusCode = statusCode;
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
-  res.setHeader('Cache-Control', cacheControl || 'no-store');
+  // 合言葉をURLに載せないため、CDNにキャッシュさせない（1日1回の取得なので不要）
+  res.setHeader('Cache-Control', 'private, no-store');
   res.end(JSON.stringify(body));
+}
+
+// 合言葉はヘッダー優先。ブラウザでの確認用に token クエリも受け付ける。
+function tokenOf(req, query) {
+  const headers = req.headers || {};
+  const header = headers['x-relay-token'] || headers['X-Relay-Token'];
+  if (header) return String(Array.isArray(header) ? header[0] : header);
+  return String(query.token || '');
 }
 
 function queryOf(req) {
@@ -50,7 +60,7 @@ module.exports = async function handler(req, res) {
   if (!expected) {
     return send(res, 500, {error:'relay_not_configured'});
   }
-  if (String(query.token || '') !== expected) {
+  if (tokenOf(req, query) !== expected) {
     return send(res, 401, {error:'unauthorized'});
   }
 
@@ -82,7 +92,5 @@ module.exports = async function handler(req, res) {
   }
   const status = Number(upstream.status) || 0;
   const ok = status >= 200 && status < 300;
-  return send(res, 200,
-    {status, page, fetchedAt:new Date().toISOString(), html: ok ? html : ''},
-    ok ? 'public, s-maxage=3600, stale-while-revalidate=600' : 'public, s-maxage=300');
+  return send(res, 200, {status, page, fetchedAt:new Date().toISOString(), html: ok ? html : ''});
 };

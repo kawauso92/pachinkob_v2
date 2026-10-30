@@ -18,7 +18,8 @@ function response() {
 
 async function call(query, options) {
   const res = response();
-  await handler({method:(options && options.method) || 'GET', query}, res);
+  await handler({method:(options && options.method) || 'GET', query,
+    headers:(options && options.headers) || {}}, res);
   return {res, json:res.body ? JSON.parse(res.body) : null};
 }
 
@@ -39,15 +40,20 @@ function mockFetch(impl) {
   assert.equal(result.json.error, 'invalid_page');
   assert.equal(fetched.length, 0);
 
-  // 合言葉違い
+  // 合言葉違い（クエリ）
   result = await call({page:'kansai', token:'wrong'});
   assert.equal(result.res.statusCode, 401);
   assert.equal(result.json.error, 'unauthorized');
   assert.equal(fetched.length, 0);
 
-  // 正常: 許可されたURLだけを取り、HTMLを返す
+  // ヘッダーの合言葉が違う
+  result = await call({page:'kansai'}, {headers:{'x-relay-token':'wrong'}});
+  assert.equal(result.res.statusCode, 401);
+  assert.equal(fetched.length, 0);
+
+  // 正常（ヘッダー）: 許可されたURLだけを取り、HTMLを返す
   mockFetch(async () => ({status:200, text:async () => '<html>OK</html>'}));
-  result = await call({page:'kansai', token:TOKEN});
+  result = await call({page:'kansai'}, {headers:{'x-relay-token':TOKEN}});
   assert.equal(result.res.statusCode, 200);
   assert.equal(result.json.status, 200);
   assert.equal(result.json.page, 'kansai');
@@ -56,7 +62,13 @@ function mockFetch(impl) {
   assert.equal(fetched[0].url, 'https://777.slopachi-station.com/report_schedule/kansai/');
   assert.ok(fetched[0].options.headers['User-Agent'].includes('Chrome/136'));
   assert.equal(fetched[0].options.redirect, 'follow');
-  assert.ok(result.res.headers['cache-control'].includes('s-maxage=3600'));
+  assert.ok(result.res.headers['cache-control'].includes('no-store'));
+  assert.ok(!result.res.headers['cache-control'].includes('s-maxage'));
+
+  // ブラウザ確認用にクエリの token でも通る
+  result = await call({page:'kansai', token:TOKEN});
+  assert.equal(result.res.statusCode, 200);
+  assert.equal(result.json.status, 200);
 
   // 取得元403: 中継は200で、JSONのstatusに403を入れる
   mockFetch(async () => ({status:403, text:async () => '<html>403</html>'}));

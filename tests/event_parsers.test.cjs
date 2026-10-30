@@ -273,6 +273,30 @@ check('スロパチ れんじろうページ 大阪1件', run('parseSlopachiJson
 check('スロパチ じゃんじゃんページ 大阪1件', run('parseSlopachiJsonLd(slopachiJanjan, "u")').length, 1);
 check('スロパチ るいべえページ 大阪0件', run('parseSlopachiJsonLd(slopachiRuibee, "u")').length, 0);
 
+// カードの取り違え: 同じ日・同じ店に2枚あり、取材名が合わないときは色を付けない
+function slopachiCard(date, area, alt, text) {
+  return '<div class="resultRow resultRow-tile"><div class="resultRow-image">' +
+    '<img src="/img/icon-raiten-report-red.png" alt="' + alt + '"></div>' +
+    '<div class="resultRow-box"><div class="resultRow-detail">' + date +
+    ' ( <div class="week6">土</div> ) 【' + area + '】<br><a href="#">' + text + '</a></div></div></div>';
+}
+function slopachiLd(name, store) {
+  return '<script type="application/ld+json">' + JSON.stringify({
+    '@context':'https://schema.org', '@type':'Event', name,
+    startDate:'2026-11-01',
+    location:{name:store, address:{addressRegion:'大阪府', addressLocality:'大阪市北区'}}
+  }) + '</script>';
+}
+context.slopachiAmbiguous = slopachiLd('スロパチステーション来店取材', '店A') +
+  slopachiCard('11/1', '大阪府大阪市北区', '来店取材赤', '別の取材A 店A') +
+  slopachiCard('11/1', '大阪府大阪市北区', '来店取材青', '別の取材B 店A');
+check('スロパチ カード2枚で名前不一致なら色なし',
+  run('parseSlopachiJsonLd(slopachiAmbiguous, "u")')[0].event, 'スロパチステーション来店取材');
+context.slopachiSingleCard = slopachiLd('スロパチステーション来店取材', '店A') +
+  slopachiCard('11/1', '大阪府大阪市北区', '来店取材赤', '別の取材A 店A');
+check('スロパチ カード1枚なら色を拾う',
+  run('parseSlopachiJsonLd(slopachiSingleCard, "u")')[0].event, 'スロパチステーション来店取材(赤)');
+
 // =============================================
 // 結果
 // =============================================

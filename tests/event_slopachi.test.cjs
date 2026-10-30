@@ -86,8 +86,60 @@ const umeda = merged.filter(item => item.date === '2026-11-01' && item.store ===
 assert.deepEqual(umeda.map(item => item.event).sort(), ['スロパチ来店取材“宴”', 'れんじろう実践来店(赤)'].sort());
 
 // スロパチ公式が失敗した日は、前回のスロパチ行を基準に重複を除く
-const anchored = run('eventMergeSlopachiDuplicates(p100Records, [{date:"2026-10-31", store:"マルハン加島店", source:"スロパチ公式", status:"有効"}])');
-assert.ok(!anchored.some(item => item.source === 'パチスロ100' && item.date === '2026-10-31' && item.store === 'マルハン加島店'));
+const anchored = run('eventMergeSlopachiDuplicates(p100Records, [{date:"2026-10-31", store:"マルハン加島店", event:"スロパチステーション来店取材(オレンジ)", source:"スロパチ公式", status:"有効"}])');
+assert.ok(!anchored.some(item => item.source === 'パチスロ100' && item.date === '2026-10-31' &&
+  item.store === 'マルハン加島店' && item.event === 'スロパチステーション来店取材(オレンジ)'));
+
+// 取材の種類（上から順に判定。色は含めない）
+const kind = name => run(`eventSlopachiKind(${JSON.stringify(name)})`);
+assert.equal(kind('れんじろう実践来店'), '演者:れんじろう');
+assert.equal(kind('じゃんじゃん来店(青)'), '演者:じゃんじゃん');
+assert.equal(kind('じゃんじゃん実践来店(青)'), '演者:じゃんじゃん');
+assert.equal(kind('るいべえ実践来店(青)'), '演者:るいべえ');
+assert.equal(kind('よしき実践来店'), '演者:よしき');
+assert.equal(kind('スロパチガール来店S'), 'ガール');
+assert.equal(kind('スロぱちガール来店PS'), 'ガール');
+assert.equal(kind('スロパチアワード景品入荷(赤)'), '景品入荷');
+assert.equal(kind('すろぱちアワード景品入荷(黒)'), '景品入荷');
+assert.equal(kind('スロパチ番組収録'), '番組収録');
+assert.equal(kind('スロパチ来店取材[宴]'), '宴');
+assert.equal(kind('スロパチ来店取材“宴”'), '宴');
+assert.equal(kind('スロパチステーション来店取材(オレンジ)'), '来店取材');
+assert.equal(kind('スロパチステーション来店'), 'その他');
+
+// 店名の照合: 5文字以上の部分一致だけ許す（「マルハン」は完全一致のみ）
+const storeMatches = (a, b) => run(`eventStoreMatches(${JSON.stringify(a)}, ${JSON.stringify(b)})`);
+assert.equal(storeMatches('マルハン', 'マルハン梅田店'), false);
+assert.equal(storeMatches('ベニス江坂店', 'ベニス江坂新館・本館'), true);
+assert.equal(storeMatches('P.E.KING OF KINGS 1333 高槻', 'P.E.KING OF KINGS 1333 高槻店'), true);
+assert.equal(storeMatches('MEGAFACE1300淀川', 'MEGAフェイス1300淀川'), true);
+
+// 同じ日・同じ店でも種類が違えば残す
+context.syntheticP = [
+  {date:'2026-11-10', store:'店A', event:'スロパチガール来店S', media:'スロパチステーション', source:'パチスロ100'},
+  {date:'2026-11-10', store:'店A', event:'スロパチステーション来店取材(赤)', media:'スロパチステーション', source:'パチスロ100'},
+];
+context.syntheticS = [
+  {date:'2026-11-10', store:'店A', event:'スロパチステーション来店取材(赤)', media:'スロパチステーション', source:'スロパチ公式'},
+];
+const kindMerge = run('eventMergeSlopachiDuplicates(syntheticP.concat(syntheticS))');
+assert.ok(kindMerge.some(item => item.source === 'パチスロ100' && item.event === 'スロパチガール来店S'));
+assert.ok(!kindMerge.some(item => item.source === 'パチスロ100' && item.event === 'スロパチステーション来店取材(赤)'));
+
+// 種類「その他」はまとめず両方残す
+context.otherP = [{date:'2026-11-10', store:'店B', event:'スロパチステーション来店', media:'スロパチステーション', source:'パチスロ100'}];
+context.otherS = [{date:'2026-11-10', store:'店B', event:'スロパチステーション来店', media:'スロパチステーション', source:'スロパチ公式'}];
+assert.equal(run('eventMergeSlopachiDuplicates(otherP.concat(otherS))').length, 2);
+
+// 同じ種類のスロパチ公式が2件あっても、まとめ方が壊れない
+context.multiS = [
+  {date:'2026-11-10', store:'店C', event:'スロパチステーション来店取材(赤)', media:'スロパチステーション', source:'スロパチ公式'},
+  {date:'2026-11-10', store:'店C', event:'スロパチステーション来店取材(青)', media:'スロパチステーション', source:'スロパチ公式'},
+];
+context.multiP = [{date:'2026-11-10', store:'店C', event:'スロパチステーション来店取材(赤)', media:'スロパチステーション', source:'パチスロ100'}];
+const multiMerge = run('eventMergeSlopachiDuplicates(multiP.concat(multiS))');
+assert.equal(multiMerge.filter(item => item.source === 'スロパチ公式').length, 2);
+assert.ok(!multiMerge.some(item => item.source === 'パチスロ100'));
 
 // 既存行との関係: 同じ取材名なら行を引き継ぎ、違う取材名なら旧行を消失にして新行を足す
 context.prior = [
@@ -113,8 +165,9 @@ function properties(values) {
   context.PropertiesService = {getScriptProperties: () => ({getProperty: key => values[key] || null})};
 }
 function relay(body, code) {
-  context.UrlFetchApp = {fetch: url => {
+  context.UrlFetchApp = {fetch: (url, options) => {
     context.relayUrl = url;
+    context.relayHeaders = options.headers;
     return {getResponseCode: () => code, getContentText: () => body};
   }};
 }
@@ -129,7 +182,8 @@ properties({SLOPACHI_RELAY_URL:'https://relay.test/api/slopachi', SLOPACHI_RELAY
 relay(JSON.stringify({status:200, page:'kansai', html:'<html>OK</html>'}), 200);
 assert.equal(vm.runInContext('eventFetchRelay("kansai")', context), '<html>OK</html>');
 assert.ok(context.relayUrl.indexOf('page=kansai') >= 0);
-assert.ok(context.relayUrl.indexOf('token=secret') >= 0);
+assert.ok(context.relayUrl.indexOf('token=') < 0);
+assert.equal(context.relayHeaders['X-Relay-Token'], 'secret');
 
 relay(JSON.stringify({status:403, page:'kansai', html:''}), 200);
 throws('eventFetchRelay("kansai")', /中継も403/);
