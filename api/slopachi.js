@@ -31,8 +31,8 @@ function send(res, statusCode, body) {
 function tokenOf(req, query) {
   const headers = req.headers || {};
   const header = headers['x-relay-token'] || headers['X-Relay-Token'];
-  if (header) return String(Array.isArray(header) ? header[0] : header);
-  return String(query.token || '');
+  if (header) return String(Array.isArray(header) ? header[0] : header).trim();
+  return String(query.token || '').trim();
 }
 
 function queryOf(req) {
@@ -56,7 +56,8 @@ module.exports = async function handler(req, res) {
   if (!Object.prototype.hasOwnProperty.call(PAGES, page)) {
     return send(res, 400, {error:'invalid_page'});
   }
-  const expected = process.env.SLOPACHI_RELAY_TOKEN || '';
+  // Vercel の入力欄に貼るとき末尾に改行や空白が入りやすいので、前後は無視する
+  const expected = String(process.env.SLOPACHI_RELAY_TOKEN || '').trim();
   if (!expected) {
     return send(res, 500, {error:'relay_not_configured'});
   }

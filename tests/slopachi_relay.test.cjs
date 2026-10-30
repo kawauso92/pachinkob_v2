@@ -40,6 +40,15 @@ function mockFetch(impl) {
   assert.equal(result.json.error, 'invalid_page');
   assert.equal(fetched.length, 0);
 
+  // 環境変数の末尾に改行が入っていても通る（Vercel に貼ったときの改行）
+  process.env.SLOPACHI_RELAY_TOKEN = TOKEN + '\n';
+  mockFetch(async () => ({status:200, text:async () => '<html>OK</html>'}));
+  result = await call({page:'kansai', token:' ' + TOKEN + ' '});
+  assert.equal(result.res.statusCode, 200);
+  assert.equal(result.json.status, 200);
+  process.env.SLOPACHI_RELAY_TOKEN = TOKEN;
+  mockFetch(async () => ({status:200, text:async () => 'x'}));
+
   // 合言葉違い（クエリ）
   result = await call({page:'kansai', token:'wrong'});
   assert.equal(result.res.statusCode, 401);
