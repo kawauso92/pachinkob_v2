@@ -1726,22 +1726,24 @@ function slopachiFindCard(cards, used, date, store, eventName) {
   var day = parseInt(date.slice(8, 10), 10);
   var storeKey = slopachiStoreKey(store);
   var eventKeyText = slopachiNorm(eventName);
-  var fallback = -1;
+  var sameStore = [];
   for (var i = 0; i < cards.length; i++) {
     if (used[i]) continue;
     var card = cards[i];
     if (card.month !== month || card.day !== day) continue;
     var text = slopachiKeyText(card.text);
     if (storeKey && text.indexOf(storeKey) < 0) continue;
+    sameStore.push(i);
     if (eventKeyText && text.indexOf(eventKeyText) >= 0) {
       used[i] = true;
       return card;
     }
-    if (fallback < 0) fallback = i;
   }
-  if (fallback >= 0) {
-    used[fallback] = true;
-    return cards[fallback];
+  // 取材名が一致するカードが無いときは、同じ日・同じ店のカードが1枚だけのときに限り使う。
+  // 2枚以上あるなら、別の取材の色を付けないように色なしにする。
+  if (sameStore.length === 1) {
+    used[sameStore[0]] = true;
+    return cards[sameStore[0]];
   }
   return null;
 }
@@ -1801,6 +1803,8 @@ const EVENT_AIMS_URLS = [
   ['https://aims777.com/syuzai/aimstar_gyoku/', 'エイムスター玉'],
   ['https://aims777.com/syuzai/aimstar_chogyoku/', 'エイムスター超玉']
 ];
+// 0件が普通の収集元（0件では警告しない。失敗の警告は出す）
+const EVENT_NO_ZERO_WARNING_SOURCES = [EVENT_SOURCE_AIMS, EVENT_SOURCE_TAMADOJO];
 
 function eventToday() { return Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy-MM-dd'); }
 function eventNow() { return Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy-MM-dd HH:mm:ss'); }
@@ -1835,10 +1839,12 @@ function eventDiff(rows, records, successfulSources, now, today) {
 }
 
 // 前回まで1件以上あったのに今回0件なら、読み取りが壊れた可能性として警告する。
-// previousCount は「収集状態」シートの前回件数（無ければ0）。
+// previousCount は「最後に1件以上取れたときの件数」（無ければ0）。
+// エイムスター・たま道場は0件が普通なので、0件では警告しない（失敗は警告する）。
 function eventStatusWarning(status, today) {
   if (status.result !== '成功') return true;
-  if (Number(status.count) === 0 && Number(status.previousCount) > 0) return true;
+  if (EVENT_NO_ZERO_WARNING_SOURCES.indexOf(status.source) < 0 &&
+      Number(status.count) === 0 && Number(status.previousCount) > 0) return true;
   return status.source === EVENT_SOURCE_PACHISURO100 &&
     (Number(status.count) === 0 || !status.lastDate || status.lastDate < eventDay(today, 3));
 }
@@ -1854,12 +1860,37 @@ function eventStoreKey(value) {
 function eventStoreMatches(left, right) {
   const a = eventStoreKey(left), b = eventStoreKey(right);
   if (!a || !b) return false;
-  return a.indexOf(b) >= 0 || b.indexOf(a) >= 0;
+  if (a === b) return true;
+  // 「マルハン」のような短い名前で別店舗に一致しないよう、5文字以上だけ部分一致を許す
+  const shorter = a.length <= b.length ? a : b;
+  const longer = a.length <= b.length ? b : a;
+  return shorter.length >= 5 && longer.indexOf(shorter) >= 0;
+}
+
+// 取材名から「取材の種類」を決める。色は含めない。
+// 上から順に判定し、演者だけは演者名も種類の一部にする
+// （「じゃんじゃん来店(青)」と「じゃんじゃん実践来店(青)」を同じにするため）。
+function eventSlopachiKind(name) {
+  const text = evCleanText(name).normalize('NFKC');
+  for (let i = 0; i < SLOPACHI_PACHINKO_ACTORS.length; i++) {
+    if (text.indexOf(SLOPACHI_PACHINKO_ACTORS[i]) >= 0) return '演者:' + SLOPACHI_PACHINKO_ACTORS[i];
+  }
+  if (text.indexOf('実践') >= 0) {
+    const actor = text.split('実践')[0].replace(/[（(].*$/, '').trim();
+    return '演者:' + (actor || '実践');
+  }
+  if (text.indexOf('ガール') >= 0) return 'ガール';
+  if (text.indexOf('景品') >= 0) return '景品入荷';
+  if (text.indexOf('収録') >= 0) return '番組収録';
+  if (text.indexOf('宴') >= 0) return '宴';
+  if (text.indexOf('来店取材') >= 0) return '来店取材';
+  return 'その他';
 }
 
 // スロパチ公式とパチスロ100の同じ予定を1件にまとめる。
-// 日付＋店名＋どちらも媒体スロパチステーションなら同じ予定とみなし、
+// 日付＋店名＋取材の種類が一致したときだけ同じ予定とみなし、
 // 色付きのスロパチ公式を残す。パチスロ100にしか無い予定はそのまま残す。
+// 種類が「その他」のものは安全側に倒してまとめない。
 // anchorRows は「スロパチ公式が失敗した日に、前回のスロパチ行を残す」ための保険。
 function eventMergeSlopachiDuplicates(records, anchorRows) {
   const slopachi = [], others = [];
@@ -1874,7 +1905,10 @@ function eventMergeSlopachiDuplicates(records, anchorRows) {
   const anchors = kept.concat(anchorRows || []);
   const merged = others.filter(item => {
     if (evCleanText(item.media) !== 'スロパチステーション') return true;
-    return !anchors.some(anchor => anchor.date === item.date && eventStoreMatches(anchor.store, item.store));
+    const kind = eventSlopachiKind(item.event);
+    if (kind === 'その他') return true;
+    return !anchors.some(anchor => anchor.date === item.date &&
+      eventSlopachiKind(anchor.event) === kind && eventStoreMatches(anchor.store, item.store));
   });
   return merged.concat(kept);
 }
@@ -1918,9 +1952,9 @@ function eventFetchRelay(page) {
   const token = String(properties.getProperty('SLOPACHI_RELAY_TOKEN') || '').trim();
   if (!base) throw new Error('中継URLが未設定');
   if (!token) throw new Error('中継トークンが未設定');
-  const url = base + (base.indexOf('?') >= 0 ? '&' : '?') + 'page=' + encodeURIComponent(page) +
-    '&token=' + encodeURIComponent(token);
-  const response = UrlFetchApp.fetch(url, {muteHttpExceptions:true});
+  const url = base + (base.indexOf('?') >= 0 ? '&' : '?') + 'page=' + encodeURIComponent(page);
+  // 合言葉はURLに載せず、ヘッダーで送る（Vercelのログに残さない）
+  const response = UrlFetchApp.fetch(url, {headers:{'X-Relay-Token':token}, muteHttpExceptions:true});
   const code = response.getResponseCode();
   if (code === 403) throw new Error('中継も403');
   if (code < 200 || code >= 300) throw new Error('中継HTTP ' + code);
@@ -2053,8 +2087,21 @@ function eventStatusValues(item, now, previousCount) {
     .map((value, index) => index === 3 || index === 6 ? Number(value) || 0 : eventSafe(value));
 }
 
+// G列「前回件数」= 最後に1件以上取れたときの件数。
+// 今回1件以上なら今回の件数、0件または失敗なら前の値を引き継ぐ。
+function eventNextPreviousCount(item, previous) {
+  const count = Number(item.count) || 0;
+  if (item.result === '成功' && count > 0) return count;
+  return Number(previous) || 0;
+}
+
+// G列が空の既存シート（6列）は、D列（前回の件数）を引き継ぐ
 function eventPreviousCounts(sheet) {
-  return new Map(eventReadValues(sheet, 7).map(row => [eventCell(row[0]), Number(row[3]) || 0]));
+  return new Map(eventReadValues(sheet, 7).map(row => {
+    const stored = row[6];
+    const empty = stored === '' || stored === null || stored === undefined;
+    return [eventCell(row[0]), empty ? (Number(row[3]) || 0) : (Number(stored) || 0)];
+  }));
 }
 
 // 既存シートに7列目が無ければ見出しを足す（既存の6列はそのまま）
@@ -2069,7 +2116,8 @@ function eventWriteStatuses(sheet, results, now, previousCounts) {
   results.forEach(item => {
     const rowNumber = positions.get(item.source) || sheet.getLastRow() + 1;
     const previous = previousCounts ? (previousCounts.get(item.source) || 0) : 0;
-    sheet.getRange(rowNumber, 1, 1, 7).setValues([eventStatusValues(item, now, previous)]);
+    const nextPrevious = eventNextPreviousCount(item, previous);
+    sheet.getRange(rowNumber, 1, 1, 7).setValues([eventStatusValues(item, now, nextPrevious)]);
     positions.set(item.source, rowNumber);
   });
 }
@@ -2103,9 +2151,12 @@ function eventApplyCollection(results, now, today) {
 
 function eventReadStatuses(sheet, today) {
   return eventReadValues(sheet, 7).map(r => {
+    const stored = r[6];
+    const empty = stored === '' || stored === null || stored === undefined;
     const item = {source:eventCell(r[0]), lastRun:eventCell(r[1], 'yyyy-MM-dd HH:mm:ss'),
       result:eventCell(r[2]), count:Number(r[3]) || 0, lastDate:eventCell(r[4], 'yyyy-MM-dd'),
-      error:eventCell(r[5]), previousCount:Number(r[6]) || 0};
+      error:eventCell(r[5]),
+      previousCount:empty ? (Number(r[3]) || 0) : (Number(stored) || 0)};
     return {...item, warning:eventStatusWarning(item, today)};
   }).filter(item => item.source);
 }
