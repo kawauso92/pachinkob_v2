@@ -2,6 +2,11 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "mkdir -p dist && cp index.html dist/",
   "outputDirectory": "dist",
+  "functions": {
+    "api/slopachi.js": {
+      "regions": ["hnd1"]
+    }
+  },
   "headers": [
     {
       "source": "/(.*)",

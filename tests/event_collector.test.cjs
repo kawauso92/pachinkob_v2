@@ -40,6 +40,33 @@ context.statuses = [
   {source:'ジャンバリ', result:'失敗', count:0, lastDate:'', error:'HTTP 500'},
 ];
 assert.deepEqual(run("statuses.map(item => eventStatusWarning(item, '2026-10-08'))"), [true, true, false, true]);
+// 前回1件以上あった収集元が0件になったら、p100以外でも警告する。
+// ただしエイムスター・たま道場は0件が普通なので、0件では警告しない（失敗は警告）。
+context.warnStatuses = [
+  {source:'スロパチ公式', result:'成功', count:0, lastDate:'', error:'', previousCount:25},
+  {source:'エイムスター', result:'成功', count:0, lastDate:'', error:'', previousCount:2},
+  {source:'たま道場', result:'成功', count:0, lastDate:'', error:'', previousCount:2},
+  {source:'エイムスター', result:'失敗', count:0, lastDate:'', error:'HTTP 500'},
+  {source:'ジャンバリ', result:'成功', count:3, lastDate:'2026-10-20', error:'', previousCount:3},
+];
+assert.deepEqual(run("warnStatuses.map(item => eventStatusWarning(item, '2026-10-08'))"),
+  [true, false, false, true, false]);
+
+// G列は「最後に1件以上取れたときの件数」。0件・失敗では前の値を引き継ぐ。
+assert.equal(run("eventNextPreviousCount({result:'成功', count:25}, 0)"), 25);
+assert.equal(run("eventNextPreviousCount({result:'成功', count:0}, 25)"), 25);
+assert.equal(run("eventNextPreviousCount({result:'失敗', count:0}, 25)"), 25);
+assert.equal(run("eventNextPreviousCount({result:'成功', count:30}, 25)"), 30);
+context.next = 0;
+function nextCount(result, count) {
+  context.next = run(`eventNextPreviousCount({result:'${result}', count:${count}}, ${context.next})`);
+  return context.next;
+}
+assert.deepEqual([nextCount('成功',25), nextCount('成功',0), nextCount('成功',0)], [25,25,25]);
+context.next = 0;
+assert.deepEqual([nextCount('成功',25), nextCount('失敗',0), nextCount('成功',0)], [25,25,25]);
+context.next = 0;
+assert.deepEqual([nextCount('成功',25), nextCount('成功',0), nextCount('成功',30)], [25,25,30]);
 context.apiRows = [
   { ...record('2026-09-07', '範囲外'), status:'有効', lastSeen:'a'},
   { ...record('2026-09-08', '開始'), status:'有効', lastSeen:'b'},
@@ -74,11 +101,44 @@ function sheet(name) {
   sheets.set(name, value);
   return value;
 }
+// G列が無い既存シート（6列）は、D列の値を前回件数として引き継ぐ
+context.statusSheet6 = sheet('6列テスト');
+context.statusSheet6.rows.push(['収集元','最終実行','結果(成功|失敗)','件数','最終日付','エラー']);
+context.statusSheet6.rows.push(['スロパチ公式','前回','成功',25,'2026-10-20','']);
+assert.equal(run('eventPreviousCounts(statusSheet6).get("スロパチ公式")'), 25);
+context.statusSheet6.rows.push(['ジャンバリ','前回','成功',0,'','',0]);
+assert.equal(run('eventPreviousCounts(statusSheet6).get("ジャンバリ")'), 0);
+
+// 連続した収集でG列が「最後に1件以上取れた件数」を保つ
+context.seqSheet = sheet('連続テスト');
+context.seqSheet.rows.push(['収集元','最終実行','結果(成功|失敗)','件数','最終日付','エラー','前回件数']);
+function writeStatus(result, count) {
+  context.statusItem = {source:'スロパチ公式', result, count,
+    lastDate: count ? '2026-10-30' : '', error:''};
+  context.statusPrev = vm.runInContext('eventPreviousCounts(seqSheet)', context);
+  locked = true;
+  try { vm.runInContext('eventWriteStatuses(seqSheet, [statusItem], "now", statusPrev)', context); }
+  finally { locked = false; }
+  return Number(context.seqSheet.rows[1][6]);
+}
+function resetSeq() {
+  context.seqSheet.rows.length = 0;
+  context.seqSheet.rows.push(['収集元','最終実行','結果(成功|失敗)','件数','最終日付','エラー','前回件数']);
+}
+assert.deepEqual([writeStatus('成功',25), writeStatus('成功',0), writeStatus('成功',0)], [25,25,25]);
+resetSeq();
+assert.deepEqual([writeStatus('成功',25), writeStatus('失敗',0), writeStatus('成功',0)], [25,25,25]);
+resetSeq();
+assert.deepEqual([writeStatus('成功',25), writeStatus('成功',0), writeStatus('成功',30)], [25,25,30]);
+assert.equal(run("eventStatusWarning({source:'スロパチ公式', result:'成功', count:0, previousCount:25}, '2026-10-30')"), true);
+assert.equal(run("eventStatusWarning({source:'スロパチ公式', result:'成功', count:30, previousCount:25}, '2026-10-30')"), false);
+assert.equal(run("eventStatusWarning({source:'エイムスター', result:'成功', count:0, previousCount:2}, '2026-10-30')"), false);
+
 const responses = new Map([
   ['https://pachisuro100.com/osaka-schedule/', '<div class="event-section"><div class="event-header"><strong>2026/10/11</strong><span class="badge badge-survey">取材</span></div><div class="store-name"><strong>店A</strong></div><div class="event-info">・新取材（媒体）</div></div>'],
   ['https://aims777.com/syuzai/aimstar_gyoku/', '<a class="c-schedule__item"><span class="c-schedule__date">10月11日</span><span class="c-schedule__area">大阪</span><span class="c-schedule__title">店B</span></a>'],
   ['https://aims777.com/syuzai/aimstar_chogyoku/', ''],
-  ['https://jb-portal.com/schedule/?report_id=5', null],
+  ['https://jb-portal.com/schedule/?report_id=4', null],
   ['https://tama-dojo.com/', ''],
 ]);
 context.SPREADSHEET_ID = 'test-id';
@@ -87,10 +147,21 @@ context.Utilities = {
   formatDate: (_date, _zone, pattern) => pattern === 'yyyy-MM-dd' ? '2026-10-08' : '2026-10-08 06:10:00',
   sleep: ms => { calls.push(['sleep', ms]); assert.equal(locked, false); },
 };
+context.PropertiesService = {getScriptProperties: () => ({getProperty: key => ({
+  SLOPACHI_RELAY_URL: 'https://relay.test/api/slopachi',
+  SLOPACHI_RELAY_TOKEN: 'secret',
+}[key] || null)})};
 context.UrlFetchApp = {fetch: (url, options) => {
   calls.push(['fetch', url]);
   assert.equal(locked, false);
   assert.equal(options.muteHttpExceptions, true);
+  if (url.indexOf('https://relay.test/api/slopachi?') === 0) {
+    const page = /[?&]page=([^&]+)/.exec(url)[1];
+    assert.equal(options.headers['X-Relay-Token'], 'secret');
+    assert.ok(url.indexOf('token=') < 0);
+    return {getResponseCode: () => 200,
+      getContentText: () => JSON.stringify({status:200, page, fetchedAt:'2026-10-08T00:00:00Z', html:'<html></html>'})};
+  }
   assert.ok(options.headers['User-Agent'].includes('Chrome/136'));
   const html = responses.get(url);
   return {getResponseCode: () => html === null ? 500 : 200, getContentText: () => html};
@@ -100,8 +171,8 @@ const result = run('collectAutoEvents()');
 assert.equal(result.success, true);
 assert.equal(result.sources.length, 5);
 assert.equal(result.sources.find(item => item.source === 'ジャンバリ').result, '失敗');
-assert.equal(calls.filter(item => item[0] === 'fetch').length, 6);
-assert.equal(calls.filter(item => item[0] === 'sleep').length, 5);
+assert.equal(calls.filter(item => item[0] === 'fetch').length, 9);
+assert.equal(calls.filter(item => item[0] === 'sleep').length, 8);
 assert.equal(sheet('自動イベント').rows.length, 3);
 assert.equal(sheet('取材判定').rows.length, 3);
 const api = run('getAutoEventsForApp()');
@@ -112,6 +183,8 @@ assert.equal(api.updatedAt, '2026-10-08 06:10:00');
 run('collectAutoEvents()');
 assert.equal(sheet('自動イベント').rows.length, 3);
 assert.equal(sheet('取材判定').rows.length, 3);
+assert.equal(sheet('収集状態').rows[0][6], '前回件数');
+assert.equal(sheet('収集状態').rows[1][6], 1); // パチスロ100 の前回件数
 responses.set('https://pachisuro100.com/osaka-schedule/', '');
 const stopped = run('collectAutoEvents()');
 assert.equal(stopped.sources.find(item => item.source === 'パチスロ100').result, '失敗');

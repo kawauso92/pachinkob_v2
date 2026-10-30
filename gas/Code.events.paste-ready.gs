@@ -2,7 +2,6 @@
 // 保存 → setupAutoHoshuを1回実行 → 既存デプロイを新バージョンへ更新。
 
 // 公開リポジトリのためIDは載せない。GASに貼り付けた後、実際のスプレッドシートIDに置き換える。
-// 公開リポジトリのためIDは載せない。GASに貼り付けた後、実際のスプレッドシートIDに置き換える。
 const SPREADSHEET_ID = 'YOUR_SPREADSHEET_ID';
 
 // ウォームアップ用（毎朝9時トリガーで実行）
@@ -1192,13 +1191,22 @@ var EVENT_SOURCE_AIMS = 'エイムスター';
 var EVENT_SOURCE_JANBARI = 'ジャンバリ';
 var EVENT_SOURCE_TAMADOJO = 'たま道場';
 var EVENT_SOURCE_SLOPACHI = 'スロパチ公式';
-// パチスロ100に載らない（別名で載る）スロパチ公式の演者ページ
-var SLOPACHI_RENJIRO_URL = 'https://777.slopachi-station.com/renjiro_schedule/';
+// スロパチ公式: 中継（api/slopachi.js）で取る4ページ
+var SLOPACHI_ORIGIN = 'https://777.slopachi-station.com';
+var SLOPACHI_PAGE_PATHS = {
+  kansai: '/report_schedule/kansai/',
+  renjiro: '/renjiro_schedule/',
+  janjan: '/janjan_schedule/',
+  ruibee: '/ruibee_schedule/'
+};
 var PACHISURO100_URL = 'https://pachisuro100.com/osaka-schedule/';
-var JANBARI_URL = 'https://jb-portal.com/schedule/?report_id=5';
+var JANBARI_URL = 'https://jb-portal.com/schedule/?report_id=4';
 var TAMADOJO_URL = 'https://tama-dojo.com/';
 var OSAKA_TEXT = '大阪';
-var JANBARI_EVENT_NAME = 'じゃんばり潜入来店取材';
+var JANBARI_EVENT_NAME = 'ジャンバリ潜入来店取材';
+
+// パチンコ寄りと確認済みのスロパチ演者（2026-10-30 持ち主確認）
+var SLOPACHI_PACHINKO_ACTORS = ['れんじろう', 'じゃんじゃん', 'るいべえ'];
 
 // たま道場: 取材種別 → 取材名（既存 waasan.py と同じ）
 var TAMADOJO_EVENT_NAME_BY_TYPE = {
@@ -1299,28 +1307,39 @@ function autoTarget(eventName, media, note) {
   var medium = evCleanText(media);
   var memo = evCleanText(note);
 
-  // 0. パチンコ実践の演者（利用者の知識）→ P
-  if (name.indexOf('じゃんじゃん') >= 0 || name.indexOf('れんじろう') >= 0) return 'P';
+  // 0. スロパチの演者（パチンコ寄りと持ち主が確認済み）→ P
+  //    「じゃんじゃん実践来店(青)」のように色が付いていても、演者を優先する。
+  for (var i = 0; i < SLOPACHI_PACHINKO_ACTORS.length; i++) {
+    if (name.indexOf(SLOPACHI_PACHINKO_ACTORS[i]) >= 0) return 'P';
+  }
 
-  // 1. 取材名に「玉」「(P)」「PS」→ P（「PS」は PS）
+  // 1. ひらがなの「すろぱち」はパチンコ枠。
+  //    「すろぱちアワード景品入荷(黒)」をP/S判定に使う（カタカナの「スロぱちガールPS」は対象外）。
+  if (name.indexOf('すろぱち') >= 0) return 'P';
+
+  // 2. 取材名に「PS」→ PS（「PS」はパチスロ寄り）
   if (name.indexOf('PS') >= 0) return 'PS';
+
+  // 3. 取材名に「玉」「(P)」→ P
   if (name.indexOf('玉') >= 0 || name.indexOf('(P)') >= 0 || name.indexOf('（P）') >= 0) return 'P';
 
-  // 2. 媒体がスロパチステーションで、取材名に「(黒)」→ P、「(青)」→ PS
+  // 4. 媒体がスロパチステーションの色付き取材
+  //    (黒)・(オレンジ) → P / (青) → PS
   if (medium.indexOf('スロパチステーション') >= 0) {
     if (name.indexOf('(黒)') >= 0 || name.indexOf('（黒）') >= 0) return 'P';
+    if (name.indexOf('(オレンジ)') >= 0 || name.indexOf('（オレンジ）') >= 0) return 'P';
     if (name.indexOf('(青)') >= 0 || name.indexOf('（青）') >= 0) return 'PS';
   }
 
-  // 3. パチスロ100の補足に「パチンコ」→ P（「パチスロ」も含めば PS）
+  // 5. パチスロ100の補足に「パチンコ」→ P（「パチスロ」も含めば PS）
   if (memo.indexOf('パチンコ') >= 0) {
     return memo.indexOf('パチスロ') >= 0 ? 'PS' : 'P';
   }
 
-  // 4. 末尾「来店S」→ S
+  // 6. 末尾「来店S」→ S
   if (/来店S\s*$/.test(name)) return 'S';
 
-  // 5. それ以外 → S
+  // 7. それ以外 → S
   return 'S';
 }
 
@@ -1570,22 +1589,23 @@ function parseJanbari(html, referenceDate) {
   var out = [];
   try {
     var lines = htmlToLines(html);
-    var index = 0;
-    while (index < lines.length) {
+    // 日付見出しの下に「都道府県 / 店名 / 取材名」が続く。
+    // 同じ日付に複数店舗が並ぶことがあるため、日付は保持したまま3行ずつ読む。
+    var currentDate = null;
+    for (var index = 0; index < lines.length; index++) {
       var date = parseJpDate(lines[index], referenceDate);
-      if (!date) {
-        index += 1;
+      if (date) {
+        currentDate = date;
         continue;
       }
-      if (index + 3 >= lines.length) break;
-      var prefecture = lines[index + 1];
-      var store = lines[index + 2];
-      var eventText = lines[index + 3];
-      if (prefecture === OSAKA_TEXT && eventText === JANBARI_EVENT_NAME) {
-        out.push(evMakeRecord(date, store, OSAKA_TEXT, '取材', JANBARI_EVENT_NAME, '', '',
-          EVENT_SOURCE_JANBARI, JANBARI_URL));
-      }
-      index += 4;
+      if (!currentDate || lines[index] !== OSAKA_TEXT) continue;
+      if (index + 2 >= lines.length) break;
+      var store = lines[index + 1];
+      var eventText = lines[index + 2];
+      if (eventText !== JANBARI_EVENT_NAME || !store) continue;
+      out.push(evMakeRecord(currentDate, store, OSAKA_TEXT, '取材', JANBARI_EVENT_NAME, '', '',
+        EVENT_SOURCE_JANBARI, JANBARI_URL));
+      index += 2;
     }
   } catch (e) {
     return out;
@@ -1629,11 +1649,122 @@ function parseTamaDojo(html, referenceDate) {
 }
 
 // =============================================
-// スロパチ公式（ページ内の schema.org Event を読む）
+// スロパチ公式（JSON-LD の Event と画面カードを対応づける）
 // =============================================
+// カードの形（2026-10-30 の fixture）:
+//   <div class="resultRow resultRow-tile">
+//     <div class="resultRow-image"><img src="...-red.png" alt="来店取材赤"></div>
+//     <div class="resultRow-box"><div class="resultRow-detail">
+//       10/31 (...) 【大阪府大阪市淀川区】<br>
+//       <a href="...">スロパチステーション来店取材 マルハン加島店</a>
+//     </div></div>
+//   </div>
+// JSON-LD の Event は name に色を持たないので、日付・店名・取材名が一致する
+// カードを探し、画像の alt（無ければ src の red/blue/...）から色を取る。
+function slopachiNorm(value) {
+  return String(value === null || value === undefined ? '' : value)
+    .normalize('NFKC').toLowerCase().replace(/[\s\u3000]+/g, '');
+}
+
+// 店名の表記ゆれ（MEGAFACE→MEGAフェイス、末尾の「店」、記号、空白）を吸収する
+function slopachiKeyText(value) {
+  return slopachiNorm(value).replace(/megaface/g, 'megaフェイス').replace(/[・･.,，、]/g, '');
+}
+
+function slopachiStoreKey(value) {
+  var key = slopachiKeyText(value);
+  if (key.length > 1 && key.charAt(key.length - 1) === '店') key = key.slice(0, -1);
+  return key;
+}
+
+function slopachiColorFromText(value) {
+  var text = evCleanText(value);
+  var m = /[（(](赤|青|紫|黄|黒|オレンジ)[）)]/.exec(text);
+  if (m) return m[1];
+  m = /来店取材(赤|青|紫|黄|黒|オレンジ)\s*$/.exec(text);
+  return m ? m[1] : '';
+}
+
+var SLOPACHI_COLOR_BY_FILE = {
+  red: '赤', blue: '青', purple: '紫', yellow: '黄', orange: 'オレンジ', black: '黒'
+};
+
+function slopachiCardColor(card) {
+  var color = slopachiColorFromText(card.alt);
+  if (color) return color;
+  var file = String(card.src || '').split('/').pop();
+  var m = /(red|blue|purple|yellow|orange|black)(?:\.|$)/i.exec(file);
+  return m ? SLOPACHI_COLOR_BY_FILE[m[1].toLowerCase()] : '';
+}
+
+function slopachiCards(html) {
+  var cards = [];
+  var parts = String(html === null || html === undefined ? '' : html).split('<div class="resultRow resultRow-tile');
+  for (var i = 1; i < parts.length; i++) {
+    var chunk = parts[i];
+    var next = chunk.indexOf('<div class="resultRow resultRow-tile');
+    if (next >= 0) chunk = chunk.slice(0, next);
+    var img = /<img\b[^>]*>/i.exec(chunk);
+    var date = /(\d{1,2})\s*\/\s*(\d{1,2})/.exec(evStripTags(chunk));
+    var area = /【([^】]+)】/.exec(chunk);
+    var anchor = /<a\b[^>]*>([\s\S]*?)<\/a>/i.exec(chunk);
+    if (!img || !date || !area || !anchor) continue;
+    var alt = /alt="([^"]*)"/i.exec(img[0]);
+    var src = /src="([^"]*)"/i.exec(img[0]);
+    cards.push({
+      month: parseInt(date[1], 10), day: parseInt(date[2], 10),
+      area: evCleanText(area[1]), text: evHtmlToText(anchor[1]),
+      alt: alt ? alt[1] : '', src: src ? src[1] : ''
+    });
+  }
+  return cards;
+}
+
+// 日付・店名・取材名が一致するカードを1枚だけ使う（同じカードを2回使わない）
+function slopachiFindCard(cards, used, date, store, eventName) {
+  var month = parseInt(date.slice(5, 7), 10);
+  var day = parseInt(date.slice(8, 10), 10);
+  var storeKey = slopachiStoreKey(store);
+  var eventKeyText = slopachiNorm(eventName);
+  var sameStore = [];
+  for (var i = 0; i < cards.length; i++) {
+    if (used[i]) continue;
+    var card = cards[i];
+    if (card.month !== month || card.day !== day) continue;
+    var text = slopachiKeyText(card.text);
+    if (storeKey && text.indexOf(storeKey) < 0) continue;
+    sameStore.push(i);
+    if (eventKeyText && text.indexOf(eventKeyText) >= 0) {
+      used[i] = true;
+      return card;
+    }
+  }
+  // 取材名が一致するカードが無いときは、同じ日・同じ店のカードが1枚だけのときに限り使う。
+  // 2枚以上あるなら、別の取材の色を付けないように色なしにする。
+  if (sameStore.length === 1) {
+    used[sameStore[0]] = true;
+    return cards[sameStore[0]];
+  }
+  return null;
+}
+
+// パチスロ100の表記に合わせる（景品入荷→アワード景品入荷、色は末尾の括弧）
+function slopachiDisplayName(baseName, color) {
+  var name = evCleanText(baseName);
+  if (name === 'スロパチ景品入荷' || name === 'すろぱち景品入荷') {
+    name = name.replace('景品入荷', 'アワード景品入荷');
+  }
+  if (color && !/[（(](赤|青|紫|黄|黒|オレンジ)[）)]\s*$/.test(name)) {
+    name += '(' + color + ')';
+  }
+  return name;
+}
+
 function parseSlopachiJsonLd(html, url) {
   var out = [];
   var source = String(html === null || html === undefined ? '' : html);
+  var cards = slopachiCards(source);
+  var used = {};
   var re = /<script[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/g;
   var m;
   while ((m = re.exec(source)) !== null) {
@@ -1651,8 +1782,13 @@ function parseSlopachiJsonLd(html, url) {
       var store = evCleanText(place.name);
       var event = evCleanText(x.name);
       if (!store || !event) continue;
-      out.push(evMakeRecord(date, store, evCleanText(address.addressLocality) || OSAKA_TEXT, '来店', event,
-        'スロパチステーション', '', EVENT_SOURCE_SLOPACHI, url));
+      // 「(予定)」は取材名ではなく補足に回す（色の括弧と混ざらないように）
+      var pending = /[（(]予定[）)]\s*$/.test(event);
+      var baseEvent = event.replace(/\s*[（(]予定[）)]\s*$/, '');
+      var card = slopachiFindCard(cards, used, date, store, baseEvent);
+      var display = slopachiDisplayName(baseEvent, card ? slopachiCardColor(card) : '');
+      out.push(evMakeRecord(date, store, evCleanText(address.addressLocality) || OSAKA_TEXT, '来店', display,
+        'スロパチステーション', pending ? '予定' : '', EVENT_SOURCE_SLOPACHI, url));
     }
   }
   return out;
@@ -1661,12 +1797,14 @@ function parseSlopachiJsonLd(html, url) {
 // 大阪イベントの収集。外部取得・解析はロック外、シート更新だけをロック内で実行する。
 const EVENT_HEADERS = ['キー','日付','店','市区','種別','取材名','媒体','補足','収集元','出典URL','初回取得','最終確認','状態'];
 const EVENT_JUDGEMENT_HEADERS = ['取材名','媒体','対象(P|S|PS)','採用(採用|除外|未判定)','推測される公約','根拠','メモ'];
-const EVENT_STATUS_HEADERS = ['収集元','最終実行','結果(成功|失敗)','件数','最終日付','エラー'];
+const EVENT_STATUS_HEADERS = ['収集元','最終実行','結果(成功|失敗)','件数','最終日付','エラー','前回件数'];
 const EVENT_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36';
 const EVENT_AIMS_URLS = [
   ['https://aims777.com/syuzai/aimstar_gyoku/', 'エイムスター玉'],
   ['https://aims777.com/syuzai/aimstar_chogyoku/', 'エイムスター超玉']
 ];
+// 0件が普通の収集元（0件では警告しない。失敗の警告は出す）
+const EVENT_NO_ZERO_WARNING_SOURCES = [EVENT_SOURCE_AIMS, EVENT_SOURCE_TAMADOJO];
 
 function eventToday() { return Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy-MM-dd'); }
 function eventNow() { return Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy-MM-dd HH:mm:ss'); }
@@ -1700,10 +1838,79 @@ function eventDiff(rows, records, successfulSources, now, today) {
   return {added, updated, disappeared};
 }
 
+// 前回まで1件以上あったのに今回0件なら、読み取りが壊れた可能性として警告する。
+// previousCount は「最後に1件以上取れたときの件数」（無ければ0）。
+// エイムスター・たま道場は0件が普通なので、0件では警告しない（失敗は警告する）。
 function eventStatusWarning(status, today) {
   if (status.result !== '成功') return true;
+  if (EVENT_NO_ZERO_WARNING_SOURCES.indexOf(status.source) < 0 &&
+      Number(status.count) === 0 && Number(status.previousCount) > 0) return true;
   return status.source === EVENT_SOURCE_PACHISURO100 &&
     (Number(status.count) === 0 || !status.lastDate || status.lastDate < eventDay(today, 3));
+}
+
+// 店名の表記ゆれ（MEGAFACE→MEGAフェイス、末尾の「店」、記号、空白）を吸収する
+function eventStoreKey(value) {
+  const key = String(value === null || value === undefined ? '' : value).normalize('NFKC').toLowerCase()
+    .replace(/[\s\u3000]+/g, '').replace(/megaface/g, 'megaフェイス').replace(/[・･.,，、]/g, '');
+  if (key.length > 1 && key.charAt(key.length - 1) === '店') return key.slice(0, -1);
+  return key;
+}
+
+function eventStoreMatches(left, right) {
+  const a = eventStoreKey(left), b = eventStoreKey(right);
+  if (!a || !b) return false;
+  if (a === b) return true;
+  // 「マルハン」のような短い名前で別店舗に一致しないよう、5文字以上だけ部分一致を許す
+  const shorter = a.length <= b.length ? a : b;
+  const longer = a.length <= b.length ? b : a;
+  return shorter.length >= 5 && longer.indexOf(shorter) >= 0;
+}
+
+// 取材名から「取材の種類」を決める。色は含めない。
+// 上から順に判定し、演者だけは演者名も種類の一部にする
+// （「じゃんじゃん来店(青)」と「じゃんじゃん実践来店(青)」を同じにするため）。
+function eventSlopachiKind(name) {
+  const text = evCleanText(name).normalize('NFKC');
+  for (let i = 0; i < SLOPACHI_PACHINKO_ACTORS.length; i++) {
+    if (text.indexOf(SLOPACHI_PACHINKO_ACTORS[i]) >= 0) return '演者:' + SLOPACHI_PACHINKO_ACTORS[i];
+  }
+  if (text.indexOf('実践') >= 0) {
+    const actor = text.split('実践')[0].replace(/[（(].*$/, '').trim();
+    return '演者:' + (actor || '実践');
+  }
+  if (text.indexOf('ガール') >= 0) return 'ガール';
+  if (text.indexOf('景品') >= 0) return '景品入荷';
+  if (text.indexOf('収録') >= 0) return '番組収録';
+  if (text.indexOf('宴') >= 0) return '宴';
+  if (text.indexOf('来店取材') >= 0) return '来店取材';
+  return 'その他';
+}
+
+// スロパチ公式とパチスロ100の同じ予定を1件にまとめる。
+// 日付＋店名＋取材の種類が一致したときだけ同じ予定とみなし、
+// 色付きのスロパチ公式を残す。パチスロ100にしか無い予定はそのまま残す。
+// 種類が「その他」のものは安全側に倒してまとめない。
+// anchorRows は「スロパチ公式が失敗した日に、前回のスロパチ行を残す」ための保険。
+function eventMergeSlopachiDuplicates(records, anchorRows) {
+  const slopachi = [], others = [];
+  records.forEach(item => (item.source === EVENT_SOURCE_SLOPACHI ? slopachi : others).push(item));
+  const seen = new Set();
+  const kept = slopachi.filter(item => {
+    const key = eventKey(item);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+  const anchors = kept.concat(anchorRows || []);
+  const merged = others.filter(item => {
+    if (evCleanText(item.media) !== 'スロパチステーション') return true;
+    const kind = eventSlopachiKind(item.event);
+    if (kind === 'その他') return true;
+    return !anchors.some(anchor => anchor.date === item.date &&
+      eventSlopachiKind(anchor.event) === kind && eventStoreMatches(anchor.store, item.store));
+  });
+  return merged.concat(kept);
 }
 
 function eventEventsForApp(rows, today) {
@@ -1721,7 +1928,12 @@ function eventSources(referenceDate) {
       ({url:item[0], parse:html => parseAims(html, item[0], item[1], referenceDate)}))},
     {name:EVENT_SOURCE_JANBARI, requests:[{url:JANBARI_URL, parse:html => parseJanbari(html, referenceDate)}]},
     {name:EVENT_SOURCE_TAMADOJO, requests:[{url:TAMADOJO_URL, parse:html => parseTamaDojo(html, referenceDate)}]},
-    {name:EVENT_SOURCE_SLOPACHI, requests:[{url:SLOPACHI_RENJIRO_URL, parse:html => parseSlopachiJsonLd(html, SLOPACHI_RENJIRO_URL)}]}
+    // スロパチ公式は日本のVercel中継（api/slopachi.js）経由で4ページを取る。
+    // 直接取ると海外のGASからは403になるため。
+    {name:EVENT_SOURCE_SLOPACHI, requests:Object.keys(SLOPACHI_PAGE_PATHS).map(page => {
+      const url = SLOPACHI_ORIGIN + SLOPACHI_PAGE_PATHS[page];
+      return {url, relayPage:page, parse:html => parseSlopachiJsonLd(html, url)};
+    })}
   ];
 }
 
@@ -1732,15 +1944,58 @@ function eventFetchHtml(url) {
   return response.getContentText('UTF-8');
 }
 
+// 中継（Vercel）から1ページ分のHTMLを取る。
+// 中継のURLと合言葉はスクリプトプロパティから読み、コードには書かない。
+function eventFetchRelay(page) {
+  const properties = PropertiesService.getScriptProperties();
+  const base = String(properties.getProperty('SLOPACHI_RELAY_URL') || '').trim();
+  const token = String(properties.getProperty('SLOPACHI_RELAY_TOKEN') || '').trim();
+  if (!base) throw new Error('中継URLが未設定');
+  if (!token) throw new Error('中継トークンが未設定');
+  const url = base + (base.indexOf('?') >= 0 ? '&' : '?') + 'page=' + encodeURIComponent(page);
+  // 合言葉はURLに載せず、ヘッダーで送る（Vercelのログに残さない）
+  const response = UrlFetchApp.fetch(url, {headers:{'X-Relay-Token':token}, muteHttpExceptions:true});
+  const code = response.getResponseCode();
+  if (code === 403) throw new Error('中継も403');
+  if (code < 200 || code >= 300) throw new Error('中継HTTP ' + code);
+  let data;
+  try {
+    data = JSON.parse(response.getContentText('UTF-8'));
+  } catch (error) {
+    throw new Error('中継の応答がJSONではありません');
+  }
+  const status = Number(data && data.status);
+  if (status === 403) throw new Error('中継も403');
+  if (status !== 200) throw new Error('中継HTTP ' + (status || '不明'));
+  const html = String((data && data.html) || '');
+  if (!html) throw new Error('中継のHTMLが空です');
+  return html;
+}
+
+// 同じ収集元の中で、同じ日付・店・取材名の重複を除く
+// （スロパチは関西ページと演者ページで同じ予定が載るため）
+function eventUniqueRecords(records) {
+  const seen = new Set();
+  return records.filter(item => {
+    const key = eventKey(item);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 function eventFetchSource(source, waitBeforeFetch) {
   const records = [];
   source.requests.forEach(request => {
     if (waitBeforeFetch()) Utilities.sleep(1000);
-    const parsed = request.parse(eventFetchHtml(request.url));
+    const html = request.relayPage ? eventFetchRelay(request.relayPage) : eventFetchHtml(request.url);
+    const parsed = request.parse(html);
     if (!Array.isArray(parsed)) throw new Error('解析結果が不正です');
     records.push(...parsed);
   });
   if (source.name === EVENT_SOURCE_PACHISURO100 && records.length === 0) throw new Error('収集件数が0件です');
+  // スロパチだけ、関西ページと演者ページの同じ予定を1件にまとめる
+  if (source.name === EVENT_SOURCE_SLOPACHI) return eventUniqueRecords(records);
   return records;
 }
 
@@ -1827,17 +2082,42 @@ function eventAppendJudgements(sheet, records) {
   return added.length;
 }
 
-function eventStatusValues(item, now) {
-  return [item.source, now, item.result, item.count, item.lastDate, item.error].map((value, index) =>
-    index === 3 ? value : eventSafe(value));
+function eventStatusValues(item, now, previousCount) {
+  return [item.source, now, item.result, item.count, item.lastDate, item.error, previousCount]
+    .map((value, index) => index === 3 || index === 6 ? Number(value) || 0 : eventSafe(value));
 }
 
-function eventWriteStatuses(sheet, results, now) {
-  const existing = eventReadValues(sheet, 6);
-  const positions = new Map(existing.map((row, index) => [eventCell(row[0]), index + 2]));
+// G列「前回件数」= 最後に1件以上取れたときの件数。
+// 今回1件以上なら今回の件数、0件または失敗なら前の値を引き継ぐ。
+function eventNextPreviousCount(item, previous) {
+  const count = Number(item.count) || 0;
+  if (item.result === '成功' && count > 0) return count;
+  return Number(previous) || 0;
+}
+
+// G列が空の既存シート（6列）は、D列（前回の件数）を引き継ぐ
+function eventPreviousCounts(sheet) {
+  return new Map(eventReadValues(sheet, 7).map(row => {
+    const stored = row[6];
+    const empty = stored === '' || stored === null || stored === undefined;
+    return [eventCell(row[0]), empty ? (Number(row[3]) || 0) : (Number(stored) || 0)];
+  }));
+}
+
+// 既存シートに7列目が無ければ見出しを足す（既存の6列はそのまま）
+function eventEnsureStatusHeader(sheet) {
+  if (!sheet || sheet.getLastRow() < 1) return;
+  const header = sheet.getRange(1, 1, 1, 7).getValues()[0];
+  if (eventCell(header[6]) !== '前回件数') sheet.getRange(1, 7).setValues([['前回件数']]);
+}
+
+function eventWriteStatuses(sheet, results, now, previousCounts) {
+  const positions = new Map(eventReadValues(sheet, 7).map((row, index) => [eventCell(row[0]), index + 2]));
   results.forEach(item => {
     const rowNumber = positions.get(item.source) || sheet.getLastRow() + 1;
-    sheet.getRange(rowNumber, 1, 1, 6).setValues([eventStatusValues(item, now)]);
+    const previous = previousCounts ? (previousCounts.get(item.source) || 0) : 0;
+    const nextPrevious = eventNextPreviousCount(item, previous);
+    sheet.getRange(rowNumber, 1, 1, 7).setValues([eventStatusValues(item, now, nextPrevious)]);
     positions.set(item.source, rowNumber);
   });
 }
@@ -1848,23 +2128,35 @@ function eventApplyCollection(results, now, today) {
   const judgements = eventSheet(spreadsheet, '取材判定', EVENT_JUDGEMENT_HEADERS, true);
   const status = eventSheet(spreadsheet, '収集状態', EVENT_STATUS_HEADERS, true);
   const successful = results.filter(item => item.result === '成功');
-  const records = successful.flatMap(item => item.records);
-  const diff = eventDiff(eventReadRows(events), records, successful.map(item => item.source), now, today);
+  const priorRows = eventReadRows(events);
+  const previousCounts = eventPreviousCounts(status);
+  // スロパチ公式が失敗した日は、前回のスロパチ行を基準にパチスロ100の重複を除く。
+  // そうしないと、失敗した日だけ同じ予定が2件並ぶ。
+  const slopachiSucceeded = successful.some(item => item.source === EVENT_SOURCE_SLOPACHI);
+  const anchors = slopachiSucceeded ? [] : priorRows.filter(item =>
+    item.source === EVENT_SOURCE_SLOPACHI && item.status === '有効' && item.date >= today);
+  const records = eventMergeSlopachiDuplicates(successful.flatMap(item => item.records), anchors);
+  const diff = eventDiff(priorRows, records, successful.map(item => item.source), now, today);
   eventWriteUpdates(events, diff.updated.concat(diff.disappeared), 13, eventRowValues);
   if (diff.added.length) events.getRange(events.getLastRow() + 1, 1, diff.added.length, 13)
     .setValues(diff.added.map(eventRowValues));
   const newJudgements = eventAppendJudgements(judgements, records);
-  eventWriteStatuses(status, results, now);
+  eventEnsureStatusHeader(status);
+  eventWriteStatuses(status, results, now, previousCounts);
   return {success:true, sources:results.map(({records:ignored, ...item}) => ({...item,
-    warning:eventStatusWarning(item, today)})), added:diff.added.length,
-    updated:diff.updated.length, disappeared:diff.disappeared.length, newJudgements};
+    previousCount:previousCounts.get(item.source) || 0,
+    warning:eventStatusWarning({...item, previousCount:previousCounts.get(item.source) || 0}, today)})),
+    added:diff.added.length, updated:diff.updated.length, disappeared:diff.disappeared.length, newJudgements};
 }
 
 function eventReadStatuses(sheet, today) {
-  return eventReadValues(sheet, 6).map(r => {
+  return eventReadValues(sheet, 7).map(r => {
+    const stored = r[6];
+    const empty = stored === '' || stored === null || stored === undefined;
     const item = {source:eventCell(r[0]), lastRun:eventCell(r[1], 'yyyy-MM-dd HH:mm:ss'),
       result:eventCell(r[2]), count:Number(r[3]) || 0, lastDate:eventCell(r[4], 'yyyy-MM-dd'),
-      error:eventCell(r[5])};
+      error:eventCell(r[5]),
+      previousCount:empty ? (Number(r[3]) || 0) : (Number(stored) || 0)};
     return {...item, warning:eventStatusWarning(item, today)};
   }).filter(item => item.source);
 }

@@ -75,6 +75,15 @@ const autoCases = [
   ['わーさん玉道場', '', '', 'P'],
   ['じゃんばり潜入来店取材', '', '', 'S'],
   ['普通の取材', '', '', 'S'],
+  // 2026-10-30 追加: スロパチの色・演者・ひらがな表記
+  ['すろぱちアワード景品入荷(黒)', 'スロパチステーション', '', 'P'],
+  ['スロパチアワード景品入荷(黒)', 'スロパチステーション', '', 'P'],
+  ['スロパチステーション来店取材(オレンジ)', 'スロパチステーション', '', 'P'],
+  ['スロパチステーション来店取材(青)', 'スロパチステーション', '', 'PS'],
+  ['スロパチステーション来店取材(紫)', 'スロパチステーション', '', 'S'],
+  ['るいべえ実践来店(青)', 'スロパチステーション', '', 'P'],
+  ['じゃんじゃん実践来店(青)', 'スロパチステーション', '', 'P'],
+  ['スロぱちガール来店PS', 'スロパチステーション', '', 'PS'],
 ];
 for (const [name, media, note, expected] of autoCases) {
   context.at = [name, media, note];
@@ -185,13 +194,37 @@ check('エイムスター 壊れたHTMLは空配列', run("parseAims('<<<', 'u',
 // ジャンバリ（日付/都道府県/店名/取材名の4行組）
 // =============================================
 context.janbari = `
-<div>10月11日(日)</div><div>滋賀</div><div>マルハン草津店</div><div>じゃんばり潜入来店取材</div>
-<div>10月12日(月)</div><div>大阪</div><div>店D</div><div>じゃんばり潜入来店取材</div>
+<div>10月11日(日)</div><div>滋賀</div><div>マルハン草津店</div><div>ジャンバリ潜入来店取材</div>
+<div>10月12日(月)</div><div>大阪</div><div>店D</div><div>ジャンバリ潜入来店取材</div>
 `;
 check('ジャンバリ 大阪のみ', run('parseJanbari(janbari, ref)'), [
-  { date: '2026-10-12', store: '店D', area: '大阪', kind: '取材', event: 'じゃんばり潜入来店取材', media: '', note: '', source: 'ジャンバリ', source_url: 'https://jb-portal.com/schedule/?report_id=5' },
+  { date: '2026-10-12', store: '店D', area: '大阪', kind: '取材', event: 'ジャンバリ潜入来店取材', media: '', note: '', source: 'ジャンバリ', source_url: 'https://jb-portal.com/schedule/?report_id=4' },
 ]);
 check('ジャンバリ 壊れたHTMLは空配列', run("parseJanbari('<div', ref)"), []);
+
+// 実サイト（report_id=4）の構造: 同じ日付の下に複数店舗が並ぶ
+context.janbariMulti = `
+<div class='schedule-list'>
+  <h4 class='schedule-date'>10月30日(金)</h4>
+  <a class='schedule-link' href='/hall/h340'><div class='schedule'><div class='schedule-info'><div class='schedule-icon'><img src='/img/report/4/icon/x.png' alt='ジャンバリ潜入来店取材'></div><div class='schedule-data'><p class='pref-label bg-color-kansai'>大阪</p><p class='hall-name'>テンイチ泉南店</p><p class='report-label'>ジャンバリ潜入来店取材</p></div></div></div></a>
+  <a class='schedule-link' href='/hall/h4068'><div class='schedule'><div class='schedule-info'><div class='schedule-icon'><img src='/img/report/4/icon/x.png' alt='ジャンバリ潜入来店取材'></div><div class='schedule-data'><p class='pref-label bg-color-kansai'>大阪</p><p class='hall-name'>マルハン加島店</p><p class='report-label'>ジャンバリ潜入来店取材</p></div></div></div></a>
+  <a class='schedule-link' href='/hall/h232'><div class='schedule'><div class='schedule-info'><div class='schedule-icon'><img src='/img/report/4/icon/x.png' alt='ジャンバリ潜入来店取材'></div><div class='schedule-data'><p class='pref-label bg-color-kansai'>滋賀</p><p class='hall-name'>マルハン草津店</p><p class='report-label'>ジャンバリ潜入来店取材</p></div></div></div></a>
+  <h4 class='schedule-date'>11月1日(日)</h4>
+  <a class='schedule-link' href='/hall/h943'><div class='schedule'><div class='schedule-info'><div class='schedule-icon'><img src='/img/report/4/icon/x.png' alt='ジャンバリ潜入来店取材'></div><div class='schedule-data'><p class='pref-label bg-color-kansai'>大阪</p><p class='hall-name'>SUPER COSMO PREMIUM柏原店</p><p class='report-label'>ジャンバリ潜入来店取材</p></div></div></div></a>
+</div>
+`;
+const jbMulti = run('parseJanbari(janbariMulti, ref)');
+check('ジャンバリ 同じ日付の複数店舗をすべて読む', jbMulti.map(x => x.store),
+  ['テンイチ泉南店', 'マルハン加島店', 'SUPER COSMO PREMIUM柏原店']);
+check('ジャンバリ 複数店舗の日付', jbMulti.map(x => x.date),
+  ['2026-10-30', '2026-10-30', '2026-11-01']);
+
+// 実サイトのfixture（2026-10-30）: 大阪15件
+context.janbariFixture = fs.readFileSync(path.join(__dirname, 'fixtures/events-20261030/janbari_report4.html'), 'utf8');
+const jbFixture = run('parseJanbari(janbariFixture, ref)');
+check('ジャンバリ fixture 大阪15件', jbFixture.length, 15);
+check('ジャンバリ fixture 先頭', [jbFixture[0].date, jbFixture[0].store],
+  ['2026-10-30', 'テンイチ泉南店']);
 
 // =============================================
 // たま道場（日付 / 大阪 / 種別 / 店名。先頭の「・」は無視）
@@ -210,6 +243,59 @@ context.firstVisit = '<div>10月8日</div><div>大阪</div><div>初取材</div><
 check('たま道場 初取材を補足に記録', run('parseTamaDojo(firstVisit, ref)')[0],
   { date:'2026-10-08', store:'店H', area:'大阪', kind:'取材', event:'わーさん玉道場',
     media:'', note:'初取材', source:'たま道場', source_url:'https://tama-dojo.com/' });
+
+// =============================================
+// スロパチ公式（実サイトfixture 2026-10-30）
+// =============================================
+const fixture = name => fs.readFileSync(path.join(__dirname, 'fixtures/events-20261030/' + name), 'utf8');
+context.slopachiKansai = fixture('slopachi_kansai.html');
+context.slopachiRenjiro = fixture('slopachi_renjiro.html');
+context.slopachiJanjan = fixture('slopachi_janjan.html');
+context.slopachiRuibee = fixture('slopachi_ruibee.html');
+const slKansai = run('parseSlopachiJsonLd(slopachiKansai, "u")');
+check('スロパチ関西 fixture 大阪25件', slKansai.length, 25);
+const slOne = (date, store) => slKansai.find(x => x.date === date && x.store === store);
+check('スロパチ 11/1 美原 オレンジ', slOne('2026-11-01', 'HYPER ARROW 美原店').event,
+  'スロパチステーション来店取材(オレンジ)');
+check('スロパチ 11/5 高槻 景品', slOne('2026-11-05', 'P.E.KING OF KINGS 1333 高槻').event,
+  'スロパチアワード景品入荷(赤)');
+check('スロパチ 11/6 高槻 青', slOne('2026-11-06', 'P.E.KING OF KINGS 1333 高槻').event,
+  'スロパチステーション来店取材(青)');
+check('スロパチ 11/7 美原 紫', slOne('2026-11-07', 'HYPER ARROW 美原店').event,
+  'スロパチステーション来店取材(紫)');
+check('スロパチ 11/7 高槻 紫', slOne('2026-11-07', 'P.E.KING OF KINGS 1333 高槻').event,
+  'スロパチステーション来店取材(紫)');
+check('スロパチ 11/8 すろぱち景品 黒', slOne('2026-11-08', '123+N松原店').event,
+  'すろぱちアワード景品入荷(黒)');
+check('スロパチ 11/1 梅田 れんじろう 赤', slOne('2026-11-01', 'マルハン梅田店').event,
+  'れんじろう実践来店(赤)');
+check('スロパチ れんじろうページ 大阪1件', run('parseSlopachiJsonLd(slopachiRenjiro, "u")').length, 1);
+check('スロパチ じゃんじゃんページ 大阪1件', run('parseSlopachiJsonLd(slopachiJanjan, "u")').length, 1);
+check('スロパチ るいべえページ 大阪0件', run('parseSlopachiJsonLd(slopachiRuibee, "u")').length, 0);
+
+// カードの取り違え: 同じ日・同じ店に2枚あり、取材名が合わないときは色を付けない
+function slopachiCard(date, area, alt, text) {
+  return '<div class="resultRow resultRow-tile"><div class="resultRow-image">' +
+    '<img src="/img/icon-raiten-report-red.png" alt="' + alt + '"></div>' +
+    '<div class="resultRow-box"><div class="resultRow-detail">' + date +
+    ' ( <div class="week6">土</div> ) 【' + area + '】<br><a href="#">' + text + '</a></div></div></div>';
+}
+function slopachiLd(name, store) {
+  return '<script type="application/ld+json">' + JSON.stringify({
+    '@context':'https://schema.org', '@type':'Event', name,
+    startDate:'2026-11-01',
+    location:{name:store, address:{addressRegion:'大阪府', addressLocality:'大阪市北区'}}
+  }) + '</script>';
+}
+context.slopachiAmbiguous = slopachiLd('スロパチステーション来店取材', '店A') +
+  slopachiCard('11/1', '大阪府大阪市北区', '来店取材赤', '別の取材A 店A') +
+  slopachiCard('11/1', '大阪府大阪市北区', '来店取材青', '別の取材B 店A');
+check('スロパチ カード2枚で名前不一致なら色なし',
+  run('parseSlopachiJsonLd(slopachiAmbiguous, "u")')[0].event, 'スロパチステーション来店取材');
+context.slopachiSingleCard = slopachiLd('スロパチステーション来店取材', '店A') +
+  slopachiCard('11/1', '大阪府大阪市北区', '来店取材赤', '別の取材A 店A');
+check('スロパチ カード1枚なら色を拾う',
+  run('parseSlopachiJsonLd(slopachiSingleCard, "u")')[0].event, 'スロパチステーション来店取材(赤)');
 
 // =============================================
 // 結果
