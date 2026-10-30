@@ -131,6 +131,7 @@ assert.deepEqual([writeStatus('成功',25), writeStatus('失敗',0), writeStatus
 resetSeq();
 assert.deepEqual([writeStatus('成功',25), writeStatus('成功',0), writeStatus('成功',30)], [25,25,30]);
 assert.equal(run("eventStatusWarning({source:'スロパチ公式', result:'成功', count:0, previousCount:25}, '2026-10-30')"), true);
+assert.equal(run("eventStatusWarning({source:'スロパチ公式', result:'成功', count:30, previousCount:25}, '2026-10-30')"), false);
 assert.equal(run("eventStatusWarning({source:'エイムスター', result:'成功', count:0, previousCount:2}, '2026-10-30')"), false);
 
 const responses = new Map([
